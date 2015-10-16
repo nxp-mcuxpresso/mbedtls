@@ -52,7 +52,7 @@
 
 #endif
 
-#if 0 //DM (FSL_FEATURE_SOC_MMCAU_COUNT > 0)
+#if (FSL_FEATURE_SOC_MMCAU_COUNT > 0)
     #define FREESCALE_MMCAU 1 ////DM
     #define FREESCALE_MMCAU_SHA  1 //DM
     #include "cau_api.h"

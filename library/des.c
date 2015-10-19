@@ -507,7 +507,7 @@ void mbedtls_des_setkey( uint32_t SK[32], const unsigned char key[MBEDTLS_DES_KE
  */
 int mbedtls_des_setkey_enc( mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE] )
 {
-#if defined (FREESCALE_LTC) 
+#if defined (MBEDTLS_FREESCALE_LTC_DES) 
     int i;
     for(i = 0 ;i< MBEDTLS_DES_KEY_SIZE ; i++)
     {
@@ -535,7 +535,7 @@ int mbedtls_des_setkey_enc( mbedtls_des_context *ctx, const unsigned char key[MB
 int mbedtls_des_setkey_dec( mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE] )
 {
     int i;
-#if defined (FREESCALE_LTC) 
+#if defined (MBEDTLS_FREESCALE_LTC_DES) 
     for(i = 0 ;i< MBEDTLS_DES_KEY_SIZE ; i++)
     {
         ctx -> sk[i] = key[i];
@@ -591,7 +591,7 @@ static void des3_set2key( uint32_t esk[96],
 int mbedtls_des3_set2key_enc( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2] )
 {
-#if defined (FREESCALE_LTC) 
+#if defined (MBEDTLS_FREESCALE_LTC_DES) 
     int i;
     for(i = 0 ; i< MBEDTLS_DES_KEY_SIZE*2 ; i++)
     {
@@ -624,7 +624,7 @@ int mbedtls_des3_set2key_enc( mbedtls_des3_context *ctx,
 int mbedtls_des3_set2key_dec( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2] )
 {
-#if defined (FREESCALE_LTC) 
+#if defined (MBEDTLS_FREESCALE_LTC_DES) 
     int i;
     for(i = 0 ;i < MBEDTLS_DES_KEY_SIZE*2 ; i++)
     {
@@ -680,7 +680,7 @@ static void des3_set3key( uint32_t esk[96],
 int mbedtls_des3_set3key_enc( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3] )
 {
-#if defined (FREESCALE_LTC) 
+#if defined (MBEDTLS_FREESCALE_LTC_DES) 
     int i ;
     for(i = 0 ;i < MBEDTLS_DES_KEY_SIZE*3 ; i++)
     {
@@ -710,7 +710,7 @@ int mbedtls_des3_set3key_enc( mbedtls_des3_context *ctx,
 int mbedtls_des3_set3key_dec( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3] )
 {
-#if defined (FREESCALE_LTC)
+#if defined (MBEDTLS_FREESCALE_LTC_DES)
     int i ;
     for(i = 0 ;i< MBEDTLS_DES_KEY_SIZE*3 ; i++)
     {
@@ -741,7 +741,7 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
                     const unsigned char input[8],
                     unsigned char output[8] )
 {
-#if defined(FREESCALE_LTC)
+#if defined(MBEDTLS_FREESCALE_LTC_DES)
     uint8_t key[8];
     int i = 0 ;
     for(i = 0 ; i < 8 ; i++)
@@ -801,7 +801,7 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
 
     PUT_UINT32_BE( Y, output, 0 );
     PUT_UINT32_BE( X, output, 4 );
-#endif /*FREESCALE_LTC*/
+#endif 
     return( 0 );
 }
 #endif /* !MBEDTLS_DES_CRYPT_ECB_ALT */
@@ -820,7 +820,7 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
     int i;
     unsigned char temp[8];
 
-#if defined (FREESCALE_LTC)
+#if defined (MBEDTLS_FREESCALE_LTC_DES)
     uint8_t key[8];
     for(i = 0 ; i < 8 ; i++)
     {
@@ -833,7 +833,7 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
 
     if( mode == MBEDTLS_DES_ENCRYPT )
     {
-#if defined (FREESCALE_LTC)
+#if defined (MBEDTLS_FREESCALE_LTC_DES)
         LTC_DRV_des_encrypt_cbc( LTC_INSTANCE,
                                  input,
                                  length,
@@ -859,7 +859,7 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
     }
     else /* MBEDTLS_DES_DECRYPT */
     {
-#if defined (FREESCALE_LTC)
+#if defined (MBEDTLS_FREESCALE_LTC_DES)
         memcpy( temp, input, 8 );
         LTC_DRV_des_decrypt_cbc( LTC_INSTANCE,
                                  input,
@@ -890,7 +890,7 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-#if defined (FREESCALE_LTC)
+#if defined (MBEDTLS_FREESCALE_LTC_DES)
 /*
  * 2DES-ECB block encryption/decryption
  */
@@ -934,7 +934,7 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
                      const unsigned char input[8],
                      unsigned char output[8] )
 {
-#if defined (FREESCALE_LTC)
+#if defined (MBEDTLS_FREESCALE_LTC_DES)
     uint8_t key[24];
     int i ;
     for(i = 0 ; i < 24 ; i++)
@@ -1021,7 +1021,7 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 
-#if defined (FREESCALE_LTC)
+#if defined (MBEDTLS_FREESCALE_LTC_DES)
 int des2_crypt_cbc( mbedtls_des3_context *ctx,
                      int mode,
                      size_t length,
@@ -1084,7 +1084,7 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
     if( length % 8 )
         return( MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH );
 
-#if defined (FREESCALE_LTC)
+#if defined (MBEDTLS_FREESCALE_LTC_DES)
     uint8_t key[24];
     for(i = 0 ; i < 24 ; i++)
     {
@@ -1093,7 +1093,7 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
 #endif
     if( mode == MBEDTLS_DES_ENCRYPT )
     {
-#if defined (FREESCALE_LTC)
+#if defined (MBEDTLS_FREESCALE_LTC_DES)
         LTC_DRV_des3_encrypt_cbc( LTC_INSTANCE,
                                  input,
                                  length,
@@ -1121,7 +1121,7 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
     }
     else /* MBEDTLS_DES_DECRYPT */
     {
-#if defined (FREESCALE_LTC)
+#if defined (MBEDTLS_FREESCALE_LTC_DES)
         memcpy( temp, input, 8 );
         LTC_DRV_des3_decrypt_cbc( LTC_INSTANCE,
                                  input,
@@ -1275,7 +1275,7 @@ int mbedtls_des_self_test( int verbose )
         {
             if( u == 0 )
                 mbedtls_des_crypt_ecb( &ctx, buf, buf );
-#if defined (FREESCALE_LTC)
+#if defined (MBEDTLS_FREESCALE_LTC_DES)
             else if( u == 1 )
                 des2_crypt_ecb( &ctx3, buf, buf );
 #endif
@@ -1356,7 +1356,7 @@ int mbedtls_des_self_test( int verbose )
             {
                 if( u == 0 )
                     mbedtls_des_crypt_cbc( &ctx, v, 8, iv, buf, buf );
-#if defined (FREESCALE_LTC)
+#if defined (MBEDTLS_FREESCALE_LTC_DES)
                 else if( u == 1 )
                     des2_crypt_cbc( &ctx3, v, 8, iv, buf, buf );
 #endif
@@ -1372,7 +1372,7 @@ int mbedtls_des_self_test( int verbose )
 
                 if( u == 0 )
                     mbedtls_des_crypt_cbc( &ctx, v, 8, iv, buf, buf );
-#if defined (FREESCALE_LTC)
+#if defined (MBEDTLS_FREESCALE_LTC_DES)
                 else if( u == 1 )
                     des2_crypt_cbc( &ctx3, v, 8, iv, buf, buf );
 #endif

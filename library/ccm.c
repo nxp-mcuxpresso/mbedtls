@@ -38,7 +38,7 @@
 
 #include "mbedtls/ccm.h"
 
-#if defined(FREESCALE_LTC)
+#if defined(MBEDTLS_FREESCALE_LTC_AES)
 #include "mbedtls/aes.h"
 #endif
 
@@ -144,7 +144,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
                            const unsigned char *input, unsigned char *output,
                            unsigned char *tag, size_t tag_len )
 {
-#if defined(FREESCALE_LTC)
+#if defined(MBEDTLS_FREESCALE_LTC_AES)
     const uint8_t *key ;
     uint8_t keySize ;
     mbedtls_aes_context *aes_ctx ;
@@ -342,7 +342,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 
     CTR_CRYPT( y, y, 16 );
     memcpy( tag, y, tag_len );
-#endif /*FREESCALE_LTC*/
+#endif /*MBEDTLS_FREESCALE_LTC_AES*/
     return( 0 );
 }
 
@@ -379,7 +379,7 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
     {
         return( ret );
     }
-#if !defined(FREESCALE_LTC)
+#if !defined(MBEDTLS_FREESCALE_LTC_AES)
     /* Check tag in "constant-time" */
     for( diff = 0, i = 0; i < tag_len; i++ )
         diff |= tag[i] ^ check_tag[i];

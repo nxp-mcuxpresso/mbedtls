@@ -451,7 +451,7 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
                        size_t tag_len,
                        unsigned char *tag )
 {
-#if defined(FREESCALE_LTC)
+#if defined(MBEDTLS_FREESCALE_LTC_AES)
     uint8_t *key ;
     uint32_t keySize ;
     mbedtls_aes_context *aes_ctx ;
@@ -504,7 +504,7 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
 
     if( ( ret = mbedtls_gcm_finish( ctx, tag, tag_len ) ) != 0 )
         return( ret );
-#endif /*FREESCALE_LTC*/
+#endif /*MBEDTLS_FREESCALE_LTC_AES*/
     return( 0 );
 }
 

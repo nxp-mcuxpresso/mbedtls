@@ -37,31 +37,25 @@
 
 /* Enable LTC use in library if there is LTC on chip. */
 #if 0 //DM (FSL_FEATURE_SOC_LTC_COUNT > 0)
-
     #include "fsl_ltc_driver.h"
 
-    #define LTC_INSTANCE  (0)
+    #define LTC_INSTANCE                LTC0    /* LTC base register.*/
 
-    #define FREESCALE_LTC (1)   //DM 
-
-
+    #define MBEDTLS_FREESCALE_LTC_DES           /* Enable use of LTC DES.*/
+    #define MBEDTLS_FREESCALE_LTC_AES           /* Enable use of LTC AES.*/
     #if FSL_FEATURE_LTC_HAS_PKHA 
-        #define FREESCALE_LTC_PKHA (1)
-        #define MBEDTLS_FREESCALE_LTC_PKHA 
+        #define MBEDTLS_FREESCALE_LTC_PKHA      /* Enable use of LTC PKHA.*/
     #endif
-
 #endif
 
 #if (FSL_FEATURE_SOC_MMCAU_COUNT > 0)
-    #define FREESCALE_MMCAU 1 ////DM
-    #define FREESCALE_MMCAU_SHA  1 //DM
     #include "cau_api.h"
 
-    #define MBEDTLS_FREESCALE_MMCAU_MD5 
-    #define MBEDTLS_FREESCALE_MMCAU_SHA1 
-    #define MBEDTLS_FREESCALE_MMCAU_SHA256 
-    #define MBEDTLS_FREESCALE_MMCAU_DES 
-    #define MBEDTLS_FREESCALE_MMCAU_AES 
+    #define MBEDTLS_FREESCALE_MMCAU_MD5         /* Enable use of MMCAU MD5.*/
+    #define MBEDTLS_FREESCALE_MMCAU_SHA1        /* Enable use of MMCAU SHA1.*/
+    #define MBEDTLS_FREESCALE_MMCAU_SHA256      /* Enable use of MMCAU SHA256.*/
+    #define MBEDTLS_FREESCALE_MMCAU_DES         /* Enable use of MMCAU DES, when LTC is disabled.*/
+    #define MBEDTLS_FREESCALE_MMCAU_AES         /* Enable use of MMCAU AES, when LTC is disabled.*/
 #endif
 
 

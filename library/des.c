@@ -743,30 +743,22 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
 {
 #if defined(MBEDTLS_FREESCALE_LTC_DES)
     uint8_t key[8];
-    int i = 0 ;
+    int i;
     for(i = 0 ; i < 8 ; i++)
     {
         key[i] = (uint8_t)ctx ->sk[i] ;
     }
     if(ctx -> mode == MBEDTLS_DES_ENCRYPT)
     {
-        LTC_DRV_des_encrypt_ecb( LTC_INSTANCE,
-                                 input,
-                                 key,
-                                 output
-                                 ) ;
+        LTC_DES_encrypt_ecb( LTC_INSTANCE, input, output, 8, key) ;
     }
     else
     {
-        LTC_DRV_des_decrypt_ecb( LTC_INSTANCE,
-                             input,
-                             (uint8_t*)key,
-                             output
-                             ) ;
+        LTC_DES_decrypt_ecb( LTC_INSTANCE, input, output, 8, key);
     }
 #elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
     uint8_t key[8];
-    int i = 0 ;
+    int i;
     for(i = 0 ; i < 8 ; i++)
     {
         key[i] = (uint8_t)ctx ->sk[i] ;
@@ -834,14 +826,8 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
     if( mode == MBEDTLS_DES_ENCRYPT )
     {
 #if defined (MBEDTLS_FREESCALE_LTC_DES)
-        LTC_DRV_des_encrypt_cbc( LTC_INSTANCE,
-                                 input,
-                                 length,
-                                 iv,
-                                 key,
-                                 output
-                               ) ;
-         memcpy( iv, output, 8 );
+        LTC_DES_encrypt_cbc(LTC_INSTANCE, input, output, length, iv, key);
+        memcpy( iv, output, 8 );
 #else
         while( length > 0 )
         {
@@ -861,13 +847,7 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
     {
 #if defined (MBEDTLS_FREESCALE_LTC_DES)
         memcpy( temp, input, 8 );
-        LTC_DRV_des_decrypt_cbc( LTC_INSTANCE,
-                                 input,
-                                 length,
-                                 iv,
-                                 key,
-                                 output
-                                ) ;
+        LTC_DES_decrypt_cbc(LTC_INSTANCE, input, output, length, iv, key) ;
         memcpy( iv, temp, 8 );
 #else
         while( length > 0 )
@@ -906,21 +886,11 @@ int des2_crypt_ecb( mbedtls_des3_context *ctx,
     }
     if(ctx -> mode == MBEDTLS_DES_ENCRYPT)
     {
-        LTC_DRV_des2_encrypt_ecb(LTC_INSTANCE,
-                                 input,
-                                 key,
-                                 key + 8,
-                                 output
-                                ) ;
+        LTC_DES2_encrypt_ecb(LTC_INSTANCE, input, output, 8, key, key + 8);
     }
     else
     {
-        LTC_DRV_des2_decrypt_ecb(LTC_INSTANCE,
-                                 input,
-                                 key,
-                                 key + 8,
-                                 output
-                                ) ;
+        LTC_DES2_decrypt_ecb(LTC_INSTANCE, input, output, 8, key, key + 8);
     }
     return( 0 );
 }
@@ -943,23 +913,11 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
     }
     if(ctx -> mode == MBEDTLS_DES_ENCRYPT)
     {
-        LTC_DRV_des3_encrypt_ecb(LTC_INSTANCE,
-                                 input,
-                                 key,
-                                 key + 8,
-                                 key + 16,
-                                 output
-                                ) ;
+        LTC_DES3_encrypt_ecb(LTC_INSTANCE, input, output, 8, key, key + 8, key + 16);
     }
     else
     {
-        LTC_DRV_des3_decrypt_ecb(LTC_INSTANCE,
-                                 input,
-                                 key,
-                                 key + 8,
-                                 key + 16,
-                                 output
-                                ) ;
+        LTC_DES3_decrypt_ecb(LTC_INSTANCE, input, output, 8, key, key + 8, key + 16);
     }
 #elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
     uint8_t key[24];
@@ -1041,27 +999,13 @@ int des2_crypt_cbc( mbedtls_des3_context *ctx,
     }
     if( mode == MBEDTLS_DES_ENCRYPT )
     {
-        LTC_DRV_des2_encrypt_cbc( LTC_INSTANCE,
-                                 input,
-                                 length,
-                                 iv,
-                                 key ,
-                                 key + 8,
-                                 output
-                               ) ;
+        LTC_DES2_encrypt_cbc(LTC_INSTANCE, input, output, length, iv, key, key + 8) ;
         memcpy( iv, output, 8 );
     }
     else /* DES_DECRYPT */
     {
         memcpy( temp, input, 8 );
-        LTC_DRV_des2_decrypt_cbc( LTC_INSTANCE,
-                                 input,
-                                 length,
-                                 iv,
-                                 key,
-                                 key + 8,
-                                 output
-                                ) ;
+        LTC_DES2_decrypt_cbc(LTC_INSTANCE, input, output, length, iv, key, key + 8) ;
         memcpy( iv, temp, 8 );
     }
     return( 0 );
@@ -1094,15 +1038,7 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
     if( mode == MBEDTLS_DES_ENCRYPT )
     {
 #if defined (MBEDTLS_FREESCALE_LTC_DES)
-        LTC_DRV_des3_encrypt_cbc( LTC_INSTANCE,
-                                 input,
-                                 length,
-                                 iv,
-                                 key ,
-                                 key + 8,
-                                 key + 16,
-                                 output
-                               ) ;
+        LTC_DES3_encrypt_cbc(LTC_INSTANCE, input, output, length, iv, key, key + 8, key + 16);
         memcpy( iv, output, 8 );
 #else
         while( length > 0 )
@@ -1123,15 +1059,7 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
     {
 #if defined (MBEDTLS_FREESCALE_LTC_DES)
         memcpy( temp, input, 8 );
-        LTC_DRV_des3_decrypt_cbc( LTC_INSTANCE,
-                                 input,
-                                 length,
-                                 iv,
-                                 key,
-                                 key + 8,
-                                 key + 16,
-                                 output
-                                ) ;
+        LTC_DES3_decrypt_cbc(LTC_INSTANCE, input, output, length, iv, key, key + 8, key + 16) ;
         memcpy( iv, temp, 8 );
 #else
         while( length > 0 )

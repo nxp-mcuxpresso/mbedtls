@@ -463,35 +463,11 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
     keySize = aes_ctx->nr;
     if( mode == MBEDTLS_GCM_ENCRYPT)
     {
-        LTC_DRV_aes_encrypt_tag_gcm( LTC_INSTANCE,
-                                     input,
-                                     length,
-                                     iv,
-                                     iv_len,
-                                     add,
-                                     add_len,
-                                     key,
-                                     keySize,
-                                     output,
-                                     tag,
-                                     tag_len
-                                   );
+        LTC_AES_EncryptTagGcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
     }
     else
     {
-        LTC_DRV_aes_decrypt_tag_gcm( LTC_INSTANCE,
-                                     input,
-                                     length,
-                                     iv,
-                                     iv_len,
-                                     add,
-                                     add_len,
-                                     key,
-                                     keySize,
-                                     output,
-                                     tag,
-                                     tag_len
-                                   );
+        LTC_AES_DecryptTagGcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
     }
 #else
     int ret;

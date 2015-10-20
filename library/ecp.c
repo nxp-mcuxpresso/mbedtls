@@ -1635,8 +1635,8 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     {
         bool is_inf;
         size_t size;
-        ltc_pkha_ecc_point A;
-        ltc_pkha_ecc_point result;
+        ltc_pkha_ecc_point_t A;
+        ltc_pkha_ecc_point_t result;
 
         uint8_t AX[LTC_MAX_ECC/8] = {0};
         uint8_t AY[LTC_MAX_ECC/8] = {0};
@@ -1671,19 +1671,7 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &grp->P, N, size ) );
         ltc_reverse_array( N, size );
         /* Multiply */
-        LTC_DRV_PKHA_ECC_PointMul( LTC_INSTANCE,
-                                       &A,
-                                       E,
-                                       sizeof( E ),
-                                       N,
-                                       NULL,
-                                       paramA,
-                                       paramB,
-                                       size,
-                                       kLTC_PKHA_TimingEqualized,
-                                       kLTC_PKHA_Integer_Arith,
-                                       &result,
-                                       &is_inf );
+        LTC_PKHA_ECC_PointMul(LTC_INSTANCE, &A, E, sizeof( E ), N, NULL, paramA, paramB, size, kLTC_PKHA_TimingEqualized, kLTC_PKHA_IntegerArith, &result, &is_inf );
         /* Convert result */
         ltc_reverse_array( RX, size );
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &R->X, RX, size ) );
@@ -1775,9 +1763,9 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 {    
     bool is_inf;
     size_t size;
-    ltc_pkha_ecc_point A;
-    ltc_pkha_ecc_point B;
-    ltc_pkha_ecc_point result;
+    ltc_pkha_ecc_point_t A;
+    ltc_pkha_ecc_point_t B;
+    ltc_pkha_ecc_point_t result;
 
     uint8_t AX[LTC_MAX_ECC/8] = {0};
     uint8_t AY[LTC_MAX_ECC/8] = {0};
@@ -1817,16 +1805,7 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &grp->P, N, size ) );
     ltc_reverse_array( N, size );
     /* Multiply */
-    LTC_DRV_PKHA_ECC_PointAdd(LTC_INSTANCE,
-                                &A,
-                                &B,
-                                N,
-                                NULL,
-                                paramA,
-                                paramB,
-                                size,
-                                kLTC_PKHA_Integer_Arith,
-                                &result);
+    LTC_PKHA_ECC_PointAdd(LTC_INSTANCE, &A, &B, N, NULL, paramA, paramB, size, kLTC_PKHA_IntegerArith, &result);
     /* Convert result */
     ltc_reverse_array( RX, size );
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &R->X, RX, size ) );

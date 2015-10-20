@@ -36,8 +36,8 @@
 #include "fsl_device_registers.h" //DM
 
 /* Enable LTC use in library if there is LTC on chip. */
-#if 0 //DM (FSL_FEATURE_SOC_LTC_COUNT > 0)
-    #include "fsl_ltc_driver.h"
+#if (FSL_FEATURE_SOC_LTC_COUNT > 0)
+    #include "fsl_ltc.h"
 
     #define LTC_INSTANCE                LTC0    /* LTC base register.*/
 

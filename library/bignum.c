@@ -894,10 +894,9 @@ int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     mbedtls_mpi_write_binary(B, ptrB, sizeB);
     ltc_reverse_array(ptrB, sizeB);
 
-    ret = (int)LTC_DRV_PKHA_ModAdd(LTC_INSTANCE, ptrA, sizeA, ptrB, sizeB, N, sizeN, ptrC, &sizeC,
-                                    kLTC_PKHA_Integer_Arith);
+    ret = (int)LTC_PKHA_ModAdd(LTC_INSTANCE, ptrA, sizeA, ptrB, sizeB, N, sizeN, ptrC, &sizeC, kLTC_PKHA_IntegerArith);
 
-    if (ret != kStatus_LTC_Success)
+    if (ret != kStatus_Success)
         return ret;
 
     ltc_reverse_array(ptrC, sizeC);
@@ -999,9 +998,9 @@ int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     mbedtls_mpi_write_binary(B, ptrB, sizeB);
     ltc_reverse_array(ptrB, sizeB);
 
-    ret = (int)LTC_DRV_PKHA_ModSub1(LTC_INSTANCE, ptrA, sizeA, ptrB, sizeB, N, sizeN, ptrC, &sizeC);
+    ret = (int)LTC_PKHA_ModSub1(LTC_INSTANCE, ptrA, sizeA, ptrB, sizeB, N, sizeN, ptrC, &sizeC);
 
-    if (ret != kStatus_LTC_Success)
+    if (ret != kStatus_Success)
         return ret;
 
     ltc_reverse_array(ptrC, sizeC);
@@ -1238,13 +1237,13 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     mbedtls_mpi_write_binary(B, ptrB, sizeB);
     ltc_reverse_array(ptrB, sizeB);
 
-    ret = (int)LTC_DRV_PKHA_ModMul(0, ptrA, sizeA, ptrB, sizeB, N, sizeN, ptrC, &sizeC,
-                                    kLTC_PKHA_Integer_Arith,
+    ret = (int)LTC_PKHA_ModMul(LTC_INSTANCE, ptrA, sizeA, ptrB, sizeB, N, sizeN, ptrC, &sizeC,
+                                    kLTC_PKHA_IntegerArith,
                                     kLTC_PKHA_NormalValue,
                                     kLTC_PKHA_NormalValue,
                                     kLTC_PKHA_TimingEqualized);
 
-    if (ret != kStatus_LTC_Success)
+    if (ret != kStatus_Success)
         return ret;
 
     ltc_reverse_array(ptrC, sizeC);
@@ -1501,10 +1500,9 @@ int mbedtls_mpi_mod_mpi( mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi
     mbedtls_mpi_write_binary(B, ptrB, sizeB);
     ltc_reverse_array(ptrB, sizeB);
 
-    ret = (int)LTC_DRV_PKHA_ModRed(LTC_INSTANCE, ptrA, sizeA, ptrB, sizeB, ptrC, &sizeC,
-                                    kLTC_PKHA_Integer_Arith);
+    ret = (int)LTC_PKHA_ModRed(LTC_INSTANCE, ptrA, sizeA, ptrB, sizeB, ptrC, &sizeC, kLTC_PKHA_IntegerArith);
 
-    if (ret != kStatus_LTC_Success)
+    if (ret != kStatus_Success)
         return ret;
 
     ltc_reverse_array(ptrC, sizeC);
@@ -1697,17 +1695,16 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     /* if A >= N then */
     if (mbedtls_mpi_cmp_mpi (A, N) >= 0)
     {
-        ret = (int)LTC_DRV_PKHA_ModRed(LTC_INSTANCE, ptrA, sizeA, ptrN, sizeN, ptrA, &sizeA,
-                                       kLTC_PKHA_Integer_Arith);
+        ret = (int)LTC_PKHA_ModRed(LTC_INSTANCE, ptrA, sizeA, ptrN, sizeN, ptrA, &sizeA, kLTC_PKHA_IntegerArith);
 
-        if (ret != kStatus_LTC_Success)
+        if (ret != kStatus_Success)
             return ret;
     }
 
-    ret = (int)LTC_DRV_PKHA_ModExp(LTC_INSTANCE, ptrA, sizeA, ptrN, sizeN, ptrE, sizeE, ptrN, &sizeN,
-                                   kLTC_PKHA_Integer_Arith, kLTC_PKHA_NormalValue, kLTC_PKHA_TimingEqualized);
+    ret = (int)LTC_PKHA_ModExp(LTC_INSTANCE, ptrA, sizeA, ptrN, sizeN, ptrE, sizeE, ptrN, &sizeN,
+                                   kLTC_PKHA_IntegerArith, kLTC_PKHA_NormalValue, kLTC_PKHA_TimingEqualized);
 
-    if (ret != kStatus_LTC_Success)
+    if (ret != kStatus_Success)
         return ret;
 
     ltc_reverse_array(ptrN, sizeN);
@@ -1942,17 +1939,15 @@ int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B 
 
     if (mbedtls_mpi_cmp_mpi(A, B) >= 0)
     {
-        ret = (int)LTC_DRV_PKHA_ModRed(LTC_INSTANCE, ptrA, sizeA, ptrB, sizeB, ptrA, &sizeA,
-                                    kLTC_PKHA_Integer_Arith);
+        ret = (int)LTC_PKHA_ModRed(LTC_INSTANCE, ptrA, sizeA, ptrB, sizeB, ptrA, &sizeA, kLTC_PKHA_IntegerArith);
 
-        if (ret != kStatus_LTC_Success)
+        if (ret != kStatus_Success)
             return ret;
     }
 
-    ret = (int)LTC_DRV_PKHA_GCD(LTC_INSTANCE, ptrA, sizeA, ptrB, sizeB, ptrC, &sizeC,
-                                kLTC_PKHA_Integer_Arith);
+    ret = (int)LTC_PKHA_GCD(LTC_INSTANCE, ptrA, sizeA, ptrB, sizeB, ptrC, &sizeC, kLTC_PKHA_IntegerArith);
 
-    if (ret != kStatus_LTC_Success)
+    if (ret != kStatus_Success)
         return ret;
 
     ltc_reverse_array(ptrC, sizeC);
@@ -2059,17 +2054,15 @@ int mbedtls_mpi_inv_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
 
     if (mbedtls_mpi_cmp_mpi(A, N) >= 0)
     {
-        ret = (int)LTC_DRV_PKHA_ModRed(LTC_INSTANCE, ptrA, sizeA, ptrN, sizeN, ptrA, &sizeA,
-                                    kLTC_PKHA_Integer_Arith);
+        ret = (int)LTC_PKHA_ModRed(LTC_INSTANCE, ptrA, sizeA, ptrN, sizeN, ptrA, &sizeA, kLTC_PKHA_IntegerArith);
 
-        if (ret != kStatus_LTC_Success)
+        if (ret != kStatus_Success)
             return ret;
     }
 
-    ret = (int)LTC_DRV_PKHA_ModInv(LTC_INSTANCE, ptrA, sizeA, ptrN, sizeN, ptrC, &sizeC,
-                                    kLTC_PKHA_Integer_Arith);
+    ret = (int)LTC_PKHA_ModInv(LTC_INSTANCE, ptrA, sizeA, ptrN, sizeN, ptrC, &sizeC, kLTC_PKHA_IntegerArith);
 
-    if (ret != kStatus_LTC_Success)
+    if (ret != kStatus_Success)
         return ret;
 
     ltc_reverse_array(ptrC, sizeC);
@@ -2354,9 +2347,9 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
     // Get the random seed number
     f_rng( p_rng, (unsigned char*)(&random), sizeof(random) );
 
-    ret = (int)LTC_DRV_PKHA_PrimalityTest(LTC_INSTANCE, (unsigned char*)&random, sizeof(random), "1", 1, ptrX, sizeX, &result);
+    ret = (int)LTC_PKHA_PrimalityTest(LTC_INSTANCE, (unsigned char*)&random, sizeof(random), "1", 1, ptrX, sizeX, &result);
 
-    if (ret != kStatus_LTC_Success)
+    if (ret != kStatus_Success)
         return ret;
 
     if (result == false)

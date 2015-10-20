@@ -776,12 +776,7 @@ void mbedtls_aes_encrypt( mbedtls_aes_context *ctx,
     uint8_t *key ;
     key = (uint8_t *)ctx -> rk ;
 
-    LTC_DRV_aes_encrypt_ecb( LTC_INSTANCE,
-                                 input,
-                                 key,
-                                 ctx->nr,
-                                 output
-                                );
+    LTC_AES_EncryptEcb( LTC_INSTANCE, input, output, 16, key, ctx->nr);
 
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     unsigned char *key ;
@@ -852,13 +847,8 @@ void mbedtls_aes_decrypt( mbedtls_aes_context *ctx,
     uint8_t *key ;
     key = (uint8_t *)ctx -> rk ;
 
-    LTC_DRV_aes_decrypt_ecb( LTC_INSTANCE,
-                                 input,
-                                 key,
-                                 ctx->nr,
-                                 kLtcEncryptKey,
-                                 output
-                               );
+    LTC_AES_DecryptEcb(LTC_INSTANCE, input, output, 16, key, ctx->nr, kLTC_EncryptKey);
+
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     unsigned char *key ;
     key = (unsigned char *)ctx -> rk ;
@@ -986,15 +976,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
     if( mode == MBEDTLS_AES_DECRYPT )
     {
 #if defined(MBEDTLS_FREESCALE_LTC_AES)
-        LTC_DRV_aes_decrypt_cbc( LTC_INSTANCE,
-                                 temp,
-                                 length,
-                                 iv,
-                                 key,
-                                 keySize,
-                                 kLtcEncryptKey,
-                                 output
-                                );
+        LTC_AES_DecryptCbc(LTC_INSTANCE, temp, output, length, iv, key, keySize, kLTC_EncryptKey);
         memcpy( iv, temp, 16 );
 #else
         while( length > 0 )
@@ -1016,14 +998,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
     else
     {
 #if defined(MBEDTLS_FREESCALE_LTC_AES)
-        LTC_DRV_aes_encrypt_cbc( LTC_INSTANCE,
-                                 temp,
-                                 length,
-                                 iv,
-                                 key,
-                                 keySize,
-                                 output
-                               );
+        LTC_AES_EncryptCbc(LTC_INSTANCE, temp, output, length, iv, key, keySize);
         memcpy( iv, output, 16 );
 #else
         while( length > 0 )
@@ -1143,16 +1118,7 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
 
     key = (uint8_t *)ctx->rk;
     keySize = ctx->nr ;
-    LTC_DRV_aes_ctr(LTC_INSTANCE,
-                    input,
-                    length,
-                    nonce_counter,
-                    key,
-                    keySize,
-                    output,
-                    stream_block,
-                    nc_off
-                    ) ;
+    LTC_AES_CryptCtr(LTC_INSTANCE, input, output, length, nonce_counter, key, keySize, stream_block, nc_off);
 #else
     int c, i;
     size_t n = *nc_off;

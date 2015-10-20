@@ -154,35 +154,11 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     keySize = aes_ctx->nr ;
     if( mode == CCM_ENCRYPT )
     {
-        LTC_DRV_aes_encrypt_tag_ccm( LTC_INSTANCE,
-                                     input,
-                                     length,
-                                     iv,
-                                     iv_len,
-                                     add,
-                                     add_len,
-                                     key,
-                                     keySize,
-                                     output,
-                                     tag,
-                                     tag_len
-                                   ) ;
+        LTC_AES_EncryptTagCcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
     }
     else
     {
-        LTC_DRV_aes_decrypt_tag_ccm( LTC_INSTANCE,
-                                     input,
-                                     length,
-                                     iv,
-                                     iv_len,
-                                     add,
-                                     add_len,
-                                     key,
-                                     keySize,
-                                     output,
-                                     tag,
-                                     tag_len
-                                   ) ;
+        LTC_AES_DecryptTagCcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
     }
 #else
     int ret;

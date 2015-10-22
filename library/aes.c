@@ -491,9 +491,9 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     const unsigned char *key_tmp = key;
     ctx->rk = RK = ctx->buf;
     memcpy( RK, key_tmp, keybits/8 );
-    
+   
     switch( keybits )
-    {
+    { /* Set keysize in bytes.*/
         case 128: ctx->nr = 16; break;
         case 192: ctx->nr = 24; break;
         case 256: ctx->nr = 32; break;
@@ -658,7 +658,6 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
 #else
     int i, j, ret;
     mbedtls_aes_context cty;
-//DM     uint32_t *RK;
     uint32_t *SK;
     mbedtls_aes_init( &cty );
 

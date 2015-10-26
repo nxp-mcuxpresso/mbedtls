@@ -1742,25 +1742,17 @@ cleanup:
 #endif /* ECP_SHORTWEIERSTRASS */
 
 /*
- * Linear combination
+ * Addition: R = P + Q, result's coordinates normalized
  */
-int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-             const mbedtls_mpi *m, const mbedtls_ecp_point *P,
-             const mbedtls_mpi *n, const mbedtls_ecp_point *Q )
-{
+int ecp_add( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,  const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
+{    
     int ret;
-    mbedtls_ecp_point mP;
 
     if( ecp_get_type( grp ) != ECP_TYPE_SHORT_WEIERSTRASS )
         return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
 
-    mbedtls_ecp_point_init( &mP );
-
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &mP, m, P, NULL, NULL ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R,   n, Q, NULL, NULL ) );
-
 #ifdef MBEDTLS_FREESCALE_LTC_PKHA
-{    
+
     bool is_inf;
     size_t size;
     ltc_pkha_ecc_point_t A;
@@ -1776,6 +1768,8 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     uint8_t N[LTC_MAX_ECC/8] = {0};
     uint8_t paramA[LTC_MAX_ECC/8] = {0};
     uint8_t paramB[LTC_MAX_ECC/8] = {0};
+
+
     
     A.X = AX;
     A.Y = AY;
@@ -1814,11 +1808,34 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     R->X.s = P->X.s;
     R->Y.s = P->Y.s;
     mbedtls_mpi_read_string( &R->Z, 10, "1" );
-}
 #else
-    MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, &mP, R ) );
-    MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, R ) );
+    MPI_CHK( ecp_add_mixed( grp, R, P, Q ) );
+    MPI_CHK( ecp_normalize_jac( grp, R ) );
 #endif
+cleanup:
+    return( ret );
+}
+
+
+/*
+ * Linear combination
+ */
+int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+             const mbedtls_mpi *m, const mbedtls_ecp_point *P,
+             const mbedtls_mpi *n, const mbedtls_ecp_point *Q )
+{
+    int ret;
+    mbedtls_ecp_point mP;
+
+    if( ecp_get_type( grp ) != ECP_TYPE_SHORT_WEIERSTRASS )
+        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+
+    mbedtls_ecp_point_init( &mP );
+
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &mP, m, P, NULL, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R,   n, Q, NULL, NULL ) );
+
+    MBEDTLS_MPI_CHK(ecp_add(grp, R, &mP, R ));
 
 cleanup:
     mbedtls_ecp_point_free( &mP );

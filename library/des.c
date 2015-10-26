@@ -597,7 +597,7 @@ int mbedtls_des3_set2key_enc( mbedtls_des3_context *ctx,
     {
         ctx -> sk[i] = key[i];
     }
-    for (i = MBEDTLS_DES_KEY_SIZE*2; i < MBEDTLS_DES_KEY_SIZE*3; i++) //DM
+    for (i = MBEDTLS_DES_KEY_SIZE*2; i < MBEDTLS_DES_KEY_SIZE*3; i++)
     {
        ctx -> sk[i]= key[i-MBEDTLS_DES_KEY_SIZE*2];
     }

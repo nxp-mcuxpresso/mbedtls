@@ -491,64 +491,25 @@ void mbedtls_des_setkey( uint32_t SK[32], const unsigned char key[MBEDTLS_DES_KE
 }
 #endif /* !MBEDTLS_DES_SETKEY_ALT */
 
-
-#if defined (MBEDTLS_FREESCALE_MMCAU_DES)
-    const unsigned char parityLookup[128] =
-    {
-        1,0,0,1,0,1,1,0,0,1,1,0,1,0,0,1,0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0,
-        0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0,1,0,0,1,0,1,1,0,0,1,1,0,1,0,0,1,
-        0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0,1,0,0,1,0,1,1,0,0,1,1,0,1,0,0,1,
-        1,0,0,1,0,1,1,0,0,1,1,0,1,0,0,1,0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0
-     };
-#endif
-
 /*
  * DES key schedule (56-bit, encryption)
  */
+#if !defined(MBEDTLS_DES_SETKEY_ENC_ALT)
 int mbedtls_des_setkey_enc( mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE] )
 {
-#if defined (MBEDTLS_FREESCALE_LTC_DES) 
-    int i;
-    for(i = 0 ;i< MBEDTLS_DES_KEY_SIZE ; i++)
-    {
-        ctx -> sk[i] = key[i];
-    }
-    ctx -> mode = MBEDTLS_DES_ENCRYPT;
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
-    int i;
-    /* fix key parity, if needed */
-    for (i = 0; i < MBEDTLS_DES_KEY_SIZE; i++)
-    {
-       ctx -> sk[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
-    }
-
-    ctx -> mode = MBEDTLS_DES_ENCRYPT;
-#else
     mbedtls_des_setkey( ctx->sk, key );
-#endif
     return( 0 );
 }
+#endif /*!MBEDTLS_DES_SETKEY_ALT */
 
 /*
  * DES key schedule (56-bit, decryption)
  */
+#if !defined(MBEDTLS_DES_SETKEY_DEC_ALT)
 int mbedtls_des_setkey_dec( mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE] )
 {
     int i;
-#if defined (MBEDTLS_FREESCALE_LTC_DES) 
-    for(i = 0 ;i< MBEDTLS_DES_KEY_SIZE ; i++)
-    {
-        ctx -> sk[i] = key[i];
-    }
-    ctx -> mode = MBEDTLS_DES_DECRYPT ;
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
-    /* fix key parity, if needed */
-    for (i = 0; i < MBEDTLS_DES_KEY_SIZE; i++)
-    {
-       ctx -> sk[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
-    }
-    ctx -> mode = MBEDTLS_DES_DECRYPT ;
-#else
+
     mbedtls_des_setkey( ctx->sk, key );
 
     for( i = 0; i < 16; i += 2 )
@@ -556,9 +517,10 @@ int mbedtls_des_setkey_dec( mbedtls_des_context *ctx, const unsigned char key[MB
         SWAP( ctx->sk[i    ], ctx->sk[30 - i] );
         SWAP( ctx->sk[i + 1], ctx->sk[31 - i] );
     }
-#endif
+
     return( 0 );
 }
+#endif /*!MBEDTLS_DES_SETKEY_DEC_ALT */
 
 static void des3_set2key( uint32_t esk[96],
                           uint32_t dsk[96],
@@ -588,76 +550,32 @@ static void des3_set2key( uint32_t esk[96],
 /*
  * Triple-DES key schedule (112-bit, encryption)
  */
+#if !defined(MBEDTLS_DES_SETKEY_ENC_ALT)
 int mbedtls_des3_set2key_enc( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2] )
 {
-#if defined (MBEDTLS_FREESCALE_LTC_DES) 
-    int i;
-    for(i = 0 ; i< MBEDTLS_DES_KEY_SIZE*2 ; i++)
-    {
-        ctx -> sk[i] = key[i];
-    }
-    for (i = MBEDTLS_DES_KEY_SIZE*2; i < MBEDTLS_DES_KEY_SIZE*3; i++)
-    {
-       ctx -> sk[i]= key[i-MBEDTLS_DES_KEY_SIZE*2];
-    }
-    ctx -> mode = MBEDTLS_DES_ENCRYPT ;
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
-    int i;
-    /* fix key parity, if needed */
-    for (i = 0; i < MBEDTLS_DES_KEY_SIZE*2; i++)
-    {
-       ctx -> sk[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
-    }
-    for (i = MBEDTLS_DES_KEY_SIZE*2; i < MBEDTLS_DES_KEY_SIZE*3; i++)
-    {
-       ctx -> sk[i]= ((key[i-MBEDTLS_DES_KEY_SIZE*2] & 0xFE) | parityLookup[key[i-MBEDTLS_DES_KEY_SIZE*2] >> 1]);
-    }
-    ctx -> mode = MBEDTLS_DES_ENCRYPT;
-#else
     uint32_t sk[96];
     des3_set2key( ctx->sk, sk, key );
     mbedtls_zeroize( sk,  sizeof( sk ) );
-#endif
+
     return( 0 );
 }
+#endif /*!MBEDTLS_DES_SETKEY_ENC_ALT*/
 
 /*
  * Triple-DES key schedule (112-bit, decryption)
  */
+#if !defined(MBEDTLS_DES_SETKEY_DEC_ALT)
 int mbedtls_des3_set2key_dec( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2] )
 {
-#if defined (MBEDTLS_FREESCALE_LTC_DES) 
-    int i;
-    for(i = 0 ;i < MBEDTLS_DES_KEY_SIZE*2 ; i++)
-    {
-        ctx -> sk[i] = key[i];
-    }
-    for (i = MBEDTLS_DES_KEY_SIZE*2; i < MBEDTLS_DES_KEY_SIZE*3; i++)
-    {
-       ctx -> sk[i]= key[i-MBEDTLS_DES_KEY_SIZE*2];
-    }
-    ctx -> mode = MBEDTLS_DES_DECRYPT ;
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
-    int i;
-    /* fix key parity, if needed */
-    for (i = 0; i < MBEDTLS_DES_KEY_SIZE*2; i++)
-    {
-       ctx -> sk[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
-    }
-    for (i = MBEDTLS_DES_KEY_SIZE*2; i < MBEDTLS_DES_KEY_SIZE*3; i++)
-    {
-       ctx -> sk[i]= ((key[i-MBEDTLS_DES_KEY_SIZE*2] & 0xFE) | parityLookup[key[i-MBEDTLS_DES_KEY_SIZE*2] >> 1]);
-    }
-    ctx -> mode = MBEDTLS_DES_DECRYPT;
-#else
     uint32_t sk[96];
     des3_set2key( sk, ctx->sk, key );
     mbedtls_zeroize( sk,  sizeof( sk ) );
-#endif
+
     return( 0 );
 }
+#endif /*!MBEDTLS_DES_SETKEY_DEC_ALT*/
 
 static void des3_set3key( uint32_t esk[96],
                           uint32_t dsk[96],
@@ -685,61 +603,32 @@ static void des3_set3key( uint32_t esk[96],
 /*
  * Triple-DES key schedule (168-bit, encryption)
  */
+#if !defined(MBEDTLS_DES_SETKEY_ENC_ALT)
 int mbedtls_des3_set3key_enc( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3] )
 {
-#if defined (MBEDTLS_FREESCALE_LTC_DES) 
-    int i ;
-    for(i = 0 ;i < MBEDTLS_DES_KEY_SIZE*3 ; i++)
-    {
-        ctx -> sk[i] = key[i];
-    }
-    ctx -> mode = MBEDTLS_DES_ENCRYPT ;
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
-    int i ;
-    /* fix key parity, if needed */
-    for (i = 0; i < MBEDTLS_DES_KEY_SIZE*3; i++)
-    {
-       ctx -> sk[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
-    }
-
-    ctx -> mode = MBEDTLS_DES_ENCRYPT;
-#else
     uint32_t sk[96];
     des3_set3key( ctx->sk, sk, key );
     mbedtls_zeroize( sk,  sizeof( sk ) );
-#endif
+
     return( 0 );
 }
+#endif /*!MBEDTLS_DES_SETKEY_ENC_ALT*/
 
 /*
  * Triple-DES key schedule (168-bit, decryption)
  */
+#if !defined(MBEDTLS_DES_SETKEY_DEC_ALT)
 int mbedtls_des3_set3key_dec( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3] )
 {
-#if defined (MBEDTLS_FREESCALE_LTC_DES)
-    int i ;
-    for(i = 0 ;i< MBEDTLS_DES_KEY_SIZE*3 ; i++)
-    {
-        ctx -> sk[i] = key[i];
-    }
-    ctx -> mode = MBEDTLS_DES_DECRYPT ;
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
-    int i ;
-    /* fix key parity, if needed */
-    for (i = 0; i < MBEDTLS_DES_KEY_SIZE*3; i++)
-    {
-       ctx -> sk[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
-    }
-    ctx -> mode = MBEDTLS_DES_DECRYPT;
-#else
     uint32_t sk[96];
     des3_set3key( sk, ctx->sk, key );
     mbedtls_zeroize( sk,  sizeof( sk ) );
-#endif
+
     return( 0 );
 }
+#endif /*!MBEDTLS_DES_SETKEY_DEC_ALT*/
 
 /*
  * DES-ECB block encryption/decryption
@@ -749,38 +638,6 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
                     const unsigned char input[8],
                     unsigned char output[8] )
 {
-#if defined(MBEDTLS_FREESCALE_LTC_DES)
-    uint8_t key[8];
-    int i;
-    for(i = 0 ; i < 8 ; i++)
-    {
-        key[i] = (uint8_t)ctx ->sk[i] ;
-    }
-    if(ctx -> mode == MBEDTLS_DES_ENCRYPT)
-    {
-        LTC_DES_encrypt_ecb( LTC_INSTANCE, input, output, 8, key) ;
-    }
-    else
-    {
-        LTC_DES_decrypt_ecb( LTC_INSTANCE, input, output, 8, key);
-    }
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
-    uint8_t key[8];
-    int i;
-    for(i = 0 ; i < 8 ; i++)
-    {
-        key[i] = (uint8_t)ctx ->sk[i] ;
-    }
-    if(ctx -> mode == MBEDTLS_DES_ENCRYPT)
-    {
-        cau_des_encrypt(input, key, output);
-    }
-    else
-    {
-        cau_des_decrypt(input, key, output);
-    }    
-
-#else
     int i;
     uint32_t X, Y, T, *SK;
 
@@ -801,7 +658,7 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
 
     PUT_UINT32_BE( Y, output, 0 );
     PUT_UINT32_BE( X, output, 4 );
-#endif 
+
     return( 0 );
 }
 #endif /* !MBEDTLS_DES_CRYPT_ECB_ALT */
@@ -810,6 +667,7 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
 /*
  * DES-CBC buffer encryption/decryption
  */
+#if !defined(MBEDTLS_DES_CRYPT_CBC_ALT)
 int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
                     int mode,
                     size_t length,
@@ -820,24 +678,11 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
     int i;
     unsigned char temp[8];
 
-#if defined (MBEDTLS_FREESCALE_LTC_DES)
-    uint8_t key[8];
-    for(i = 0 ; i < 8 ; i++)
-    {
-        key[i] = (uint8_t)ctx ->sk[i] ;
-    }
-#endif
-
     if( length % 8 )
         return( MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH );
 
     if( mode == MBEDTLS_DES_ENCRYPT )
     {
-
-#if defined (MBEDTLS_FREESCALE_LTC_DES)
-        LTC_DES_encrypt_cbc(LTC_INSTANCE, input, output, length, iv, key);
-        memcpy( iv, output + length - 8, 8 );
-#else
         while( length > 0 )
         {
             for( i = 0; i < 8; i++ )
@@ -850,16 +695,9 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
             output += 8;
             length -= 8;
         }
-#endif
-
     }
     else /* MBEDTLS_DES_DECRYPT */
     {
-#if defined (MBEDTLS_FREESCALE_LTC_DES)
-        memcpy( temp, input + length - 8, 8 );
-        LTC_DES_decrypt_cbc(LTC_INSTANCE, input, output, length, iv, key) ;
-        memcpy( iv, temp, 8 );
-#else
         while( length > 0 )
         {
             memcpy( temp, input, 8 );
@@ -874,10 +712,10 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
             output += 8;
             length -= 8;
         }
-#endif
     }
     return( 0 );
 }
+#endif /*!MBEDTLS_DES_CRYPT_CBC_ALT*/
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 
@@ -889,42 +727,6 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
                      const unsigned char input[8],
                      unsigned char output[8] )
 {
-#if defined (MBEDTLS_FREESCALE_LTC_DES)
-    uint8_t key[24];
-    int i ;
-    for(i = 0 ; i < 24 ; i++)
-    {
-        key[i] = (uint8_t)ctx ->sk[i] ;
-    }
-    if(ctx -> mode == MBEDTLS_DES_ENCRYPT)
-    {
-        LTC_DES3_encrypt_ecb(LTC_INSTANCE, input, output, 8, key, key + 8, key + 16);
-    }
-    else
-    {
-        LTC_DES3_decrypt_ecb(LTC_INSTANCE, input, output, 8, key, key + 8, key + 16);
-    }
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
-    uint8_t key[24];
-    int i;
-    for(i = 0 ; i < 24 ; i++)
-    {
-        key[i] = (uint8_t)ctx ->sk[i] ;
-    }
-    if(ctx -> mode == MBEDTLS_DES_ENCRYPT)
-    {
-        cau_des_encrypt(input, key, output);
-        cau_des_decrypt(output, key + 8, output);
-        cau_des_encrypt(output, key + 16, output);
-    }
-    else
-    {
-        cau_des_decrypt(input, key + 16 , output);
-        cau_des_encrypt(output, key + 8, output);
-        cau_des_decrypt(output, key , output);
-    }    
-
-#else
     int i;
     uint32_t X, Y, T, *SK;
 
@@ -957,7 +759,7 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
 
     PUT_UINT32_BE( Y, output, 0 );
     PUT_UINT32_BE( X, output, 4 );
-#endif
+
     return( 0 );
 }
 #endif /* !MBEDTLS_DES3_CRYPT_ECB_ALT */
@@ -967,6 +769,7 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
 /*
  * 3DES-CBC buffer encryption/decryption
  */
+#if !defined(MBEDTLS_DES3_CRYPT_CBC_ALT)
 int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
                      int mode,
                      size_t length,
@@ -980,19 +783,8 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
     if( length % 8 )
         return( MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH );
 
-#if defined (MBEDTLS_FREESCALE_LTC_DES)
-    uint8_t key[24];
-    for(i = 0 ; i < 24 ; i++)
-    {
-        key[i] = (uint8_t)ctx ->sk[i] ;
-    }
-#endif
     if( mode == MBEDTLS_DES_ENCRYPT )
     {
-#if defined (MBEDTLS_FREESCALE_LTC_DES)
-        LTC_DES3_encrypt_cbc(LTC_INSTANCE, input, output, length, iv, key, key + 8, key + 16);
-        memcpy( iv, output + length - 8, 8 );
-#else
         while( length > 0 )
         {
             for( i = 0; i < 8; i++ )
@@ -1005,15 +797,9 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
             output += 8;
             length -= 8;
         }
-#endif
     }
     else /* MBEDTLS_DES_DECRYPT */
     {
-#if defined (MBEDTLS_FREESCALE_LTC_DES)
-        memcpy( temp, input + length - 8, 8 );
-        LTC_DES3_decrypt_cbc(LTC_INSTANCE, input, output, length, iv, key, key + 8, key + 16) ;
-        memcpy( iv, temp, 8 );
-#else
         while( length > 0 )
         {
             memcpy( temp, input, 8 );
@@ -1028,11 +814,11 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
             output += 8;
             length -= 8;
         }
-#endif
     }
 
     return( 0 );
 }
+#endif /* !MBEDTLS_DES3_CRYPT_CBC_ALT*/
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #endif /* !MBEDTLS_DES_ALT */

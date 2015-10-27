@@ -52,7 +52,7 @@ extern "C" {
  */
 typedef struct
 {
-#if defined (MBEDTLS_FREESCALE_LTC_DES) || defined (MBEDTLS_FREESCALE_MMCAU_DES)
+#if defined (MBEDTLS_DES_SETKEY_ENC_ALT) || defined (MBEDTLS_DES_SETKEY_DEC_ALT)
     int mode;                   /*!<  encrypt/decrypt   */
 #endif
     uint32_t sk[32];            /*!<  DES subkeys       */
@@ -64,7 +64,7 @@ mbedtls_des_context;
  */
 typedef struct
 {
-#if defined (MBEDTLS_FREESCALE_LTC_DES) || defined (MBEDTLS_FREESCALE_MMCAU_DES)
+#if defined (MBEDTLS_DES_SETKEY_ENC_ALT) || defined (MBEDTLS_DES_SETKEY_DEC_ALT)
     int mode;                   /*!<  encrypt/decrypt   */
 #endif
     uint32_t sk[96];            /*!<  3DES subkeys      */

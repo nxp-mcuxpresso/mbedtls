@@ -1809,8 +1809,8 @@ int ecp_add( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,  const mbedtls_
     R->Y.s = P->Y.s;
     mbedtls_mpi_read_string( &R->Z, 10, "1" );
 #else
-    MPI_CHK( ecp_add_mixed( grp, R, P, Q ) );
-    MPI_CHK( ecp_normalize_jac( grp, R ) );
+    MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, P, Q ) );
+    MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, R ) );
 #endif
 cleanup:
     return( ret );

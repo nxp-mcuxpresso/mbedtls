@@ -487,32 +487,6 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     unsigned int i;
     uint32_t *RK;
 
-#if defined(MBEDTLS_FREESCALE_LTC_AES)
-    const unsigned char *key_tmp = key;
-    ctx->rk = RK = ctx->buf;
-    memcpy( RK, key_tmp, keybits/8 );
-   
-    switch( keybits )
-    { /* Set keysize in bytes.*/
-        case 128: ctx->nr = 16; break;
-        case 192: ctx->nr = 24; break;
-        case 256: ctx->nr = 32; break;
-        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
-    }
-#elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
-    ctx->rk = RK = ctx->buf;
-
-    switch( keybits )
-    {
-        case 128: ctx->nr = 10; break;
-        case 192: ctx->nr = 12; break;
-        case 256: ctx->nr = 14; break;
-        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
-    }
-
-    cau_aes_set_key(key, keybits, (unsigned char *)RK);
-#else
-
 #if !defined(MBEDTLS_AES_ROM_TABLES)
     if( aes_init_done == 0 )
     {
@@ -612,7 +586,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
             }
             break;
     }
-#endif /*defined(MBEDTLS_FREESCALE_LTC_AES)*/
+
     return( 0 );
 }
 #endif /* !MBEDTLS_AES_SETKEY_ENC_ALT */
@@ -625,37 +599,6 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits )
 {
     uint32_t *RK;
-
-#if defined(MBEDTLS_FREESCALE_LTC_AES)
-    const unsigned char *key_tmp = key;
-    ctx->rk = RK = ctx->buf;
-    memcpy( RK, key_tmp, keybits/8 );
-
-    switch( keybits )
-    {
-        case 128: ctx->nr = 16; break;
-        case 192: ctx->nr = 24; break;
-        case 256: ctx->nr = 32; break;
-        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
-    }
-    return 0;
-
-#elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
-    ctx->rk = RK = ctx->buf;
-
-    switch( keybits )
-    {
-        case 128: ctx->nr = 10; break;
-        case 192: ctx->nr = 12; break;
-        case 256: ctx->nr = 14; break;
-        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
-    }
-
-    cau_aes_set_key((unsigned char *)key, keybits, (unsigned char *)RK);
-
-    return 0;
-
-#else
     int i, j, ret;
     mbedtls_aes_context cty;
     uint32_t *SK;
@@ -713,7 +656,6 @@ exit:
     mbedtls_aes_free( &cty );
 
     return( ret );
-#endif /*defined(MBEDTLS_FREESCALE_LTC_AES)*/
 }
 #endif /* !MBEDTLS_AES_SETKEY_DEC_ALT */
 
@@ -771,19 +713,6 @@ void mbedtls_aes_encrypt( mbedtls_aes_context *ctx,
                           const unsigned char input[16],
                           unsigned char output[16] )
 {
-#if defined (MBEDTLS_FREESCALE_LTC_AES)
-    uint8_t *key ;
-    key = (uint8_t *)ctx -> rk ;
-
-    LTC_AES_EncryptEcb( LTC_INSTANCE, input, output, 16, key, ctx->nr);
-
-#elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
-    unsigned char *key ;
-    key = (unsigned char *)ctx -> rk ;
-
-    cau_aes_encrypt(input, key, ctx->nr, output);
-
-#else
     int i;
     uint32_t *RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3;
 
@@ -830,7 +759,6 @@ void mbedtls_aes_encrypt( mbedtls_aes_context *ctx,
     PUT_UINT32_LE( X1, output,  4 );
     PUT_UINT32_LE( X2, output,  8 );
     PUT_UINT32_LE( X3, output, 12 );
-#endif /*defined (MBEDTLS_FREESCALE_LTC_AES)*/
 }
 #endif /* !MBEDTLS_AES_ENCRYPT_ALT */
 
@@ -842,18 +770,6 @@ void mbedtls_aes_decrypt( mbedtls_aes_context *ctx,
                           const unsigned char input[16],
                           unsigned char output[16] )
 {
-#if defined (MBEDTLS_FREESCALE_LTC_AES)
-    uint8_t *key ;
-    key = (uint8_t *)ctx -> rk ;
-
-    LTC_AES_DecryptEcb(LTC_INSTANCE, input, output, 16, key, ctx->nr, kLTC_EncryptKey);
-
-#elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
-    unsigned char *key ;
-    key = (unsigned char *)ctx -> rk ;
-
-    cau_aes_decrypt(input, key, ctx->nr, output);
-#else
     int i;
     uint32_t *RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3;
 
@@ -900,7 +816,6 @@ void mbedtls_aes_decrypt( mbedtls_aes_context *ctx,
     PUT_UINT32_LE( X1, output,  4 );
     PUT_UINT32_LE( X2, output,  8 );
     PUT_UINT32_LE( X3, output, 12 );
-#endif /* defined (MBEDTLS_FREESCALE_LTC_AES)*/
 }
 #endif /* !MBEDTLS_AES_DECRYPT_ALT */
 
@@ -941,6 +856,7 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
 /*
  * AES-CBC buffer encryption/decryption
  */
+#if !defined(MBEDTLS_AES_CRYPT_CBC_ALT)
 int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
                     int mode,
                     size_t length,
@@ -950,12 +866,6 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
 {
     int i;
     unsigned char temp[16];
-
-#if defined(MBEDTLS_FREESCALE_LTC_AES)
-    uint8_t *key = (uint8_t*)ctx ->rk ;
-    uint32_t keySize = ctx->nr ;
-    memcpy( temp, input, 16 );
-#endif
 
     if( length % 16 )
         return( MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH );
@@ -974,10 +884,6 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
 
     if( mode == MBEDTLS_AES_DECRYPT )
     {
-#if defined(MBEDTLS_FREESCALE_LTC_AES)
-        LTC_AES_DecryptCbc(LTC_INSTANCE, temp, output, length, iv, key, keySize, kLTC_EncryptKey);
-        memcpy( iv, temp, 16 );
-#else
         while( length > 0 )
         {
             memcpy( temp, input, 16 );
@@ -992,14 +898,9 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
             output += 16;
             length -= 16;
         }
-#endif
     }
     else
     {
-#if defined(MBEDTLS_FREESCALE_LTC_AES)
-        LTC_AES_EncryptCbc(LTC_INSTANCE, temp, output, length, iv, key, keySize);
-        memcpy( iv, output, 16 );
-#else
         while( length > 0 )
         {
             for( i = 0; i < 16; i++ )
@@ -1012,11 +913,11 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
             output += 16;
             length -= 16;
         }
-#endif
     }
 
     return( 0 );
 }
+#endif /* !MBEDTLS_AES_CRYPT_CBC_ALT */
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
@@ -1103,6 +1004,7 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
 /*
  * AES-CTR buffer encryption/decryption
  */
+#if !defined(MBEDTLS_AES_CRYPT_CTR_ALT)
 int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
                        size_t length,
                        size_t *nc_off,
@@ -1111,14 +1013,6 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
                        const unsigned char *input,
                        unsigned char *output )
 {
-#if defined (MBEDTLS_FREESCALE_LTC_AES)
-    uint8_t *key ;
-    uint32_t keySize ;
-
-    key = (uint8_t *)ctx->rk;
-    keySize = ctx->nr ;
-    LTC_AES_CryptCtr(LTC_INSTANCE, input, output, length, nonce_counter, key, keySize, stream_block, nc_off);
-#else
     int c, i;
     size_t n = *nc_off;
 
@@ -1138,10 +1032,10 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
     }
 
     *nc_off = n;
-#endif
 
     return( 0 );
 }
+#endif /* !MBEDTLS_AES_CRYPT_CTR_ALT */
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
 #endif /* !MBEDTLS_AES_ALT */

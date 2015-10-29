@@ -38,10 +38,6 @@
 
 #include "mbedtls/ccm.h"
 
-#if defined(MBEDTLS_FREESCALE_LTC_AES)
-#include "mbedtls/aes.h"
-#endif
-
 #include <string.h>
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
@@ -138,29 +134,13 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
 /*
  * Authenticated encryption or decryption
  */
+#if !defined(MBEDTLS_CCM_CRYPT_ALT)
 static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
                            const unsigned char *iv, size_t iv_len,
                            const unsigned char *add, size_t add_len,
                            const unsigned char *input, unsigned char *output,
                            unsigned char *tag, size_t tag_len )
 {
-#if defined(MBEDTLS_FREESCALE_LTC_AES)
-    const uint8_t *key ;
-    uint8_t keySize ;
-    mbedtls_aes_context *aes_ctx ;
-
-    aes_ctx = (mbedtls_aes_context*)ctx -> cipher_ctx.cipher_ctx ;
-    key = (uint8_t*)aes_ctx->rk ;
-    keySize = aes_ctx->nr ;
-    if( mode == CCM_ENCRYPT )
-    {
-        LTC_AES_EncryptTagCcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
-    }
-    else
-    {
-        LTC_AES_DecryptTagCcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
-    }
-#else
     int ret;
     unsigned char i;
     unsigned char q;
@@ -318,7 +298,6 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 
     CTR_CRYPT( y, y, 16 );
     memcpy( tag, y, tag_len );
-#endif /*MBEDTLS_FREESCALE_LTC_AES*/
     return( 0 );
 }
 
@@ -355,7 +334,7 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
     {
         return( ret );
     }
-#if !defined(MBEDTLS_FREESCALE_LTC_AES)
+
     /* Check tag in "constant-time" */
     for( diff = 0, i = 0; i < tag_len; i++ )
         diff |= tag[i] ^ check_tag[i];
@@ -365,9 +344,11 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
         mbedtls_zeroize( output, length );
         return( MBEDTLS_ERR_CCM_AUTH_FAILED );
     }
-#endif
+
     return( 0 );
 }
+
+#endif /* !MBEDTLS_CCM_CRYPT_ALT */
 
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)

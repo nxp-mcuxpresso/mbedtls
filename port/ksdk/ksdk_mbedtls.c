@@ -412,6 +412,261 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     return( 0 );
 }
 
+/*
+ * AES key schedule (decryption)
+ */
+int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
+                    unsigned int keybits )
+{
+    uint32_t *RK;
+
+    ctx->rk = RK = ctx->buf;
+
+#if defined(MBEDTLS_FREESCALE_LTC_AES)
+    const unsigned char *key_tmp = key;
+    
+    memcpy( RK, key_tmp, keybits/8 );
+
+    switch( keybits )
+    {
+        case 128: ctx->nr = 16; break;
+        case 192: ctx->nr = 24; break;
+        case 256: ctx->nr = 32; break;
+        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
+    }
+#elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
+    ctx->rk = RK = ctx->buf;
+
+    switch( keybits )
+    {
+        case 128: ctx->nr = 10; break;
+        case 192: ctx->nr = 12; break;
+        case 256: ctx->nr = 14; break;
+        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
+    }
+
+    cau_aes_set_key((unsigned char *)key, keybits, (unsigned char *)RK);
+#endif 
+    return 0;
+}
+
+/*
+ * AES-ECB block encryption
+ */
+void mbedtls_aes_encrypt( mbedtls_aes_context *ctx,
+                          const unsigned char input[16],
+                          unsigned char output[16] )
+{
+    uint8_t *key ;
+
+    key = (uint8_t *)ctx -> rk ;
+#if defined (MBEDTLS_FREESCALE_LTC_AES)
+    LTC_AES_EncryptEcb( LTC_INSTANCE, input, output, 16, key, ctx->nr);
+#elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
+    cau_aes_encrypt(input, key, ctx->nr, output);
+#endif 
+}
+
+/*
+ * AES-ECB block decryption
+ */
+void mbedtls_aes_decrypt( mbedtls_aes_context *ctx,
+                          const unsigned char input[16],
+                          unsigned char output[16] )
+{
+    uint8_t *key ;
+
+    key = (uint8_t *)ctx -> rk ;
+#if defined (MBEDTLS_FREESCALE_LTC_AES)
+    LTC_AES_DecryptEcb(LTC_INSTANCE, input, output, 16, key, ctx->nr, kLTC_EncryptKey);
+#elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
+    cau_aes_decrypt(input, key, ctx->nr, output);
+#endif 
+}
+
+
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+/*
+ * AES-CBC buffer encryption/decryption
+ */
+#if defined(MBEDTLS_FREESCALE_LTC_AES)
+int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
+                    int mode,
+                    size_t length,
+                    unsigned char iv[16],
+                    const unsigned char *input,
+                    unsigned char *output )
+{
+    int i;
+    unsigned char temp[16];
+
+    uint8_t *key = (uint8_t*)ctx ->rk ;
+    uint32_t keySize = ctx->nr ;
+    memcpy( temp, input, 16 );
+
+    if( length % 16 )
+        return( MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH );
+
+    if( mode == MBEDTLS_AES_DECRYPT )
+    {
+        LTC_AES_DecryptCbc(LTC_INSTANCE, temp, output, length, iv, key, keySize, kLTC_EncryptKey);
+        memcpy( iv, temp, 16 );
+    }
+    else
+    {
+        LTC_AES_EncryptCbc(LTC_INSTANCE, temp, output, length, iv, key, keySize);
+        memcpy( iv, output, 16 );
+    }
+
+    return( 0 );
+}
+#endif /* MBEDTLS_FREESCALE_LTC_AES */
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
+
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+/*
+ * AES-CTR buffer encryption/decryption
+ */
+#if defined(MBEDTLS_FREESCALE_LTC_AES)
+int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
+                       size_t length,
+                       size_t *nc_off,
+                       unsigned char nonce_counter[16],
+                       unsigned char stream_block[16],
+                       const unsigned char *input,
+                       unsigned char *output )
+{
+    uint8_t *key ;
+    uint32_t keySize ;
+
+    key = (uint8_t *)ctx->rk;
+    keySize = ctx->nr ;
+    LTC_AES_CryptCtr(LTC_INSTANCE, input, output, length, nonce_counter, key, keySize, stream_block, nc_off);
+
+    return( 0 );
+}
+#endif /* MBEDTLS_FREESCALE_LTC_AES */
+#endif /* MBEDTLS_CIPHER_MODE_CTR */
+
+#if defined(MBEDTLS_CCM_C)
+
+#include "mbedtls/ccm.h"
+
+#define CCM_ENCRYPT 0
+#define CCM_DECRYPT 1
+
+/*
+ * Authenticated encryption or decryption
+ */
+#if defined(MBEDTLS_FREESCALE_LTC_AES)
+static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
+                           const unsigned char *iv, size_t iv_len,
+                           const unsigned char *add, size_t add_len,
+                           const unsigned char *input, unsigned char *output,
+                           unsigned char *tag, size_t tag_len )
+{
+
+    const uint8_t *key ;
+    uint8_t keySize ;
+    mbedtls_aes_context *aes_ctx ;
+
+    aes_ctx = (mbedtls_aes_context*)ctx -> cipher_ctx.cipher_ctx ;
+    key = (uint8_t*)aes_ctx->rk ;
+    keySize = aes_ctx->nr ;
+    if( mode == CCM_ENCRYPT )
+    {
+        LTC_AES_EncryptTagCcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
+    }
+    else
+    {
+        LTC_AES_DecryptTagCcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
+    }
+    return( 0 );
+}
+
+/*
+ * Authenticated encryption
+ */
+int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
+                         const unsigned char *iv, size_t iv_len,
+                         const unsigned char *add, size_t add_len,
+                         const unsigned char *input, unsigned char *output,
+                         unsigned char *tag, size_t tag_len )
+{
+    return( ccm_auth_crypt( ctx, CCM_ENCRYPT, length, iv, iv_len,
+                            add, add_len, input, output, tag, tag_len ) );
+}
+
+/*
+ * Authenticated decryption
+ */
+int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
+                      const unsigned char *iv, size_t iv_len,
+                      const unsigned char *add, size_t add_len,
+                      const unsigned char *input, unsigned char *output,
+                      const unsigned char *tag, size_t tag_len )
+{
+    int ret;
+    unsigned char check_tag[16];
+    unsigned char i;
+    int diff;
+
+    if( ( ret = ccm_auth_crypt( ctx, CCM_DECRYPT, length,
+                                iv, iv_len, add, add_len,
+                                input, output, check_tag, tag_len ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    return( 0 );
+}
+#endif /* !MBEDTLS_FREESCALE_LTC_AES */
+#endif /* MBEDTLS_CCM_C */
+
+
+
+#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_FREESCALE_LTC_AES)
+
+#include "mbedtls/gcm.h"
+
+int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
+                       int mode,
+                       size_t length,
+                       const unsigned char *iv,
+                       size_t iv_len,
+                       const unsigned char *add,
+                       size_t add_len,
+                       const unsigned char *input,
+                       unsigned char *output,
+                       size_t tag_len,
+                       unsigned char *tag )
+{
+
+    uint8_t *key ;
+    uint32_t keySize ;
+    mbedtls_aes_context *aes_ctx ;
+
+    ctx ->len =  length ;
+    ctx -> add_len = add_len ;
+    aes_ctx = (mbedtls_aes_context*)ctx ->cipher_ctx.cipher_ctx ;
+    key = (uint8_t *)aes_ctx -> rk ;
+    keySize = aes_ctx->nr;
+    if( mode == MBEDTLS_GCM_ENCRYPT)
+    {
+        LTC_AES_EncryptTagGcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
+    }
+    else
+    {
+        LTC_AES_DecryptTagGcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
+    }
+
+    return( 0 );
+}
+
+#endif /* MBEDTLS_FREESCALE_LTC_AES */
+#endif /* MBEDTLS_GCM_C */
+
 
 
 #endif /* MBEDTLS_AES_C */

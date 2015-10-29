@@ -439,6 +439,7 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
     return( 0 );
 }
 
+#if !defined(MBEDTLS_GCM_CRYPT_ALT)
 int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
                        int mode,
                        size_t length,
@@ -451,25 +452,6 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
                        size_t tag_len,
                        unsigned char *tag )
 {
-#if defined(MBEDTLS_FREESCALE_LTC_AES)
-    uint8_t *key ;
-    uint32_t keySize ;
-    mbedtls_aes_context *aes_ctx ;
-
-    ctx ->len =  length ;
-    ctx -> add_len = add_len ;
-    aes_ctx = (mbedtls_aes_context*)ctx ->cipher_ctx.cipher_ctx ;
-    key = (uint8_t *)aes_ctx -> rk ;
-    keySize = aes_ctx->nr;
-    if( mode == MBEDTLS_GCM_ENCRYPT)
-    {
-        LTC_AES_EncryptTagGcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
-    }
-    else
-    {
-        LTC_AES_DecryptTagGcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
-    }
-#else
     int ret;
 
     if( ( ret = mbedtls_gcm_starts( ctx, mode, iv, iv_len, add, add_len ) ) != 0 )
@@ -480,9 +462,9 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
 
     if( ( ret = mbedtls_gcm_finish( ctx, tag, tag_len ) ) != 0 )
         return( ret );
-#endif /*MBEDTLS_FREESCALE_LTC_AES*/
     return( 0 );
 }
+#endif /* !MBEDTLS_GCM_CRYPT_ALT */
 
 int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
                       size_t length,

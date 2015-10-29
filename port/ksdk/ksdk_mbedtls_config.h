@@ -59,7 +59,7 @@
     #define MBEDTLS_FREESCALE_MMCAU_AES         /* Enable use of MMCAU AES, when LTC is disabled.*/
 #endif
 
-/* Define ALT MMCAU & LTC functions */
+/* Define ALT MMCAU & LTC functions. Do not change it. */
 #if defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_LTC_DES)
     #define MBEDTLS_DES_SETKEY_ENC_ALT
     #define MBEDTLS_DES_SETKEY_DEC_ALT
@@ -81,6 +81,18 @@
     #define MBEDTLS_AES_CRYPT_CTR_ALT
     #define MBEDTLS_CCM_CRYPT_ALT
     #define MBEDTLS_GCM_CRYPT_ALT
+#endif
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA)
+    #define MBEDTLS_MPI_ADD_ABS_ALT
+    #define MBEDTLS_MPI_SUB_ABS_ALT
+    #define MBEDTLS_MPI_MUL_MPI_ALT
+    #define MBEDTLS_MPI_MOD_MPI_ALT
+    #define MBEDTLS_MPI_EXP_MOD_ALT
+    #define MBEDTLS_MPI_GCD_ALT
+    #define MBEDTLS_MPI_INV_MOD_ALT
+    #define MBEDTLS_MPI_IS_PRIME_ALT
+    #define MBEDTLS_ECP_MUL_COMB_ALT
+    #define MBEDTLS_ECP_ADD_ALT
 #endif
 
 

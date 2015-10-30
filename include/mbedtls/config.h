@@ -33,32 +33,6 @@
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
 
-#include "fsl_device_registers.h" //DM
-
-/* Enable LTC use in library if there is LTC on chip. */
-#if (FSL_FEATURE_SOC_LTC_COUNT > 0)
-    #include "fsl_ltc.h"
-
-    #define LTC_INSTANCE                LTC0    /* LTC base register.*/
-
-    #define MBEDTLS_FREESCALE_LTC_DES           /* Enable use of LTC DES.*/
-    #define MBEDTLS_FREESCALE_LTC_AES           /* Enable use of LTC AES.*/
-    #if FSL_FEATURE_LTC_HAS_PKHA 
-        #define MBEDTLS_FREESCALE_LTC_PKHA      /* Enable use of LTC PKHA.*/
-    #endif
-#endif
-
-#if (FSL_FEATURE_SOC_MMCAU_COUNT > 0)
-    #include "cau_api.h"
-
-    #define MBEDTLS_FREESCALE_MMCAU_MD5         /* Enable use of MMCAU MD5.*/
-    #define MBEDTLS_FREESCALE_MMCAU_SHA1        /* Enable use of MMCAU SHA1.*/
-    #define MBEDTLS_FREESCALE_MMCAU_SHA256      /* Enable use of MMCAU SHA256.*/
-    #define MBEDTLS_FREESCALE_MMCAU_DES         /* Enable use of MMCAU DES, when LTC is disabled.*/
-    #define MBEDTLS_FREESCALE_MMCAU_AES         /* Enable use of MMCAU AES, when LTC is disabled.*/
-#endif
-
-
 /**
  * \name SECTION: System support
  *
@@ -100,7 +74,7 @@
  *
  * Comment if your system does not support time functions
  */
-//#define MBEDTLS_HAVE_TIME
+#define MBEDTLS_HAVE_TIME
 
 /**
  * \def MBEDTLS_HAVE_TIME_DATE
@@ -112,7 +86,7 @@
  *
  * Comment if your system does not have a correct clock.
  */
-//#define MBEDTLS_HAVE_TIME_DATE
+#define MBEDTLS_HAVE_TIME_DATE
 
 /**
  * \def MBEDTLS_PLATFORM_MEMORY
@@ -444,9 +418,7 @@
 #define MBEDTLS_ECP_DP_SECP224R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP384R1_ENABLED
-#ifndef MBEDTLS_FREESCALE_LTC_PKHA /* PKHA suports only <=512 */
-#define MBEDTLS_ECP_DP_SECP521R1_ENABLED 
-#endif
+#define MBEDTLS_ECP_DP_SECP521R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP192K1_ENABLED
 #define MBEDTLS_ECP_DP_SECP224K1_ENABLED
 #define MBEDTLS_ECP_DP_SECP256K1_ENABLED
@@ -765,7 +737,7 @@
  *
  * Enable functions that use the filesystem.
  */
-//#define MBEDTLS_FS_IO
+#define MBEDTLS_FS_IO
 
 /**
  * \def MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
@@ -789,7 +761,7 @@
  *
  * Uncomment this macro to disable the built-in platform entropy functions.
  */
-#define MBEDTLS_NO_PLATFORM_ENTROPY
+//#define MBEDTLS_NO_PLATFORM_ENTROPY
 
 /**
  * \def MBEDTLS_ENTROPY_FORCE_SHA256
@@ -1739,7 +1711,7 @@
  *
  * This module provides a generic entropy pool
  */
-//#define MBEDTLS_ENTROPY_C
+#define MBEDTLS_ENTROPY_C
 
 /**
  * \def MBEDTLS_ERROR_C
@@ -2248,7 +2220,7 @@
  *
  * This module is used by the HAVEGE random number generator.
  */
-//#define MBEDTLS_TIMING_C
+#define MBEDTLS_TIMING_C
 
 /**
  * \def MBEDTLS_VERSION_C

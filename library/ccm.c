@@ -298,6 +298,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 
     CTR_CRYPT( y, y, 16 );
     memcpy( tag, y, tag_len );
+
     return( 0 );
 }
 

@@ -498,6 +498,7 @@ void mbedtls_des_setkey( uint32_t SK[32], const unsigned char key[MBEDTLS_DES_KE
 int mbedtls_des_setkey_enc( mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE] )
 {
     mbedtls_des_setkey( ctx->sk, key );
+
     return( 0 );
 }
 #endif /*!MBEDTLS_DES_SETKEY_ALT */
@@ -555,6 +556,7 @@ int mbedtls_des3_set2key_enc( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2] )
 {
     uint32_t sk[96];
+
     des3_set2key( ctx->sk, sk, key );
     mbedtls_zeroize( sk,  sizeof( sk ) );
 
@@ -570,6 +572,7 @@ int mbedtls_des3_set2key_dec( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2] )
 {
     uint32_t sk[96];
+
     des3_set2key( sk, ctx->sk, key );
     mbedtls_zeroize( sk,  sizeof( sk ) );
 
@@ -608,6 +611,7 @@ int mbedtls_des3_set3key_enc( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3] )
 {
     uint32_t sk[96];
+
     des3_set3key( ctx->sk, sk, key );
     mbedtls_zeroize( sk,  sizeof( sk ) );
 
@@ -623,6 +627,7 @@ int mbedtls_des3_set3key_dec( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3] )
 {
     uint32_t sk[96];
+
     des3_set3key( sk, ctx->sk, key );
     mbedtls_zeroize( sk,  sizeof( sk ) );
 

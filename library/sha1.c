@@ -34,10 +34,6 @@
 
 #include "mbedtls/sha1.h"
 
-#ifdef MBEDTLS_FREESCALE_MMCAU_SHA1
-#include "cau_api.h"
-#endif
-
 #include <string.h>
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -116,9 +112,6 @@ void mbedtls_sha1_starts( mbedtls_sha1_context *ctx )
 #if !defined(MBEDTLS_SHA1_PROCESS_ALT)
 void mbedtls_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[64] )
 {
-#ifdef MBEDTLS_FREESCALE_MMCAU_SHA1
-    cau_sha1_hash_n((data), 1, (unsigned int *)(ctx)->state);
-#else
     uint32_t temp, W[16], A, B, C, D, E;
 
     GET_UINT32_BE( W[ 0], data,  0 );
@@ -271,7 +264,6 @@ void mbedtls_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[6
     ctx->state[2] += C;
     ctx->state[3] += D;
     ctx->state[4] += E;
-#endif /* MBEDTLS_FREESCALE_MMCAU_SHA1 */
 }
 #endif /* !MBEDTLS_SHA1_PROCESS_ALT */
 

@@ -1386,6 +1386,7 @@ int mbedtls_mpi_mod_mpi( mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi
       MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( R, R, B ) );
 
 cleanup:
+
     return( ret );
 }
 #endif /* !MBEDTLS_MPI_MOD_MPI_ALT */

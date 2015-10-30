@@ -33,7 +33,9 @@
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
 
-#include "fsl_device_registers.h" //DM
+/**************************** KSDK ********************************************/
+
+#include "fsl_device_registers.h"
 
 /* Enable LTC use in library if there is LTC on chip. */
 #if (FSL_FEATURE_SOC_LTC_COUNT > 0)
@@ -94,7 +96,16 @@
     #define MBEDTLS_ECP_MUL_COMB_ALT
     #define MBEDTLS_ECP_ADD_ALT
 #endif
-
+#if defined(MBEDTLS_FREESCALE_MMCAU_MD5)
+    #define MBEDTLS_MD5_PROCESS_ALT
+#endif
+#if defined(MBEDTLS_FREESCALE_MMCAU_SHA1)
+    #define MBEDTLS_SHA1_PROCESS_ALT
+#endif
+#if defined(MBEDTLS_FREESCALE_MMCAU_SHA256)
+    #define MBEDTLS_SHA256_PROCESS_ALT
+#endif
+/**************************** KSDK end ****************************************/
 
 /**
  * \name SECTION: System support

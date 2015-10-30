@@ -1406,6 +1406,11 @@ cleanup:
 
     return( ret );
 }
+#else
+int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+                         const mbedtls_mpi *m, const mbedtls_ecp_point *P,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng );
 #endif /* !MBEDTLS_ECP_MUL_COMB_ALT */
 
 #endif /* ECP_SHORTWEIERSTRASS */
@@ -1686,6 +1691,8 @@ int ecp_add( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,  const mbedtls_
 cleanup:
     return( ret );
 }
+#else
+int ecp_add( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,  const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q );
 #endif /* !MBEDTLS_ECP_ADD_ALT */
 
 /*

@@ -34,15 +34,15 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_DES_C)
-
-#include "mbedtls/des.h"
-
-#if defined (MBEDTLS_FREESCALE_LTC_DES) || defined (MBEDTLS_FREESCALE_MMCAU_DES)
-
 /******************************************************************************/
 /*************************** DES **********************************************/
 /******************************************************************************/
+
+#if defined(MBEDTLS_DES_C)
+
+#if defined (MBEDTLS_FREESCALE_LTC_DES) || defined (MBEDTLS_FREESCALE_MMCAU_DES)
+
+#include "mbedtls/des.h"
 
 #if defined (MBEDTLS_FREESCALE_MMCAU_DES)
     const unsigned char parityLookup[128] =
@@ -286,7 +286,6 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
     return( 0 );
 }
 
-
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 /*
  * DES-CBC buffer encryption/decryption
@@ -375,6 +374,8 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
 /******************************************************************************/
 
 #if defined(MBEDTLS_AES_C)
+
+#if defined (MBEDTLS_FREESCALE_LTC_AES) || defined (MBEDTLS_FREESCALE_MMCAU_AES)
 
 #include "mbedtls/aes.h"
 
@@ -485,7 +486,6 @@ void mbedtls_aes_decrypt( mbedtls_aes_context *ctx,
     cau_aes_decrypt(input, key, ctx->nr, output);
 #endif 
 }
-
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 /*
@@ -622,7 +622,7 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
 
     return( 0 );
 }
-#endif /* !MBEDTLS_FREESCALE_LTC_AES */
+#endif /* MBEDTLS_FREESCALE_LTC_AES */
 #endif /* MBEDTLS_CCM_C */
 
 
@@ -669,8 +669,9 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
 #endif /* MBEDTLS_FREESCALE_LTC_AES */
 #endif /* MBEDTLS_GCM_C */
 
-#endif /* MBEDTLS_AES_C */
+#endif /* MBEDTLS_FREESCALE_LTC_AES || MBEDTLS_FREESCALE_MMCAU_AES */
 
+#endif /* MBEDTLS_AES_C */
 
 /******************************************************************************/
 /*************************** PKHA *********************************************/
@@ -1195,7 +1196,61 @@ cleanup:
     return( ret );
 }
 
-
 #endif /* MBEDTLS_ECP_C */
 
 #endif /* MBEDTLS_FREESCALE_LTC_PKHA */
+
+/******************************************************************************/
+/*************************** MD5 **********************************************/
+/******************************************************************************/
+
+#if defined(MBEDTLS_MD5_C)
+
+#if defined(MBEDTLS_FREESCALE_MMCAU_MD5)
+
+#include "mbedtls/md5.h"
+
+void mbedtls_md5_process( mbedtls_md5_context *ctx, const unsigned char data[64] )
+{
+    cau_md5_hash_n((data), 1, (unsigned char*)(ctx)->state);
+}
+
+
+#endif /* MBEDTLS_FREESCALE_MMCAU_MD5 */
+
+#endif /* MBEDTLS_MD5_C */
+
+/******************************************************************************/
+/*************************** SHA1 *********************************************/
+/******************************************************************************/
+
+#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_FREESCALE_MMCAU_SHA1)
+
+#include "mbedtls/sha1.h"
+
+void mbedtls_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[64] )
+{
+    cau_sha1_hash_n((data), 1, (unsigned int *)(ctx)->state);
+}
+
+
+#endif /* MBEDTLS_FREESCALE_MMCAU_SHA1 */
+#endif /* MBEDTLS_SHA1_C */
+
+/******************************************************************************/
+/*************************** SHA256********************************************/
+/******************************************************************************/
+
+#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_FREESCALE_MMCAU_SHA256)
+
+#include "mbedtls/sha256.h"
+
+void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char data[64] )
+{
+    cau_sha256_hash_n((data), 1, (unsigned int *)(ctx)->state);
+}
+
+#endif /* MBEDTLS_FREESCALE_MMCAU_SHA1 */
+#endif /* MBEDTLS_SHA1_C */

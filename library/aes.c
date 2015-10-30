@@ -598,10 +598,11 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits )
 {
-    uint32_t *RK;
     int i, j, ret;
     mbedtls_aes_context cty;
+    uint32_t *RK;
     uint32_t *SK;
+
     mbedtls_aes_init( &cty );
 
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_PADLOCK_ALIGN16)

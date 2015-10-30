@@ -34,10 +34,6 @@
 
 #include "mbedtls/sha256.h"
 
-#ifdef MBEDTLS_FREESCALE_MMCAU_SHA256
-#include "cau_api.h"
-#endif
-
 #include <string.h>
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -182,9 +178,6 @@ static const uint32_t K[] =
 
 void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char data[64] )
 {
-#ifdef MBEDTLS_FREESCALE_MMCAU_SHA256
-    cau_sha256_hash_n((data), 1, (unsigned int *)(ctx)->state);
-#else
     uint32_t temp1, temp2, W[64];
     uint32_t A[8];
     unsigned int i;
@@ -236,8 +229,6 @@ void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char da
 
     for( i = 0; i < 8; i++ )
         ctx->state[i] += A[i];
-
-#endif /* MBEDTLS_FREESCALE_MMCAU_SHA256 */
 }
 #endif /* !MBEDTLS_SHA256_PROCESS_ALT */
 

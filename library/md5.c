@@ -34,10 +34,6 @@
 
 #include "mbedtls/md5.h"
 
-#ifdef MBEDTLS_FREESCALE_MMCAU_MD5
-#include "cau_api.h"
-#endif
-
 #include <string.h>
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -115,10 +111,6 @@ void mbedtls_md5_starts( mbedtls_md5_context *ctx )
 #if !defined(MBEDTLS_MD5_PROCESS_ALT)
 void mbedtls_md5_process( mbedtls_md5_context *ctx, const unsigned char data[64] )
 {
-
-#ifdef MBEDTLS_FREESCALE_MMCAU_MD5
-    cau_md5_hash_n((data), 1, (unsigned char*)(ctx)->state);
-#else
     uint32_t X[16], A, B, C, D;
 
     GET_UINT32_LE( X[ 0], data,  0 );
@@ -238,8 +230,6 @@ void mbedtls_md5_process( mbedtls_md5_context *ctx, const unsigned char data[64]
     ctx->state[1] += B;
     ctx->state[2] += C;
     ctx->state[3] += D;
-
-#endif /* MBEDTLS_FREESCALE_MMCAU_MD5 */
 }
 #endif /* !MBEDTLS_MD5_PROCESS_ALT */
 

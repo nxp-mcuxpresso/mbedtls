@@ -354,6 +354,7 @@ static const uint32_t RCON[10] =
 
 #else /* MBEDTLS_AES_ROM_TABLES */
 
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 /*
  * Forward S-box & tables
  */
@@ -461,6 +462,7 @@ static void aes_gen_tables( void )
         RT3[i] = ROTL8( RT2[i] );
     }
 }
+#endif /*!MBEDTLS_AES_SETKEY_ENC_ALT*/
 
 #endif /* MBEDTLS_AES_ROM_TABLES */
 

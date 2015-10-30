@@ -902,6 +902,7 @@ cleanup:
 /*
  * Helper for mbedtls_mpi subtraction
  */
+#if !defined(MBEDTLS_MPI_SUB_ABS_ALT) || !defined(MBEDTLS_MPI_EXP_MOD_ALT) 
 static void mpi_sub_hlp( size_t n, mbedtls_mpi_uint *s, mbedtls_mpi_uint *d )
 {
     size_t i;
@@ -919,6 +920,7 @@ static void mpi_sub_hlp( size_t n, mbedtls_mpi_uint *s, mbedtls_mpi_uint *d )
         c = z; i++; d++;
     }
 }
+#endif /* !(MBEDTLS_MPI_SUB_ABS_ALT) || !(MBEDTLS_MPI_EXP_MOD_ALT) */
 
 /*
  * Unsigned subtraction: X = |A| - |B|  (HAC 14.9)
@@ -1062,6 +1064,7 @@ int mbedtls_mpi_sub_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint 
 /*
  * Helper for mbedtls_mpi multiplication
  */
+#if !defined(MBEDTLS_MPI_MUL_MPI_ALT) || !defined(MBEDTLS_MPI_EXP_MOD_ALT) 
 static
 #if defined(__APPLE__) && defined(__arm__)
 /*
@@ -1130,6 +1133,7 @@ void mpi_mul_hlp( size_t i, mbedtls_mpi_uint *s, mbedtls_mpi_uint *d, mbedtls_mp
     }
     while( c != 0 );
 }
+#endif /*!MBEDTLS_MPI_MUL_MPI_ALT || !MBEDTLS_MPI_EXP_MOD_ALT */
 
 /*
  * Baseline multiplication: X = A * B  (HAC 14.12)
@@ -1451,6 +1455,7 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_
 /*
  * Fast Montgomery initialization (thanks to Tom St Denis)
  */
+#if !defined(MBEDTLS_MPI_EXP_MOD_ALT)
 static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
 {
     mbedtls_mpi_uint x, m0 = N->p[0];
@@ -1464,10 +1469,12 @@ static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
 
     *mm = ~x + 1;
 }
+#endif /*!MBEDTLS_MPI_EXP_MOD_ALT*/
 
 /*
  * Montgomery multiplication: A = A * B * R^-1 mod N  (HAC 14.36)
  */
+#if !defined(MBEDTLS_MPI_EXP_MOD_ALT) 
 static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N, mbedtls_mpi_uint mm,
                          const mbedtls_mpi *T )
 {
@@ -1502,7 +1509,9 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
         /* prevent timing attacks */
         mpi_sub_hlp( n, A->p, T->p );
 }
+#endif /*!MBEDTLS_MPI_EXP_MOD_ALT*/
 
+#if !defined(MBEDTLS_MPI_EXP_MOD_ALT) 
 /*
  * Montgomery reduction: A = A * R^-1 mod N
  */
@@ -1520,7 +1529,6 @@ static void mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N, mbedtls_mpi_uint 
 /*
  * Sliding-window exponentiation: X = A^E mod N  (HAC 14.85)
  */
-#if !defined(MBEDTLS_MPI_EXP_MOD_ALT)
 int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *E, const mbedtls_mpi *N, mbedtls_mpi *_RR )
 {
     int ret;

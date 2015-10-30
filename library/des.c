@@ -523,6 +523,7 @@ int mbedtls_des_setkey_dec( mbedtls_des_context *ctx, const unsigned char key[MB
 }
 #endif /*!MBEDTLS_DES_SETKEY_DEC_ALT */
 
+#if !defined(MBEDTLS_DES_SETKEY_ENC_ALT) || !defined(MBEDTLS_DES_SETKEY_DEC_ALT)
 static void des3_set2key( uint32_t esk[96],
                           uint32_t dsk[96],
                           const unsigned char key[MBEDTLS_DES_KEY_SIZE*2] )
@@ -547,6 +548,7 @@ static void des3_set2key( uint32_t esk[96],
         dsk[i + 65] = dsk[i + 1];
     }
 }
+#endif
 
 /*
  * Triple-DES key schedule (112-bit, encryption)
@@ -580,6 +582,7 @@ int mbedtls_des3_set2key_dec( mbedtls_des3_context *ctx,
 }
 #endif /*!MBEDTLS_DES_SETKEY_DEC_ALT*/
 
+#if !defined(MBEDTLS_DES_SETKEY_ENC_ALT) || !defined(MBEDTLS_DES_SETKEY_DEC_ALT)
 static void des3_set3key( uint32_t esk[96],
                           uint32_t dsk[96],
                           const unsigned char key[24] )
@@ -602,6 +605,7 @@ static void des3_set3key( uint32_t esk[96],
         dsk[i + 65] = esk[31 - i];
     }
 }
+#endif
 
 /*
  * Triple-DES key schedule (168-bit, encryption)

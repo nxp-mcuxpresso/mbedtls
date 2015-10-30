@@ -26,8 +26,8 @@
  * or disable features selectively, and reduce the global
  * memory footprint.
  */
-#ifndef MBEDTLS_CONFIG_H
-#define MBEDTLS_CONFIG_H
+#ifndef KSDK_MBEDTLS_CONFIG_H
+#define KSDK_MBEDTLS_CONFIG_H
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
@@ -2533,4 +2533,4 @@
 
 #include "mbedtls/check_config.h"
 
-#endif /* MBEDTLS_CONFIG_H */
+#endif /* KSDK_MBEDTLS_CONFIG_H */

@@ -499,7 +499,6 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
                     const unsigned char *input,
                     unsigned char *output )
 {
-    int i;
     unsigned char temp[16];
 
     uint8_t *key = (uint8_t*)ctx ->rk ;
@@ -543,7 +542,7 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
 
     key = (uint8_t *)ctx->rk;
     keySize = ctx->nr ;
-    LTC_AES_CryptCtr(LTC_INSTANCE, input, output, length, nonce_counter, key, keySize, stream_block, nc_off);
+    LTC_AES_CryptCtr(LTC_INSTANCE, input, output, length, nonce_counter, key, keySize, stream_block, (uint32_t *)nc_off);
 
     return( 0 );
 }
@@ -610,8 +609,6 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
 {
     int ret;
     unsigned char check_tag[16];
-    unsigned char i;
-    int diff;
 
     if( ( ret = ccm_auth_crypt( ctx, CCM_DECRYPT, length,
                                 iv, iv_len, add, add_len,
@@ -707,7 +704,6 @@ static void ltc_reverse_array(uint8_t *src, size_t src_len)
 int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
 {
     int ret;
-    size_t i, j;
     uint16_t sizeN = LTC_MAX_INT;
     uint8_t  N[LTC_MAX_INT];
 
@@ -1021,7 +1017,7 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
     // Get the random seed number
     f_rng( p_rng, (unsigned char*)(&random), sizeof(random) );
 
-    ret = (int)LTC_PKHA_PrimalityTest(LTC_INSTANCE, (unsigned char*)&random, sizeof(random), "1", 1, ptrX, sizeX, &result);
+    ret = (int)LTC_PKHA_PrimalityTest(LTC_INSTANCE, (unsigned char*)&random, sizeof(random), (const uint8_t *)"1", 1u, ptrX, sizeX, &result);
 
     if (ret != kStatus_Success)
         return ret;
@@ -1134,7 +1130,6 @@ static inline ecp_curve_type ecp_get_type( const mbedtls_ecp_group *grp )
 int ecp_add( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,  const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
 {    
     int ret;
-    bool is_inf;
     size_t size;
     ltc_pkha_ecc_point_t A;
     ltc_pkha_ecc_point_t B;

@@ -58,11 +58,14 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 #define biL    (ciL << 3)               /* bits  in limb  */
 #define biH    (ciL << 2)               /* half limb size */
 
+#define MPI_SIZE_T_MAX  ( (size_t) -1 ) /* SIZE_T_MAX is not standard */
+
 /*
  * Convert between bits/chars and number of limbs
+ * Divide first in order to avoid potential overflows
  */
-#define BITS_TO_LIMBS(i)  (((i) + biL - 1) / biL)
-#define CHARS_TO_LIMBS(i) (((i) + ciL - 1) / ciL)
+#define BITS_TO_LIMBS(i)  ( (i) / biL + ( (i) % biL != 0 ) )
+#define CHARS_TO_LIMBS(i) ( (i) / ciL + ( (i) % ciL != 0 ) )
 
 /*
  * Initialize one MPI
@@ -409,6 +412,9 @@ int mbedtls_mpi_read_string( mbedtls_mpi *X, int radix, const char *s )
 
     if( radix == 16 )
     {
+        if( slen > MPI_SIZE_T_MAX >> 2 )
+            return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
         n = BITS_TO_LIMBS( slen << 2 );
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, n ) );
@@ -928,8 +934,8 @@ static void mpi_sub_hlp( size_t n, mbedtls_mpi_uint *s, mbedtls_mpi_uint *d )
 #if !defined(MBEDTLS_MPI_SUB_ABS_ALT)
 int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
 {
-    int ret;
     mbedtls_mpi TB;
+    int ret;
     size_t n;
 
     if( mbedtls_mpi_cmp_abs( A, B ) < 0 )

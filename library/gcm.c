@@ -462,6 +462,7 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
 
     if( ( ret = mbedtls_gcm_finish( ctx, tag, tag_len ) ) != 0 )
         return( ret );
+
     return( 0 );
 }
 #endif /* !MBEDTLS_GCM_CRYPT_ALT */

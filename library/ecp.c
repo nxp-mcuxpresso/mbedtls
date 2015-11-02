@@ -62,7 +62,8 @@
 #define mbedtls_free       free
 #endif
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && !defined(inline)
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
 #define inline __inline
 #endif
 
@@ -159,7 +160,6 @@ static const mbedtls_ecp_curve_info ecp_supported_curves[] =
 
 #define ECP_NB_CURVES   sizeof( ecp_supported_curves ) /    \
                         sizeof( ecp_supported_curves[0] )
-
 
 static mbedtls_ecp_group_id ecp_supported_grp_id[ECP_NB_CURVES];
 

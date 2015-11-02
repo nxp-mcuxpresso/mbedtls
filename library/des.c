@@ -722,6 +722,7 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
             length -= 8;
         }
     }
+
     return( 0 );
 }
 #endif /*!MBEDTLS_DES_CRYPT_CBC_ALT*/
@@ -774,7 +775,6 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
 #endif /* !MBEDTLS_DES3_CRYPT_ECB_ALT */
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
-
 /*
  * 3DES-CBC buffer encryption/decryption
  */

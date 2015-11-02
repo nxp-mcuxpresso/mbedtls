@@ -29,10 +29,6 @@
 #ifndef MBEDTLS_CONFIG_H
 #define MBEDTLS_CONFIG_H
 
-#ifdef FREESCALE_KSDK_BM
-    #include "ksdk_mbedtls_config.h"
-#else
-
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
@@ -2460,7 +2456,5 @@
 #endif
 
 #include "check_config.h"
-
-#endif /* FREESCALE_KSDK_BM */
 
 #endif /* MBEDTLS_CONFIG_H */

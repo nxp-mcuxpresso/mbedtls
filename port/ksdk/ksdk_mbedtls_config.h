@@ -38,20 +38,25 @@
 #include "fsl_device_registers.h"
 
 /* Enable LTC use in library if there is LTC on chip. */
-#if (FSL_FEATURE_SOC_LTC_COUNT > 0)
+#if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
     #include "fsl_ltc.h"
 
     #define LTC_INSTANCE                LTC0    /* LTC base register.*/
 
-    #define MBEDTLS_FREESCALE_LTC_DES           /* Enable use of LTC DES.*/
+    #if defined(FSL_FEATURE_LTC_HAS_DES) && FSL_FEATURE_LTC_HAS_DES
+        #define MBEDTLS_FREESCALE_LTC_DES       /* Enable use of LTC DES.*/
+    #endif
     #define MBEDTLS_FREESCALE_LTC_AES           /* Enable use of LTC AES.*/
-    #if FSL_FEATURE_LTC_HAS_PKHA 
+    #if defined(FSL_FEATURE_LTC_HAS_GCM) && FSL_FEATURE_LTC_HAS_GCM 
+        #define MBEDTLS_FREESCALE_LTC_AES_GCM   /* Enable use of LTC AES GCM.*/
+    #endif
+    #if defined(FSL_FEATURE_LTC_HAS_PKHA) && FSL_FEATURE_LTC_HAS_PKHA 
         #define MBEDTLS_FREESCALE_LTC_PKHA      /* Enable use of LTC PKHA.*/
     #endif
 #endif
 
 /* Enable MMCAU use in library if there is MMCAU on chip. */
-#if (FSL_FEATURE_SOC_MMCAU_COUNT > 0) 
+#if defined(FSL_FEATURE_SOC_MMCAU_COUNT) && (FSL_FEATURE_SOC_MMCAU_COUNT > 0) 
     #include "cau_api.h"
 
     #define MBEDTLS_FREESCALE_MMCAU_MD5         /* Enable use of MMCAU MD5.*/
@@ -82,6 +87,8 @@
     #define MBEDTLS_AES_CRYPT_CBC_ALT
     #define MBEDTLS_AES_CRYPT_CTR_ALT
     #define MBEDTLS_CCM_CRYPT_ALT
+#endif
+#if defined(MBEDTLS_FREESCALE_LTC_AES_GCM)
     #define MBEDTLS_GCM_CRYPT_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_PKHA)

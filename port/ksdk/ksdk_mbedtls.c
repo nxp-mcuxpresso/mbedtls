@@ -245,11 +245,11 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
 #elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
     if(ctx -> mode == MBEDTLS_DES_ENCRYPT)
     {
-        cau_des_encrypt(input, key, output);
+        MMCAU_DES_EncryptEcb(input, key, output);
     }
     else
     {
-        cau_des_decrypt(input, key, output);
+        MMCAU_DES_DecryptEcb(input, key, output);
     }    
 #endif 
     return( 0 );
@@ -277,15 +277,15 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
 #elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
     if(ctx -> mode == MBEDTLS_DES_ENCRYPT)
     {
-        cau_des_encrypt(input, key, output);
-        cau_des_decrypt(output, key + 8, output);
-        cau_des_encrypt(output, key + 16, output);
+        MMCAU_DES_EncryptEcb(input, key, output);
+        MMCAU_DES_DecryptEcb(output, key + 8, output);
+        MMCAU_DES_EncryptEcb(output, key + 16, output);
     }
     else
     {
-        cau_des_decrypt(input, key + 16 , output);
-        cau_des_encrypt(output, key + 8, output);
-        cau_des_decrypt(output, key , output);
+        MMCAU_DES_DecryptEcb(input, key + 16, output);
+        MMCAU_DES_EncryptEcb(output, key + 8, output);
+        MMCAU_DES_DecryptEcb(output, key, output);
     }    
 #endif
     return( 0 );
@@ -405,7 +405,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
         default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
     }
 
-    cau_aes_set_key(key, keybits, (unsigned char *)RK);
+    MMCAU_AES_SetKey(key, keybits/8, (uint8_t *)RK);
 #endif 
     return( 0 );
 }
@@ -443,7 +443,7 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
         default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
     }
 
-    cau_aes_set_key((unsigned char *)key, keybits, (unsigned char *)RK);
+    MMCAU_AES_SetKey(key, keybits/8, (uint8_t *)RK);
 #endif 
     return 0;
 }
@@ -461,7 +461,7 @@ void mbedtls_aes_encrypt( mbedtls_aes_context *ctx,
 #if defined (MBEDTLS_FREESCALE_LTC_AES)
     LTC_AES_EncryptEcb( LTC_INSTANCE, input, output, 16, key, ctx->nr);
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
-    cau_aes_encrypt(input, key, ctx->nr, output);
+    MMCAU_AES_EncryptEcb(input, key, ctx->nr, output);
 #endif 
 }
 
@@ -478,7 +478,7 @@ void mbedtls_aes_decrypt( mbedtls_aes_context *ctx,
 #if defined (MBEDTLS_FREESCALE_LTC_AES)
     LTC_AES_DecryptEcb(LTC_INSTANCE, input, output, 16, key, ctx->nr, kLTC_EncryptKey);
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
-    cau_aes_decrypt(input, key, ctx->nr, output);
+    MMCAU_AES_DecryptEcb(input, key, ctx->nr, output);
 #endif 
 }
 
@@ -1201,7 +1201,7 @@ cleanup:
 
 void mbedtls_md5_process( mbedtls_md5_context *ctx, const unsigned char data[64] )
 {
-    cau_md5_hash_n((data), 1, (unsigned char*)(ctx)->state);
+    MMCAU_MD5_HashN(data, 1, (uint8_t *)ctx->state);
 }
 
 
@@ -1220,7 +1220,7 @@ void mbedtls_md5_process( mbedtls_md5_context *ctx, const unsigned char data[64]
 
 void mbedtls_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[64] )
 {
-    cau_sha1_hash_n((data), 1, (unsigned int *)(ctx)->state);
+    MMCAU_SHA1_HashN(data, 1, (uint8_t *)ctx->state);
 }
 
 
@@ -1238,7 +1238,7 @@ void mbedtls_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[6
 
 void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char data[64] )
 {
-    cau_sha256_hash_n((data), 1, (unsigned int *)(ctx)->state);
+    MMCAU_SHA256_HashN(data, 1, (uint8_t *)ctx->state);
 }
 
 #endif /* MBEDTLS_FREESCALE_MMCAU_SHA1 */

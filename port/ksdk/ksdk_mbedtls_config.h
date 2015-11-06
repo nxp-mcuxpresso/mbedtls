@@ -38,7 +38,7 @@
 #include "fsl_device_registers.h"
 
 /* Enable LTC use in library if there is LTC on chip. */
-#if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
+#if 0 //DM defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
     #include "fsl_ltc.h"
 
     #define LTC_INSTANCE                LTC0    /* LTC base register.*/
@@ -57,7 +57,7 @@
 
 /* Enable MMCAU use in library if there is MMCAU on chip. */
 #if defined(FSL_FEATURE_SOC_MMCAU_COUNT) && (FSL_FEATURE_SOC_MMCAU_COUNT > 0) 
-    #include "cau_api.h"
+    #include "fsl_mmcau.h"
 
     #define MBEDTLS_FREESCALE_MMCAU_MD5         /* Enable use of MMCAU MD5.*/
     #define MBEDTLS_FREESCALE_MMCAU_SHA1        /* Enable use of MMCAU SHA1.*/

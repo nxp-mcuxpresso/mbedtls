@@ -1201,7 +1201,7 @@ cleanup:
 
 void mbedtls_md5_process( mbedtls_md5_context *ctx, const unsigned char data[64] )
 {
-    MMCAU_MD5_HashN(data, 1, (uint8_t *)ctx->state);
+    MMCAU_MD5_HashN(data, 1, ctx->state);
 }
 
 
@@ -1220,7 +1220,7 @@ void mbedtls_md5_process( mbedtls_md5_context *ctx, const unsigned char data[64]
 
 void mbedtls_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[64] )
 {
-    MMCAU_SHA1_HashN(data, 1, (uint8_t *)ctx->state);
+    MMCAU_SHA1_HashN(data, 1, ctx->state);
 }
 
 
@@ -1238,7 +1238,7 @@ void mbedtls_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[6
 
 void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char data[64] )
 {
-    MMCAU_SHA256_HashN(data, 1, (uint8_t *)ctx->state);
+    MMCAU_SHA256_HashN(data, 1, ctx->state);
 }
 
 #endif /* MBEDTLS_FREESCALE_MMCAU_SHA1 */

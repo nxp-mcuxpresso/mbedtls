@@ -40,233 +40,220 @@
 
 #if defined(MBEDTLS_DES_C)
 
-#if defined (MBEDTLS_FREESCALE_LTC_DES) || defined (MBEDTLS_FREESCALE_MMCAU_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_MMCAU_DES)
 
 #include "mbedtls/des.h"
 
-#if defined (MBEDTLS_FREESCALE_MMCAU_DES)
-    const unsigned char parityLookup[128] =
-    {
-        1,0,0,1,0,1,1,0,0,1,1,0,1,0,0,1,0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0,
-        0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0,1,0,0,1,0,1,1,0,0,1,1,0,1,0,0,1,
-        0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0,1,0,0,1,0,1,1,0,0,1,1,0,1,0,0,1,
-        1,0,0,1,0,1,1,0,0,1,1,0,1,0,0,1,0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0
-     };
+#if defined(MBEDTLS_FREESCALE_MMCAU_DES)
+const unsigned char parityLookup[128] = {1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0,
+                                         0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1,
+                                         0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1,
+                                         1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
+                                         0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0};
 #endif
 
 /*
  * DES key schedule (56-bit, encryption)
  */
-int mbedtls_des_setkey_enc( mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE] )
+int mbedtls_des_setkey_enc(mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE])
 {
     int i;
-    unsigned char * sk_b = (unsigned char *)ctx ->sk;
+    unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined (MBEDTLS_FREESCALE_LTC_DES) 
-    for(i = 0; i< MBEDTLS_DES_KEY_SIZE ; i++)
+#if defined(MBEDTLS_FREESCALE_LTC_DES)
+    for (i = 0; i < MBEDTLS_DES_KEY_SIZE; i++)
     {
         sk_b[i] = key[i];
     }
-    ctx -> mode = MBEDTLS_DES_ENCRYPT;
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
+    ctx->mode = MBEDTLS_DES_ENCRYPT;
+#elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
     /* fix key parity, if needed */
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE; i++)
     {
-       sk_b[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
+        sk_b[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
     }
 #endif
-    ctx -> mode = MBEDTLS_DES_ENCRYPT;
+    ctx->mode = MBEDTLS_DES_ENCRYPT;
 
-    return( 0 );
+    return (0);
 }
 
 /*
  * DES key schedule (56-bit, decryption)
  */
-int mbedtls_des_setkey_dec( mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE] )
+int mbedtls_des_setkey_dec(mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE])
 {
     int i;
-    unsigned char * sk_b = (unsigned char *)ctx ->sk;
+    unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined (MBEDTLS_FREESCALE_LTC_DES) 
-    for(i = 0; i< MBEDTLS_DES_KEY_SIZE ; i++)
+#if defined(MBEDTLS_FREESCALE_LTC_DES)
+    for (i = 0; i < MBEDTLS_DES_KEY_SIZE; i++)
     {
         sk_b[i] = key[i];
     }
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
+#elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
     /* fix key parity, if needed */
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE; i++)
     {
-       sk_b[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
+        sk_b[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
     }
 #endif
-    ctx -> mode = MBEDTLS_DES_DECRYPT ;
+    ctx->mode = MBEDTLS_DES_DECRYPT;
 
-    return( 0 );
+    return (0);
 }
 
 /*
  * Triple-DES key schedule (112-bit, encryption)
  */
-int mbedtls_des3_set2key_enc( mbedtls_des3_context *ctx,
-                      const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2] )
+int mbedtls_des3_set2key_enc(mbedtls_des3_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2])
 {
     int i;
-    unsigned char * sk_b = (unsigned char *)ctx ->sk;
+    unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined (MBEDTLS_FREESCALE_LTC_DES) 
-    for(i = 0 ; i< MBEDTLS_DES_KEY_SIZE*2 ; i++)
+#if defined(MBEDTLS_FREESCALE_LTC_DES)
+    for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 2; i++)
     {
         sk_b[i] = key[i];
     }
-    for (i = MBEDTLS_DES_KEY_SIZE*2; i < MBEDTLS_DES_KEY_SIZE*3; i++)
+    for (i = MBEDTLS_DES_KEY_SIZE * 2; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
-       sk_b[i] = key[i-MBEDTLS_DES_KEY_SIZE*2];
+        sk_b[i] = key[i - MBEDTLS_DES_KEY_SIZE * 2];
     }
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
+#elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
     /* fix key parity, if needed */
-    for (i = 0; i < MBEDTLS_DES_KEY_SIZE*2; i++)
+    for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 2; i++)
     {
-       sk_b[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
+        sk_b[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
     }
-    for (i = MBEDTLS_DES_KEY_SIZE*2; i < MBEDTLS_DES_KEY_SIZE*3; i++)
+    for (i = MBEDTLS_DES_KEY_SIZE * 2; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
-       sk_b[i]= ((key[i-MBEDTLS_DES_KEY_SIZE*2] & 0xFE) | parityLookup[key[i-MBEDTLS_DES_KEY_SIZE*2] >> 1]);
+        sk_b[i] = ((key[i - MBEDTLS_DES_KEY_SIZE * 2] & 0xFE) | parityLookup[key[i - MBEDTLS_DES_KEY_SIZE * 2] >> 1]);
     }
 #endif
-    ctx -> mode = MBEDTLS_DES_ENCRYPT;
+    ctx->mode = MBEDTLS_DES_ENCRYPT;
 
-    return( 0 );
+    return (0);
 }
 
 /*
  * Triple-DES key schedule (112-bit, decryption)
  */
-int mbedtls_des3_set2key_dec( mbedtls_des3_context *ctx,
-                      const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2] )
+int mbedtls_des3_set2key_dec(mbedtls_des3_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2])
 {
     int i;
-    unsigned char * sk_b = (unsigned char *)ctx ->sk;
+    unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined (MBEDTLS_FREESCALE_LTC_DES) 
-    for(i = 0; i < MBEDTLS_DES_KEY_SIZE*2 ; i++)
+#if defined(MBEDTLS_FREESCALE_LTC_DES)
+    for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 2; i++)
     {
         sk_b[i] = key[i];
     }
-    for (i = MBEDTLS_DES_KEY_SIZE*2; i < MBEDTLS_DES_KEY_SIZE*3; i++)
+    for (i = MBEDTLS_DES_KEY_SIZE * 2; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
-       sk_b[i] = key[i-MBEDTLS_DES_KEY_SIZE*2];
+        sk_b[i] = key[i - MBEDTLS_DES_KEY_SIZE * 2];
     }
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
+#elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
     /* fix key parity, if needed */
-    for (i = 0; i < MBEDTLS_DES_KEY_SIZE*2; i++)
+    for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 2; i++)
     {
-       sk_b[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
+        sk_b[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
     }
-    for (i = MBEDTLS_DES_KEY_SIZE*2; i < MBEDTLS_DES_KEY_SIZE*3; i++)
+    for (i = MBEDTLS_DES_KEY_SIZE * 2; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
-       sk_b[i]= ((key[i-MBEDTLS_DES_KEY_SIZE*2] & 0xFE) | parityLookup[key[i-MBEDTLS_DES_KEY_SIZE*2] >> 1]);
+        sk_b[i] = ((key[i - MBEDTLS_DES_KEY_SIZE * 2] & 0xFE) | parityLookup[key[i - MBEDTLS_DES_KEY_SIZE * 2] >> 1]);
     }
 #endif
-    ctx -> mode = MBEDTLS_DES_DECRYPT ;
+    ctx->mode = MBEDTLS_DES_DECRYPT;
 
-    return( 0 );
+    return (0);
 }
 
 /*
  * Triple-DES key schedule (168-bit, encryption)
  */
-int mbedtls_des3_set3key_enc( mbedtls_des3_context *ctx,
-                      const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3] )
+int mbedtls_des3_set3key_enc(mbedtls_des3_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3])
 {
-    int i ;
-    unsigned char * sk_b = (unsigned char *)ctx ->sk;
+    int i;
+    unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined (MBEDTLS_FREESCALE_LTC_DES) 
-    for(i = 0 ;i < MBEDTLS_DES_KEY_SIZE*3 ; i++)
+#if defined(MBEDTLS_FREESCALE_LTC_DES)
+    for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
         sk_b[i] = key[i];
     }
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
+#elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
     /* fix key parity, if needed */
-    for (i = 0; i < MBEDTLS_DES_KEY_SIZE*3; i++)
+    for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
-       sk_b[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
+        sk_b[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
     }
 #endif
-    ctx -> mode = MBEDTLS_DES_ENCRYPT;
+    ctx->mode = MBEDTLS_DES_ENCRYPT;
 
-    return( 0 );
+    return (0);
 }
 
 /*
  * Triple-DES key schedule (168-bit, decryption)
  */
-int mbedtls_des3_set3key_dec( mbedtls_des3_context *ctx,
-                      const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3] )
+int mbedtls_des3_set3key_dec(mbedtls_des3_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3])
 {
-    int i ;
-    unsigned char * sk_b = (unsigned char *)ctx ->sk;
+    int i;
+    unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined (MBEDTLS_FREESCALE_LTC_DES)
-    for(i = 0 ;i< MBEDTLS_DES_KEY_SIZE*3 ; i++)
+#if defined(MBEDTLS_FREESCALE_LTC_DES)
+    for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
         sk_b[i] = key[i];
     }
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
+#elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
     /* fix key parity, if needed */
-    for (i = 0; i < MBEDTLS_DES_KEY_SIZE*3; i++)
+    for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
-       sk_b[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
+        sk_b[i] = ((key[i] & 0xFE) | parityLookup[key[i] >> 1]);
     }
 #endif
-    ctx -> mode = MBEDTLS_DES_DECRYPT;
-    return( 0 );
+    ctx->mode = MBEDTLS_DES_DECRYPT;
+    return (0);
 }
 
 /*
  * DES-ECB block encryption/decryption
  */
-int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
-                    const unsigned char input[8],
-                    unsigned char output[8] )
+int mbedtls_des_crypt_ecb(mbedtls_des_context *ctx, const unsigned char input[8], unsigned char output[8])
 {
-    uint8_t *key = (uint8_t*)ctx ->sk;
-    int i;
+    uint8_t *key = (uint8_t *)ctx->sk;
 #if defined(MBEDTLS_FREESCALE_LTC_DES)
-    if(ctx -> mode == MBEDTLS_DES_ENCRYPT)
+    if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {
-        LTC_DES_EncryptEcb( LTC_INSTANCE, input, output, 8, key) ;
+        LTC_DES_EncryptEcb(LTC_INSTANCE, input, output, 8, key);
     }
     else
     {
-        LTC_DES_DecryptEcb( LTC_INSTANCE, input, output, 8, key);
+        LTC_DES_DecryptEcb(LTC_INSTANCE, input, output, 8, key);
     }
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
-    if(ctx -> mode == MBEDTLS_DES_ENCRYPT)
+#elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
+    if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {
         MMCAU_DES_EncryptEcb(input, key, output);
     }
     else
     {
         MMCAU_DES_DecryptEcb(input, key, output);
-    }    
-#endif 
-    return( 0 );
+    }
+#endif
+    return (0);
 }
 
 /*
  * 3DES-ECB block encryption/decryption
  */
-int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
-                     const unsigned char input[8],
-                     unsigned char output[8] )
+int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx, const unsigned char input[8], unsigned char output[8])
 {
-    uint8_t *key = (uint8_t*)ctx ->sk;
-    int i;
-
-#if defined (MBEDTLS_FREESCALE_LTC_DES)
-    if(ctx -> mode == MBEDTLS_DES_ENCRYPT)
+    uint8_t *key = (uint8_t *)ctx->sk;
+#if defined(MBEDTLS_FREESCALE_LTC_DES)
+    if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {
         LTC_DES3_EncryptEcb(LTC_INSTANCE, input, output, 8, key, key + 8, key + 16);
     }
@@ -274,8 +261,8 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
     {
         LTC_DES3_DecryptEcb(LTC_INSTANCE, input, output, 8, key, key + 8, key + 16);
     }
-#elif defined (MBEDTLS_FREESCALE_MMCAU_DES)
-    if(ctx -> mode == MBEDTLS_DES_ENCRYPT)
+#elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
+    if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {
         MMCAU_DES_EncryptEcb(input, key, output);
         MMCAU_DES_DecryptEcb(output, key + 8, output);
@@ -286,9 +273,9 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
         MMCAU_DES_DecryptEcb(input, key + 16, output);
         MMCAU_DES_EncryptEcb(output, key + 8, output);
         MMCAU_DES_DecryptEcb(output, key, output);
-    }    
+    }
 #endif
-    return( 0 );
+    return (0);
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -296,64 +283,64 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
  * DES-CBC buffer encryption/decryption
  */
 #if defined(MBEDTLS_FREESCALE_LTC_DES)
-int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
-                    int mode,
-                    size_t length,
-                    unsigned char iv[8],
-                    const unsigned char *input,
-                    unsigned char *output )
+int mbedtls_des_crypt_cbc(mbedtls_des_context *ctx,
+                          int mode,
+                          size_t length,
+                          unsigned char iv[8],
+                          const unsigned char *input,
+                          unsigned char *output)
 {
     int i;
     unsigned char temp[8];
-    uint8_t *key = (uint8_t*)ctx ->sk;
+    uint8_t *key = (uint8_t *)ctx->sk;
 
-    if( length % 8 )
-        return( MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH );
+    if (length % 8)
+        return (MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH);
 
-    if( mode == MBEDTLS_DES_ENCRYPT )
+    if (mode == MBEDTLS_DES_ENCRYPT)
     {
         LTC_DES_EncryptCbc(LTC_INSTANCE, input, output, length, iv, key);
-        memcpy( iv, output + length - 8, 8 );
+        memcpy(iv, output + length - 8, 8);
     }
     else /* MBEDTLS_DES_DECRYPT */
     {
-        memcpy( temp, input + length - 8, 8 );
-        LTC_DES_DecryptCbc(LTC_INSTANCE, input, output, length, iv, key) ;
-        memcpy( iv, temp, 8 );
+        memcpy(temp, input + length - 8, 8);
+        LTC_DES_DecryptCbc(LTC_INSTANCE, input, output, length, iv, key);
+        memcpy(iv, temp, 8);
     }
-    return( 0 );
+    return (0);
 }
 
 /*
  * 3DES-CBC buffer encryption/decryption
  */
-int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
-                     int mode,
-                     size_t length,
-                     unsigned char iv[8],
-                     const unsigned char *input,
-                     unsigned char *output )
+int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
+                           int mode,
+                           size_t length,
+                           unsigned char iv[8],
+                           const unsigned char *input,
+                           unsigned char *output)
 {
     int i;
     unsigned char temp[8];
-    uint8_t *key = (uint8_t*)ctx ->sk;
+    uint8_t *key = (uint8_t *)ctx->sk;
 
-    if( length % 8 )
-        return( MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH );
+    if (length % 8)
+        return (MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH);
 
-    if( mode == MBEDTLS_DES_ENCRYPT )
+    if (mode == MBEDTLS_DES_ENCRYPT)
     {
         LTC_DES3_EncryptCbc(LTC_INSTANCE, input, output, length, iv, key, key + 8, key + 16);
-        memcpy( iv, output + length - 8, 8 );
+        memcpy(iv, output + length - 8, 8);
     }
     else /* MBEDTLS_DES_DECRYPT */
     {
-        memcpy( temp, input + length - 8, 8 );
-        LTC_DES3_DecryptCbc(LTC_INSTANCE, input, output, length, iv, key, key + 8, key + 16) ;
-        memcpy( iv, temp, 8 );
+        memcpy(temp, input + length - 8, 8);
+        LTC_DES3_DecryptCbc(LTC_INSTANCE, input, output, length, iv, key, key + 8, key + 16);
+        memcpy(iv, temp, 8);
     }
 
-    return( 0 );
+    return (0);
 }
 
 #endif /* MBEDTLS_FREESCALE_LTC_DES */
@@ -363,58 +350,69 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
 
 #endif /* MBEDTLS_DES_C */
 
-
 /******************************************************************************/
 /*************************** AES **********************************************/
 /******************************************************************************/
 
 #if defined(MBEDTLS_AES_C)
 
-#if defined (MBEDTLS_FREESCALE_LTC_AES) || defined (MBEDTLS_FREESCALE_MMCAU_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES)
 
 #include "mbedtls/aes.h"
 
 /*
  * AES key schedule (encryption)
  */
-int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
-                    unsigned int keybits )
+int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, unsigned int keybits)
 {
     uint32_t *RK;
 
 #if defined(MBEDTLS_FREESCALE_LTC_AES)
     const unsigned char *key_tmp = key;
     ctx->rk = RK = ctx->buf;
-    memcpy( RK, key_tmp, keybits/8 );
-   
-    switch( keybits )
+    memcpy(RK, key_tmp, keybits / 8);
+
+    switch (keybits)
     { /* Set keysize in bytes.*/
-        case 128: ctx->nr = 16; break;
-        case 192: ctx->nr = 24; break;
-        case 256: ctx->nr = 32; break;
-        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
+        case 128:
+            ctx->nr = 16;
+            break;
+        case 192:
+            ctx->nr = 24;
+            break;
+        case 256:
+            ctx->nr = 32;
+            break;
+        default:
+            return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
     }
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     ctx->rk = RK = ctx->buf;
 
-    switch( keybits )
+    switch (keybits)
     {
-        case 128: ctx->nr = 10; break;
-        case 192: ctx->nr = 12; break;
-        case 256: ctx->nr = 14; break;
-        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
+        case 128:
+            ctx->nr = 10;
+            break;
+        case 192:
+            ctx->nr = 12;
+            break;
+        case 256:
+            ctx->nr = 14;
+            break;
+        default:
+            return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
     }
 
-    MMCAU_AES_SetKey(key, keybits/8, (uint8_t *)RK);
-#endif 
-    return( 0 );
+    MMCAU_AES_SetKey(key, keybits / 8, (uint8_t *)RK);
+#endif
+    return (0);
 }
 
 /*
  * AES key schedule (decryption)
  */
-int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
-                    unsigned int keybits )
+int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, unsigned int keybits)
 {
     uint32_t *RK;
 
@@ -422,64 +420,74 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
 
 #if defined(MBEDTLS_FREESCALE_LTC_AES)
     const unsigned char *key_tmp = key;
-    
-    memcpy( RK, key_tmp, keybits/8 );
 
-    switch( keybits )
+    memcpy(RK, key_tmp, keybits / 8);
+
+    switch (keybits)
     {
-        case 128: ctx->nr = 16; break;
-        case 192: ctx->nr = 24; break;
-        case 256: ctx->nr = 32; break;
-        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
+        case 128:
+            ctx->nr = 16;
+            break;
+        case 192:
+            ctx->nr = 24;
+            break;
+        case 256:
+            ctx->nr = 32;
+            break;
+        default:
+            return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
     }
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     ctx->rk = RK = ctx->buf;
 
-    switch( keybits )
+    switch (keybits)
     {
-        case 128: ctx->nr = 10; break;
-        case 192: ctx->nr = 12; break;
-        case 256: ctx->nr = 14; break;
-        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
+        case 128:
+            ctx->nr = 10;
+            break;
+        case 192:
+            ctx->nr = 12;
+            break;
+        case 256:
+            ctx->nr = 14;
+            break;
+        default:
+            return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
     }
 
-    MMCAU_AES_SetKey(key, keybits/8, (uint8_t *)RK);
-#endif 
+    MMCAU_AES_SetKey(key, keybits / 8, (uint8_t *)RK);
+#endif
     return 0;
 }
 
 /*
  * AES-ECB block encryption
  */
-void mbedtls_aes_encrypt( mbedtls_aes_context *ctx,
-                          const unsigned char input[16],
-                          unsigned char output[16] )
+void mbedtls_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16])
 {
-    uint8_t *key ;
+    uint8_t *key;
 
-    key = (uint8_t *)ctx -> rk ;
-#if defined (MBEDTLS_FREESCALE_LTC_AES)
-    LTC_AES_EncryptEcb( LTC_INSTANCE, input, output, 16, key, ctx->nr);
+    key = (uint8_t *)ctx->rk;
+#if defined(MBEDTLS_FREESCALE_LTC_AES)
+    LTC_AES_EncryptEcb(LTC_INSTANCE, input, output, 16, key, ctx->nr);
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     MMCAU_AES_EncryptEcb(input, key, ctx->nr, output);
-#endif 
+#endif
 }
 
 /*
  * AES-ECB block decryption
  */
-void mbedtls_aes_decrypt( mbedtls_aes_context *ctx,
-                          const unsigned char input[16],
-                          unsigned char output[16] )
+void mbedtls_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16])
 {
-    uint8_t *key ;
+    uint8_t *key;
 
-    key = (uint8_t *)ctx -> rk ;
-#if defined (MBEDTLS_FREESCALE_LTC_AES)
+    key = (uint8_t *)ctx->rk;
+#if defined(MBEDTLS_FREESCALE_LTC_AES)
     LTC_AES_DecryptEcb(LTC_INSTANCE, input, output, 16, key, ctx->nr, kLTC_EncryptKey);
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     MMCAU_AES_DecryptEcb(input, key, ctx->nr, output);
-#endif 
+#endif
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -487,34 +495,34 @@ void mbedtls_aes_decrypt( mbedtls_aes_context *ctx,
  * AES-CBC buffer encryption/decryption
  */
 #if defined(MBEDTLS_FREESCALE_LTC_AES)
-int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
-                    int mode,
-                    size_t length,
-                    unsigned char iv[16],
-                    const unsigned char *input,
-                    unsigned char *output )
+int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
+                          int mode,
+                          size_t length,
+                          unsigned char iv[16],
+                          const unsigned char *input,
+                          unsigned char *output)
 {
     unsigned char temp[16];
 
-    uint8_t *key = (uint8_t*)ctx ->rk ;
-    uint32_t keySize = ctx->nr ;
-    memcpy( temp, input, 16 );
+    uint8_t *key = (uint8_t *)ctx->rk;
+    uint32_t keySize = ctx->nr;
+    memcpy(temp, input, 16);
 
-    if( length % 16 )
-        return( MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH );
+    if (length % 16)
+        return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
 
-    if( mode == MBEDTLS_AES_DECRYPT )
+    if (mode == MBEDTLS_AES_DECRYPT)
     {
         LTC_AES_DecryptCbc(LTC_INSTANCE, temp, output, length, iv, key, keySize, kLTC_EncryptKey);
-        memcpy( iv, temp, 16 );
+        memcpy(iv, temp, 16);
     }
     else
     {
         LTC_AES_EncryptCbc(LTC_INSTANCE, temp, output, length, iv, key, keySize);
-        memcpy( iv, output, 16 );
+        memcpy(iv, output, 16);
     }
 
-    return( 0 );
+    return (0);
 }
 #endif /* MBEDTLS_FREESCALE_LTC_AES */
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
@@ -524,22 +532,23 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
  * AES-CTR buffer encryption/decryption
  */
 #if defined(MBEDTLS_FREESCALE_LTC_AES)
-int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
-                       size_t length,
-                       size_t *nc_off,
-                       unsigned char nonce_counter[16],
-                       unsigned char stream_block[16],
-                       const unsigned char *input,
-                       unsigned char *output )
+int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
+                          size_t length,
+                          size_t *nc_off,
+                          unsigned char nonce_counter[16],
+                          unsigned char stream_block[16],
+                          const unsigned char *input,
+                          unsigned char *output)
 {
-    uint8_t *key ;
-    uint32_t keySize ;
+    uint8_t *key;
+    uint32_t keySize;
 
     key = (uint8_t *)ctx->rk;
-    keySize = ctx->nr ;
-    LTC_AES_CryptCtr(LTC_INSTANCE, input, output, length, nonce_counter, key, keySize, stream_block, (uint32_t *)nc_off);
+    keySize = ctx->nr;
+    LTC_AES_CryptCtr(LTC_INSTANCE, input, output, length, nonce_counter, key, keySize, stream_block,
+                     (uint32_t *)nc_off);
 
-    return( 0 );
+    return (0);
 }
 #endif /* MBEDTLS_FREESCALE_LTC_AES */
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
@@ -555,106 +564,121 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
  * Authenticated encryption or decryption
  */
 #if defined(MBEDTLS_FREESCALE_LTC_AES)
-static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
-                           const unsigned char *iv, size_t iv_len,
-                           const unsigned char *add, size_t add_len,
-                           const unsigned char *input, unsigned char *output,
-                           unsigned char *tag, size_t tag_len )
+static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
+                          int mode,
+                          size_t length,
+                          const unsigned char *iv,
+                          size_t iv_len,
+                          const unsigned char *add,
+                          size_t add_len,
+                          const unsigned char *input,
+                          unsigned char *output,
+                          unsigned char *tag,
+                          size_t tag_len)
 {
+    const uint8_t *key;
+    uint8_t keySize;
+    mbedtls_aes_context *aes_ctx;
 
-    const uint8_t *key ;
-    uint8_t keySize ;
-    mbedtls_aes_context *aes_ctx ;
-
-    aes_ctx = (mbedtls_aes_context*)ctx -> cipher_ctx.cipher_ctx ;
-    key = (uint8_t*)aes_ctx->rk ;
-    keySize = aes_ctx->nr ;
-    if( mode == CCM_ENCRYPT )
+    aes_ctx = (mbedtls_aes_context *)ctx->cipher_ctx.cipher_ctx;
+    key = (uint8_t *)aes_ctx->rk;
+    keySize = aes_ctx->nr;
+    if (mode == CCM_ENCRYPT)
     {
-        LTC_AES_EncryptTagCcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
+        LTC_AES_EncryptTagCcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag,
+                              tag_len);
     }
     else
     {
-        LTC_AES_DecryptTagCcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
+        LTC_AES_DecryptTagCcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag,
+                              tag_len);
     }
-    return( 0 );
+    return (0);
 }
 
 /*
  * Authenticated encryption
  */
-int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
-                         const unsigned char *iv, size_t iv_len,
-                         const unsigned char *add, size_t add_len,
-                         const unsigned char *input, unsigned char *output,
-                         unsigned char *tag, size_t tag_len )
+int mbedtls_ccm_encrypt_and_tag(mbedtls_ccm_context *ctx,
+                                size_t length,
+                                const unsigned char *iv,
+                                size_t iv_len,
+                                const unsigned char *add,
+                                size_t add_len,
+                                const unsigned char *input,
+                                unsigned char *output,
+                                unsigned char *tag,
+                                size_t tag_len)
 {
-    return( ccm_auth_crypt( ctx, CCM_ENCRYPT, length, iv, iv_len,
-                            add, add_len, input, output, tag, tag_len ) );
+    return (ccm_auth_crypt(ctx, CCM_ENCRYPT, length, iv, iv_len, add, add_len, input, output, tag, tag_len));
 }
 
 /*
  * Authenticated decryption
  */
-int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
-                      const unsigned char *iv, size_t iv_len,
-                      const unsigned char *add, size_t add_len,
-                      const unsigned char *input, unsigned char *output,
-                      const unsigned char *tag, size_t tag_len )
+int mbedtls_ccm_auth_decrypt(mbedtls_ccm_context *ctx,
+                             size_t length,
+                             const unsigned char *iv,
+                             size_t iv_len,
+                             const unsigned char *add,
+                             size_t add_len,
+                             const unsigned char *input,
+                             unsigned char *output,
+                             const unsigned char *tag,
+                             size_t tag_len)
 {
     int ret;
     unsigned char check_tag[16];
 
-    if( ( ret = ccm_auth_crypt( ctx, CCM_DECRYPT, length,
-                                iv, iv_len, add, add_len,
-                                input, output, check_tag, tag_len ) ) != 0 )
+    if ((ret = ccm_auth_crypt(ctx, CCM_DECRYPT, length, iv, iv_len, add, add_len, input, output, check_tag, tag_len)) !=
+        0)
     {
-        return( ret );
+        return (ret);
     }
 
-    return( 0 );
+    return (0);
 }
 #endif /* MBEDTLS_FREESCALE_LTC_AES */
 #endif /* MBEDTLS_CCM_C */
-
-
 
 #if defined(MBEDTLS_GCM_C)
 #if defined(MBEDTLS_FREESCALE_LTC_AES_GCM)
 
 #include "mbedtls/gcm.h"
 
-int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
-                       int mode,
-                       size_t length,
-                       const unsigned char *iv,
-                       size_t iv_len,
-                       const unsigned char *add,
-                       size_t add_len,
-                       const unsigned char *input,
-                       unsigned char *output,
-                       size_t tag_len,
-                       unsigned char *tag )
+int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
+                              int mode,
+                              size_t length,
+                              const unsigned char *iv,
+                              size_t iv_len,
+                              const unsigned char *add,
+                              size_t add_len,
+                              const unsigned char *input,
+                              unsigned char *output,
+                              size_t tag_len,
+                              unsigned char *tag)
 {
-    uint8_t *key ;
-    uint32_t keySize ;
-    mbedtls_aes_context *aes_ctx ;
+    uint8_t *key;
+    uint32_t keySize;
+    mbedtls_aes_context *aes_ctx;
 
-    ctx ->len =  length ;
-    ctx -> add_len = add_len ;
-    aes_ctx = (mbedtls_aes_context*)ctx ->cipher_ctx.cipher_ctx ;
-    key = (uint8_t *)aes_ctx -> rk ;
+    ctx->len = length;
+    ctx->add_len = add_len;
+    aes_ctx = (mbedtls_aes_context *)ctx->cipher_ctx.cipher_ctx;
+    key = (uint8_t *)aes_ctx->rk;
     keySize = aes_ctx->nr;
-    if( mode == MBEDTLS_GCM_ENCRYPT)
+    if (mode == MBEDTLS_GCM_ENCRYPT)
     {
-        LTC_AES_EncryptTagGcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
+        LTC_AES_EncryptTagGcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag,
+                              tag_len);
     }
     else
     {
-        LTC_AES_DecryptTagGcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag, tag_len);
+        LTC_AES_DecryptTagGcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag,
+                              tag_len);
     }
 
-    return( 0 );
+    return (0);
 }
 
 #endif /* MBEDTLS_FREESCALE_LTC_AES_GCM */
@@ -674,7 +698,7 @@ static void ltc_reverse_array(uint8_t *src, size_t src_len)
 {
     int i;
 
-    for (i = 0; i < src_len/2; i++)
+    for (i = 0; i < src_len / 2; i++)
     {
         uint8_t tmp;
 
@@ -684,24 +708,22 @@ static void ltc_reverse_array(uint8_t *src, size_t src_len)
     }
 }
 
-
 #if defined(MBEDTLS_BIGNUM_C)
 
 #include "mbedtls/bignum.h"
 
-#define LTC_MAX_INT     256
-
+#define LTC_MAX_INT 256
 
 /*
  * Unsigned addition: X = |A| + |B|  (HAC 14.7)
  */
-int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
 {
     int ret;
     uint16_t sizeN = LTC_MAX_INT;
-    uint8_t  N[LTC_MAX_INT];
+    uint8_t N[LTC_MAX_INT];
 
-    memset(N,  0xFF, sizeN);
+    memset(N, 0xFF, sizeN);
 
     uint8_t ptrA[LTC_MAX_INT], ptrB[LTC_MAX_INT], ptrC[LTC_MAX_INT];
     uint16_t sizeA, sizeB, sizeC;
@@ -727,19 +749,19 @@ int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     mbedtls_mpi_read_binary(X, ptrC, sizeC);
     X->s = 1;
 
-    return( ret );
+    return (ret);
 }
 
 /*
  * Unsigned subtraction: X = |A| - |B|  (HAC 14.9)
  */
-int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+int mbedtls_mpi_sub_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
 {
     int ret;
     uint16_t sizeN = LTC_MAX_INT;
-    uint8_t  N[LTC_MAX_INT];
+    uint8_t N[LTC_MAX_INT];
 
-    memset(N,  0xFF, sizeN);
+    memset(N, 0xFF, sizeN);
 
     uint8_t ptrA[LTC_MAX_INT], ptrB[LTC_MAX_INT], ptrC[LTC_MAX_INT];
     uint16_t sizeA, sizeB, sizeC;
@@ -765,21 +787,21 @@ int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     mbedtls_mpi_read_binary(X, ptrC, sizeC);
     X->s = 1;
 
-    return( ret );
+    return (ret);
 }
 
 /*
  * Baseline multiplication: X = A * B  (HAC 14.12)
  */
-int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
 {
     int ret;
-    uint16_t    sizeN = LTC_MAX_INT;
-    uint8_t  N[LTC_MAX_INT];
-    uint8_t     ptrA[LTC_MAX_INT], ptrB[LTC_MAX_INT], ptrC[LTC_MAX_INT];
-    uint16_t    sizeA, sizeB, sizeC;
+    uint16_t sizeN = LTC_MAX_INT;
+    uint8_t N[LTC_MAX_INT];
+    uint8_t ptrA[LTC_MAX_INT], ptrB[LTC_MAX_INT], ptrC[LTC_MAX_INT];
+    uint16_t sizeA, sizeB, sizeC;
 
-    memset(N,  0xFF, sizeN);
+    memset(N, 0xFF, sizeN);
 
     sizeA = mbedtls_mpi_size(A);
     sizeB = mbedtls_mpi_size(B);
@@ -793,11 +815,8 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     mbedtls_mpi_write_binary(B, ptrB, sizeB);
     ltc_reverse_array(ptrB, sizeB);
 
-    ret = (int)LTC_PKHA_ModMul(LTC_INSTANCE, ptrA, sizeA, ptrB, sizeB, N, sizeN, ptrC, &sizeC,
-                                    kLTC_PKHA_IntegerArith,
-                                    kLTC_PKHA_NormalValue,
-                                    kLTC_PKHA_NormalValue,
-                                    kLTC_PKHA_TimingEqualized);
+    ret = (int)LTC_PKHA_ModMul(LTC_INSTANCE, ptrA, sizeA, ptrB, sizeB, N, sizeN, ptrC, &sizeC, kLTC_PKHA_IntegerArith,
+                               kLTC_PKHA_NormalValue, kLTC_PKHA_NormalValue, kLTC_PKHA_TimingEqualized);
 
     if (ret != kStatus_Success)
         return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
@@ -806,13 +825,13 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     mbedtls_mpi_read_binary(X, ptrC, sizeC);
     X->s = A->s * B->s;
 
-    return( ret );
+    return (ret);
 }
 
 /*
  * Modulo: R = A mod B
  */
-int mbedtls_mpi_mod_mpi( mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi *B )
+int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi *B)
 {
     int ret;
     uint8_t ptrA[LTC_MAX_INT], ptrB[LTC_MAX_INT], ptrC[LTC_MAX_INT];
@@ -839,19 +858,20 @@ int mbedtls_mpi_mod_mpi( mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi
     mbedtls_mpi_read_binary(R, ptrC, sizeC);
     R->s = A->s;
 
-    while( mbedtls_mpi_cmp_int( R, 0 ) < 0 )
-        mbedtls_mpi_add_mpi( R, R, B ); /* MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( R, R, B ) ); */
+    while (mbedtls_mpi_cmp_int(R, 0) < 0)
+        mbedtls_mpi_add_mpi(R, R, B); /* MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( R, R, B ) ); */
 
-    while( mbedtls_mpi_cmp_mpi( R, B ) >= 0 )
-        mbedtls_mpi_sub_mpi( R, R, B ); /* MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( R, R, B ) ); cleanup:*/
+    while (mbedtls_mpi_cmp_mpi(R, B) >= 0)
+        mbedtls_mpi_sub_mpi(R, R, B); /* MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( R, R, B ) ); cleanup:*/
 
-    return( ret );
+    return (ret);
 }
 
 /*
  * Sliding-window exponentiation: X = A^E mod N  (HAC 14.85)
  */
-int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *E, const mbedtls_mpi *N, mbedtls_mpi *_RR )
+int mbedtls_mpi_exp_mod(
+    mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *E, const mbedtls_mpi *N, mbedtls_mpi *_RR)
 {
     int ret;
     uint8_t ptrA[LTC_MAX_INT], ptrE[LTC_MAX_INT], ptrN[LTC_MAX_INT];
@@ -879,9 +899,9 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
        and so we do first (A mod N) : LTC does not give size requirement on A versus N,
        and then the modular exponentiation.
      */
-    //if (sizeE < sizeA)
+    // if (sizeE < sizeA)
     /* if A >= N then */
-    if (mbedtls_mpi_cmp_mpi (A, N) >= 0)
+    if (mbedtls_mpi_cmp_mpi(A, N) >= 0)
     {
         ret = (int)LTC_PKHA_ModRed(LTC_INSTANCE, ptrA, sizeA, ptrN, sizeN, ptrA, &sizeA, kLTC_PKHA_IntegerArith);
 
@@ -890,7 +910,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     }
 
     ret = (int)LTC_PKHA_ModExp(LTC_INSTANCE, ptrA, sizeA, ptrN, sizeN, ptrE, sizeE, ptrN, &sizeN,
-                                   kLTC_PKHA_IntegerArith, kLTC_PKHA_NormalValue, kLTC_PKHA_TimingEqualized);
+                               kLTC_PKHA_IntegerArith, kLTC_PKHA_NormalValue, kLTC_PKHA_TimingEqualized);
 
     if (ret != kStatus_Success)
         return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
@@ -898,13 +918,13 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     ltc_reverse_array(ptrN, sizeN);
     mbedtls_mpi_read_binary(X, ptrN, sizeN);
 
-    return( ret );
+    return (ret);
 }
 
 /*
  * Greatest common divisor: G = gcd(A, B)  (HAC 14.54)
  */
-int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B )
+int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
 {
     int ret;
     uint8_t ptrA[LTC_MAX_INT], ptrB[LTC_MAX_INT], ptrC[LTC_MAX_INT];
@@ -938,13 +958,13 @@ int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B 
     ltc_reverse_array(ptrC, sizeC);
     mbedtls_mpi_read_binary(G, ptrC, sizeC);
 
-    return( ret );
+    return (ret);
 }
 
 /*
  * Modular inverse: X = A^-1 mod N  (HAC 14.61 / 14.64)
  */
-int mbedtls_mpi_inv_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *N )
+int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *N)
 {
     int ret;
     uint8_t ptrA[LTC_MAX_INT], ptrN[LTC_MAX_INT], ptrC[LTC_MAX_INT];
@@ -984,15 +1004,13 @@ int mbedtls_mpi_inv_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     ltc_reverse_array(ptrC, sizeC);
     mbedtls_mpi_read_binary(X, ptrC, sizeC);
 
-    return( ret );
+    return (ret);
 }
 
 /*
  * Pseudo-primality test: small factors, then Miller-Rabin
  */
-int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
-                  int (*f_rng)(void *, unsigned char *, size_t),
-                  void *p_rng )
+int mbedtls_mpi_is_prime(const mbedtls_mpi *X, int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
     int ret;
     uint8_t ptrX[LTC_MAX_INT];
@@ -1009,9 +1027,10 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
     ltc_reverse_array(ptrX, LTC_MAX_INT);
 
     // Get the random seed number
-    f_rng( p_rng, (unsigned char*)(&random), sizeof(random) );
+    f_rng(p_rng, (unsigned char *)(&random), sizeof(random));
 
-    ret = (int)LTC_PKHA_PrimalityTest(LTC_INSTANCE, (unsigned char*)&random, sizeof(random), (const uint8_t *)"1", 1u, ptrX, sizeX, &result);
+    ret = (int)LTC_PKHA_PrimalityTest(LTC_INSTANCE, (unsigned char *)&random, sizeof(random), (const uint8_t *)"1", 1u,
+                                      ptrX, sizeX, &result);
 
     if (ret != kStatus_Success)
         return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
@@ -1024,23 +1043,22 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
 
 #endif /* MBEDTLS_BIGNUM_C */
 
-
-
 #if defined(MBEDTLS_ECP_C)
 
 #include "mbedtls/ecp.h"
 
 #define LTC_MAX_ECC (512)
 
-
 /*
  * Multiplication using the comb method,
  * for curves in short Weierstrass form
  */
-int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-                         const mbedtls_mpi *m, const mbedtls_ecp_point *P,
-                         int (*f_rng)(void *, unsigned char *, size_t),
-                         void *p_rng )
+int ecp_mul_comb(mbedtls_ecp_group *grp,
+                 mbedtls_ecp_point *R,
+                 const mbedtls_mpi *m,
+                 const mbedtls_ecp_point *P,
+                 int (*f_rng)(void *, unsigned char *, size_t),
+                 void *p_rng)
 {
     int ret;
     bool is_inf;
@@ -1048,51 +1066,52 @@ int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     ltc_pkha_ecc_point_t A;
     ltc_pkha_ecc_point_t result;
 
-    uint8_t AX[LTC_MAX_ECC/8] = {0};
-    uint8_t AY[LTC_MAX_ECC/8] = {0};
-    uint8_t RX[LTC_MAX_ECC/8] = {0};
-    uint8_t RY[LTC_MAX_ECC/8] = {0};
-    uint8_t E[LTC_MAX_ECC/8] = {0};
-    uint8_t N[LTC_MAX_ECC/8] = {0};
-    uint8_t paramA[LTC_MAX_ECC/8] = {0};
-    uint8_t paramB[LTC_MAX_ECC/8] = {0};
-        
+    uint8_t AX[LTC_MAX_ECC / 8] = {0};
+    uint8_t AY[LTC_MAX_ECC / 8] = {0};
+    uint8_t RX[LTC_MAX_ECC / 8] = {0};
+    uint8_t RY[LTC_MAX_ECC / 8] = {0};
+    uint8_t E[LTC_MAX_ECC / 8] = {0};
+    uint8_t N[LTC_MAX_ECC / 8] = {0};
+    uint8_t paramA[LTC_MAX_ECC / 8] = {0};
+    uint8_t paramB[LTC_MAX_ECC / 8] = {0};
+
     A.X = AX;
     A.Y = AY;
     result.X = RX;
     result.Y = RY;
-    size = mbedtls_mpi_size( &grp->P );
-    if ( mbedtls_mpi_size( &P->X ) > ( LTC_MAX_ECC/8 ) || ( mbedtls_mpi_get_bit( &grp->N, 0 ) != 1 ) )
+    size = mbedtls_mpi_size(&grp->P);
+    if (mbedtls_mpi_size(&P->X) > (LTC_MAX_ECC / 8) || (mbedtls_mpi_get_bit(&grp->N, 0) != 1))
     {
-        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        return (MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
     }
 
     /* Convert multi precision integers to arrays */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &P->X, A.X, size ) );
-    ltc_reverse_array( A.X, size );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &P->Y, A.Y, size ) );
-    ltc_reverse_array( A.Y, size );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( m, E, size ) );
-    ltc_reverse_array( E, size );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &grp->A, paramA, size ) );
-    ltc_reverse_array( paramA, size );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &grp->B, paramB, size ) );
-    ltc_reverse_array( paramB, size );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &grp->P, N, size ) );
-    ltc_reverse_array( N, size );
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&P->X, A.X, size));
+    ltc_reverse_array(A.X, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&P->Y, A.Y, size));
+    ltc_reverse_array(A.Y, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(m, E, size));
+    ltc_reverse_array(E, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->A, paramA, size));
+    ltc_reverse_array(paramA, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->B, paramB, size));
+    ltc_reverse_array(paramB, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, N, size));
+    ltc_reverse_array(N, size);
     /* Multiply */
-    LTC_PKHA_ECC_PointMul(LTC_INSTANCE, &A, E, sizeof( E ), N, NULL, paramA, paramB, size, kLTC_PKHA_TimingEqualized, kLTC_PKHA_IntegerArith, &result, &is_inf );
+    LTC_PKHA_ECC_PointMul(LTC_INSTANCE, &A, E, sizeof(E), N, NULL, paramA, paramB, size, kLTC_PKHA_TimingEqualized,
+                          kLTC_PKHA_IntegerArith, &result, &is_inf);
     /* Convert result */
-    ltc_reverse_array( RX, size );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &R->X, RX, size ) );
-    ltc_reverse_array( RY, size );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &R->Y, RY, size ) );
+    ltc_reverse_array(RX, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->X, RX, size));
+    ltc_reverse_array(RY, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->Y, RY, size));
     R->X.s = P->X.s;
     R->Y.s = P->Y.s;
-    mbedtls_mpi_read_string( &R->Z, 10, "1" );
+    mbedtls_mpi_read_string(&R->Z, 10, "1");
 
 cleanup:
-    return( ret );
+    return (ret);
 }
 
 /*
@@ -1101,88 +1120,87 @@ cleanup:
 typedef enum
 {
     ECP_TYPE_NONE = 0,
-    ECP_TYPE_SHORT_WEIERSTRASS,    /* y^2 = x^3 + a x + b      */
-    ECP_TYPE_MONTGOMERY,           /* y^2 = x^3 + a x^2 + x    */
+    ECP_TYPE_SHORT_WEIERSTRASS, /* y^2 = x^3 + a x + b      */
+    ECP_TYPE_MONTGOMERY,        /* y^2 = x^3 + a x^2 + x    */
 } ecp_curve_type;
 /*
  * Get the type of a curve
  */
-static inline ecp_curve_type ecp_get_type( const mbedtls_ecp_group *grp )
+static inline ecp_curve_type ecp_get_type(const mbedtls_ecp_group *grp)
 {
-    if( grp->G.X.p == NULL )
-        return( ECP_TYPE_NONE );
+    if (grp->G.X.p == NULL)
+        return (ECP_TYPE_NONE);
 
-    if( grp->G.Y.p == NULL )
-        return( ECP_TYPE_MONTGOMERY );
+    if (grp->G.Y.p == NULL)
+        return (ECP_TYPE_MONTGOMERY);
     else
-        return( ECP_TYPE_SHORT_WEIERSTRASS );
+        return (ECP_TYPE_SHORT_WEIERSTRASS);
 }
 
 /*
  * Addition: R = P + Q, result's coordinates normalized
  */
-int ecp_add( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,  const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
-{    
+int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q)
+{
     int ret;
     size_t size;
     ltc_pkha_ecc_point_t A;
     ltc_pkha_ecc_point_t B;
     ltc_pkha_ecc_point_t result;
 
-    uint8_t AX[LTC_MAX_ECC/8] = {0};
-    uint8_t AY[LTC_MAX_ECC/8] = {0};
-    uint8_t BX[LTC_MAX_ECC/8] = {0};
-    uint8_t BY[LTC_MAX_ECC/8] = {0};
-    uint8_t RX[LTC_MAX_ECC/8] = {0};
-    uint8_t RY[LTC_MAX_ECC/8] = {0};
-    uint8_t N[LTC_MAX_ECC/8] = {0};
-    uint8_t paramA[LTC_MAX_ECC/8] = {0};
-    uint8_t paramB[LTC_MAX_ECC/8] = {0};
+    uint8_t AX[LTC_MAX_ECC / 8] = {0};
+    uint8_t AY[LTC_MAX_ECC / 8] = {0};
+    uint8_t BX[LTC_MAX_ECC / 8] = {0};
+    uint8_t BY[LTC_MAX_ECC / 8] = {0};
+    uint8_t RX[LTC_MAX_ECC / 8] = {0};
+    uint8_t RY[LTC_MAX_ECC / 8] = {0};
+    uint8_t N[LTC_MAX_ECC / 8] = {0};
+    uint8_t paramA[LTC_MAX_ECC / 8] = {0};
+    uint8_t paramB[LTC_MAX_ECC / 8] = {0};
 
+    if (ecp_get_type(grp) != ECP_TYPE_SHORT_WEIERSTRASS)
+        return (MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE);
 
-    if( ecp_get_type( grp ) != ECP_TYPE_SHORT_WEIERSTRASS )
-        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
-    
     A.X = AX;
     A.Y = AY;
     B.X = BX;
     B.Y = BY;
     result.X = RX;
     result.Y = RY;
-    size = mbedtls_mpi_size( &grp->P );
-    if ( mbedtls_mpi_size( &P->X ) > ( LTC_MAX_ECC/8 ) || ( mbedtls_mpi_get_bit( &grp->P, 0 ) != 1 ) )
+    size = mbedtls_mpi_size(&grp->P);
+    if (mbedtls_mpi_size(&P->X) > (LTC_MAX_ECC / 8) || (mbedtls_mpi_get_bit(&grp->P, 0) != 1))
     {
-        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        return (MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
     }
 
     /* Convert multi precision integers to arrays */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &P->X, A.X, size ) );
-    ltc_reverse_array( A.X, size );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &P->Y, A.Y, size ) );
-    ltc_reverse_array( A.Y, size );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &Q->X, B.X, size ) );
-    ltc_reverse_array( B.X, size );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &Q->Y, B.Y, size ) );
-    ltc_reverse_array( B.Y, size );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &grp->A, paramA, size ) );
-    ltc_reverse_array( paramA, size );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &grp->B, paramB, size ) );
-    ltc_reverse_array( paramB, size );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &grp->P, N, size ) );
-    ltc_reverse_array( N, size );
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&P->X, A.X, size));
+    ltc_reverse_array(A.X, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&P->Y, A.Y, size));
+    ltc_reverse_array(A.Y, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&Q->X, B.X, size));
+    ltc_reverse_array(B.X, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&Q->Y, B.Y, size));
+    ltc_reverse_array(B.Y, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->A, paramA, size));
+    ltc_reverse_array(paramA, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->B, paramB, size));
+    ltc_reverse_array(paramB, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, N, size));
+    ltc_reverse_array(N, size);
     /* Multiply */
     LTC_PKHA_ECC_PointAdd(LTC_INSTANCE, &A, &B, N, NULL, paramA, paramB, size, kLTC_PKHA_IntegerArith, &result);
     /* Convert result */
-    ltc_reverse_array( RX, size );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &R->X, RX, size ) );
-    ltc_reverse_array( RY, size );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &R->Y, RY, size ) );
+    ltc_reverse_array(RX, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->X, RX, size));
+    ltc_reverse_array(RY, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->Y, RY, size));
     R->X.s = P->X.s;
     R->Y.s = P->Y.s;
-    mbedtls_mpi_read_string( &R->Z, 10, "1" );
+    mbedtls_mpi_read_string(&R->Z, 10, "1");
 
 cleanup:
-    return( ret );
+    return (ret);
 }
 
 #endif /* MBEDTLS_ECP_C */
@@ -1199,11 +1217,10 @@ cleanup:
 
 #include "mbedtls/md5.h"
 
-void mbedtls_md5_process( mbedtls_md5_context *ctx, const unsigned char data[64] )
+void mbedtls_md5_process(mbedtls_md5_context *ctx, const unsigned char data[64])
 {
     MMCAU_MD5_HashN(data, 1, ctx->state);
 }
-
 
 #endif /* MBEDTLS_FREESCALE_MMCAU_MD5 */
 
@@ -1218,11 +1235,10 @@ void mbedtls_md5_process( mbedtls_md5_context *ctx, const unsigned char data[64]
 
 #include "mbedtls/sha1.h"
 
-void mbedtls_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[64] )
+void mbedtls_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
 {
     MMCAU_SHA1_HashN(data, 1, ctx->state);
 }
-
 
 #endif /* MBEDTLS_FREESCALE_MMCAU_SHA1 */
 #endif /* MBEDTLS_SHA1_C */
@@ -1236,7 +1252,7 @@ void mbedtls_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[6
 
 #include "mbedtls/sha256.h"
 
-void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char data[64] )
+void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
 {
     MMCAU_SHA256_HashN(data, 1, ctx->state);
 }

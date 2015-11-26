@@ -290,7 +290,6 @@ int mbedtls_des_crypt_cbc(mbedtls_des_context *ctx,
                           const unsigned char *input,
                           unsigned char *output)
 {
-    int i;
     unsigned char temp[8];
     uint8_t *key = (uint8_t *)ctx->sk;
 
@@ -321,7 +320,6 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
                            const unsigned char *input,
                            unsigned char *output)
 {
-    int i;
     unsigned char temp[8];
     uint8_t *key = (uint8_t *)ctx->sk;
 

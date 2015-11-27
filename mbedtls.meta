@@ -1,0 +1,175 @@
+<!-- This file is maintained by component support author -->
+<metadata>
+  <components>
+    <component name="middleware.mbedtls" provides="middleware">
+      <source path="./">
+        <files mask="*.md"/>
+        <files mask="*.tcl"/>
+        <files mask="*.txt"/>
+        <files mask="*.yml"/>
+        <files mask="ChangeLog"/>
+        <files mask="LICENSE"/>
+        <files mask="Makefile"/>
+      </source>
+      <source path="/configs">
+        <files mask="*.h"/>
+        <files mask="*.txt"/>
+      </source>
+      <source path="/doxygen">
+        <files mask="*.doxyfile"/>
+      </source>
+      <source path="/doxygen/input">
+        <files mask="*.h"/>
+      </source>
+      <source path="/include">
+        <files mask="*.txt"/>
+      </source>
+      <source path="/include">
+        <files mask="*.h"/>
+      </source>
+      <source path="/library">
+        <files mask="*.c"/>
+        <files mask="*.txt"/>
+        <files mask="Makefile"/>
+      </source>
+      <source path="/port/ksdk">
+        <files mask="*.c"/>
+        <files mask="*.h"/>
+      </source>
+      <source path="/programs">
+        <files mask="*.c"/>
+        <files mask="*.txt"/>
+        <files mask="Makefile"/>
+      </source>
+      <source path="/programs/aes">
+        <files mask="*.c"/>
+        <files mask="*.txt"/>
+      </source>
+      <source path="/programs/hash">
+        <files mask="*.c"/>
+        <files mask="*.txt"/>
+      </source>
+      <source path="/programs/pkey">
+        <files mask="*.c"/>
+        <files mask="*.txt"/>
+      </source>
+      <source path="/programs/random">
+        <files mask="*.c"/>
+        <files mask="*.txt"/>
+      </source>
+      <source path="/programs/ssl">
+        <files mask="*.c"/>
+        <files mask="*.txt"/>
+      </source>
+      <source path="/programs/test">
+        <files mask="*.txt"/>
+        <files mask="*.c"/>
+      </source>
+      <source path="/programs/util">
+        <files mask="*.c"/>
+        <files mask="*.txt"/>
+      </source>
+      <source path="/programs/x509">
+        <files mask="*.c"/>
+        <files mask="*.txt"/>
+      </source>
+      <source path="/scripts">
+        <files mask="*.cocci"/>
+        <files mask="*.pl"/>
+        <files mask="*.sh"/>
+      </source>
+      <source path="/scripts/data_files">
+        <files mask="*.dsp"/>
+        <files mask="*.dsw"/>
+        <files mask="*.fmt"/>
+        <files mask="*.sln"/>
+        <files mask="*.txt"/>
+        <files mask="*.vcxproj"/>
+      </source>
+      <source path="/tests">
+        <files mask="*.txt"/>
+        <files mask="*.sh"/>
+        <files mask="Makefile"/>
+      </source>
+      <source path="/tests/data_files">
+        <files mask="*"/>
+        <files mask="*.3des"/>
+        <files mask="*.aes128"/>
+        <files mask="*.aes192"/>
+        <files mask="*.aes256"/>
+        <files mask="*.cert_type"/>
+        <files mask="*.crt"/>
+        <files mask="*.der"/>
+        <files mask="*.des"/>
+        <files mask="*.fmt"/>
+        <files mask="*.key"/>
+        <files mask="*.key_usage"/>
+        <files mask="*.ku-ct"/>
+        <files mask="*.md4"/>
+        <files mask="*.md5"/>
+        <files mask="*.pem"/>
+        <files mask="*.psk"/>
+        <files mask="*.pub"/>
+        <files mask="*.pubkey"/>
+        <files mask="*.sha1"/>
+        <files mask="*.sha224"/>
+        <files mask="*.sha256"/>
+        <files mask="*.sha384"/>
+        <files mask="*.sha512"/>
+        <files mask="*.txt"/>
+      </source>
+      <source path="/tests/data_files/dir1">
+        <files mask="*.crt"/>
+      </source>
+      <source path="/tests/data_files/dir2">
+        <files mask="*.crt"/>
+      </source>
+      <source path="/tests/data_files/dir3">
+        <files mask="*.crt"/>
+        <files mask="Readme"/>
+      </source>
+      <source path="/tests/scripts">
+        <files mask="*.sh"/>
+        <files mask="*.pl"/>
+      </source>
+      <source path="/tests/suites">
+        <files mask="*.data"/>
+        <files mask="*.function"/>
+      </source>
+      <source path="/visualc/VS2010">
+        <files mask="*.sln"/>
+        <files mask="*.vcxproj"/>
+      </source>
+      <source path="/yotta">
+        <files mask="*.sh"/>
+      </source>
+      <source path="/yotta/data">
+        <files mask="*.c"/>
+        <files mask="*.h"/>
+        <files mask="*.json"/>
+        <files mask="*.md"/>
+        <files mask="*.sh"/>
+      </source>
+      <source path="/yotta/data/example-authcrypt">
+        <files mask="*.cpp"/>
+        <files mask="*.md"/>
+      </source>
+      <source path="/yotta/data/example-benchmark">
+        <files mask="*.cpp"/>
+        <files mask="*.md"/>
+      </source>
+      <source path="/yotta/data/example-hashing">
+        <files mask="*.cpp"/>
+        <files mask="*.md"/>
+      </source>
+      <source path="/yotta/data/example-selftest">
+        <files mask="*.cpp"/>
+        <files mask="*.md"/>
+      </source>
+      <source path="/yotta/data/example-tls-client">
+        <files mask="*.cpp"/>
+        <files mask="*.md"/>
+      </source>
+    </component>
+  </components>
+</metadata>

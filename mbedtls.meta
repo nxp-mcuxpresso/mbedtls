@@ -23,6 +23,8 @@
       </source>
       <source path="./include">
         <files mask="*.txt"/>
+      </source>
+      <source path="./include/mbedtls">
         <files mask="*.h"/>
       </source>
       <source path="./library">

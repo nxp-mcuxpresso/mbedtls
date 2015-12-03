@@ -43,6 +43,9 @@
 
     #define LTC_INSTANCE                LTC0    /* LTC base register.*/
 
+    #if FSL_FEATURE_LTC_HAS_SHA
+        #define MBEDTLS_FREESCALE_LTC_SHA       /* Enable use of LTC SHA.*/
+    #endif
     #if defined(FSL_FEATURE_LTC_HAS_DES) && FSL_FEATURE_LTC_HAS_DES
         #define MBEDTLS_FREESCALE_LTC_DES       /* Enable use of LTC DES.*/
     #endif
@@ -102,6 +105,9 @@
     #define MBEDTLS_MPI_IS_PRIME_ALT
     #define MBEDTLS_ECP_MUL_COMB_ALT
     #define MBEDTLS_ECP_ADD_ALT
+#endif
+#if defined(MBEDTLS_FREESCALE_LTC_SHA)
+    #define MBEDTLS_SHA1_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_MMCAU_MD5)
     #define MBEDTLS_MD5_PROCESS_ALT

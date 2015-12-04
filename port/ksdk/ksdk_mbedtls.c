@@ -1230,7 +1230,7 @@ void mbedtls_md5_process(mbedtls_md5_context *ctx, const unsigned char data[64])
 
 #if defined(MBEDTLS_SHA1_C)
 
-#if defined(MBEDTLS_FREESCALE_LTC_SHA)
+#if defined(MBEDTLS_FREESCALE_LTC_SHA1)
 #include "mbedtls/sha1.h"
 
 /* Implementation that should never be optimized out by the compiler */
@@ -1303,7 +1303,72 @@ void mbedtls_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64
 /******************************************************************************/
 
 #if defined(MBEDTLS_SHA256_C)
-#if defined(MBEDTLS_FREESCALE_MMCAU_SHA256)
+
+#if defined(MBEDTLS_FREESCALE_LTC_SHA256)
+#include "mbedtls/sha256.h"
+
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize_sha256( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
+void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
+{
+    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
+}
+
+void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    mbedtls_zeroize_sha256( ctx, sizeof( mbedtls_sha256_context ) );
+}
+
+void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
+                           const mbedtls_sha256_context *src )
+{
+    memcpy(dst, src, sizeof(dst));
+}
+
+/*
+ * SHA-256 context setup
+ */
+void mbedtls_sha256_starts( mbedtls_sha256_context *ctx, int is224 )
+{
+    if(is224)
+    {
+        LTC_HASH_Init(LTC_INSTANCE, ctx, kLTC_Sha224, NULL, 0);
+    }
+    else
+    {
+        LTC_HASH_Init(LTC_INSTANCE, ctx, kLTC_Sha256, NULL, 0);
+    }
+}
+
+void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char data[64] )
+{
+    LTC_HASH_Update(ctx, data, 64);
+}
+
+/*
+ * SHA-256 process buffer
+ */
+void mbedtls_sha256_update( mbedtls_sha256_context *ctx, const unsigned char *input,
+                    size_t ilen )
+{
+    LTC_HASH_Update(ctx, input, ilen);
+}
+
+/*
+ * SHA-256 final digest
+ */
+void mbedtls_sha256_finish( mbedtls_sha256_context *ctx, unsigned char output[32] )
+{
+    LTC_HASH_Finish(ctx, output, 0);
+}
+
+#elif defined(MBEDTLS_FREESCALE_MMCAU_SHA256)
 
 #include "mbedtls/sha256.h"
 

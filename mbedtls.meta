@@ -1,7 +1,10 @@
 <!-- This file is maintained by component support author -->
 <metadata>
   <components>
-    <component name="middleware.mbedtls" provides="middleware">
+    <component name="middleware.mbedtls.support" requires="middleware.mmcau.support"/>
+    <component name="middleware.mbedtls.support" requires="platform.drivers.ltc"/>
+    
+    <component name="middleware.mbedtls" requires="middleware.mbedtls.support" provides="middleware">
       <source path="./">
         <files mask="*.md"/>
         <files mask="*.tcl"/>

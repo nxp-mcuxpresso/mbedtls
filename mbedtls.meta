@@ -4,7 +4,7 @@
     <component name="middleware.mbedtls.support" requires="middleware.mmcau.support"/>
     <component name="middleware.mbedtls.support" requires="platform.drivers.ltc"/>
     
-    <component name="middleware.mbedtls" requires="middleware.mbedtls.support" provides="middleware">
+    <component name="middleware.mbedtls" requires="nda middleware.mbedtls.support" provides="middleware">
       <source path="./">
         <files mask="*.md"/>
         <files mask="*.tcl"/>

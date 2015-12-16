@@ -6,6 +6,7 @@
     
     <component name="middleware.mbedtls" requires="nda middleware.mbedtls.support" provides="middleware">
       <source path="./">
+        <files mask="*.meta"/>
         <files mask="*.md"/>
         <files mask="*.tcl"/>
         <files mask="*.txt"/>

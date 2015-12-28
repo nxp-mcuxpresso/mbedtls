@@ -38,88 +38,88 @@
 
 /* Enable LTC use in library if there is LTC on chip. */
 #if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
-    #include "fsl_ltc.h"
+#include "fsl_ltc.h"
 
-    #define LTC_INSTANCE                LTC0    /* LTC base register.*/
+#define LTC_INSTANCE LTC0 /* LTC base register.*/
 
-    #if FSL_FEATURE_LTC_HAS_SHA
-        #define MBEDTLS_FREESCALE_LTC_SHA1      /* Enable use of LTC SHA.*/
-        #define MBEDTLS_FREESCALE_LTC_SHA256    /* Enable use of LTC SHA256.*/
-    #endif
-    #if defined(FSL_FEATURE_LTC_HAS_DES) && FSL_FEATURE_LTC_HAS_DES
-        #define MBEDTLS_FREESCALE_LTC_DES       /* Enable use of LTC DES.*/
-    #endif
-    #define MBEDTLS_FREESCALE_LTC_AES           /* Enable use of LTC AES.*/
-    #if defined(FSL_FEATURE_LTC_HAS_GCM) && FSL_FEATURE_LTC_HAS_GCM 
-        #define MBEDTLS_FREESCALE_LTC_AES_GCM   /* Enable use of LTC AES GCM.*/
-    #endif
-    #if defined(FSL_FEATURE_LTC_HAS_PKHA) && FSL_FEATURE_LTC_HAS_PKHA 
-        #define MBEDTLS_FREESCALE_LTC_PKHA      /* Enable use of LTC PKHA.*/
-    #endif
+#if FSL_FEATURE_LTC_HAS_SHA
+#define MBEDTLS_FREESCALE_LTC_SHA1   /* Enable use of LTC SHA.*/
+#define MBEDTLS_FREESCALE_LTC_SHA256 /* Enable use of LTC SHA256.*/
+#endif
+#if defined(FSL_FEATURE_LTC_HAS_DES) && FSL_FEATURE_LTC_HAS_DES
+#define MBEDTLS_FREESCALE_LTC_DES /* Enable use of LTC DES.*/
+#endif
+#define MBEDTLS_FREESCALE_LTC_AES /* Enable use of LTC AES.*/
+#if defined(FSL_FEATURE_LTC_HAS_GCM) && FSL_FEATURE_LTC_HAS_GCM
+#define MBEDTLS_FREESCALE_LTC_AES_GCM /* Enable use of LTC AES GCM.*/
+#endif
+#if defined(FSL_FEATURE_LTC_HAS_PKHA) && FSL_FEATURE_LTC_HAS_PKHA
+#define MBEDTLS_FREESCALE_LTC_PKHA /* Enable use of LTC PKHA.*/
+#endif
 #endif
 
 /* Enable MMCAU use in library if there is MMCAU on chip. */
-#if defined(FSL_FEATURE_SOC_MMCAU_COUNT) && (FSL_FEATURE_SOC_MMCAU_COUNT > 0) 
-    #include "fsl_mmcau.h"
+#if defined(FSL_FEATURE_SOC_MMCAU_COUNT) && (FSL_FEATURE_SOC_MMCAU_COUNT > 0)
+#include "fsl_mmcau.h"
 
-    #define MBEDTLS_FREESCALE_MMCAU_MD5         /* Enable use of MMCAU MD5.*/
-    #define MBEDTLS_FREESCALE_MMCAU_SHA1        /* Enable use of MMCAU SHA1.*/
-    #define MBEDTLS_FREESCALE_MMCAU_SHA256      /* Enable use of MMCAU SHA256.*/
-    #define MBEDTLS_FREESCALE_MMCAU_DES         /* Enable use of MMCAU DES, when LTC is disabled.*/
-    #define MBEDTLS_FREESCALE_MMCAU_AES         /* Enable use of MMCAU AES, when LTC is disabled.*/
+#define MBEDTLS_FREESCALE_MMCAU_MD5    /* Enable use of MMCAU MD5.*/
+#define MBEDTLS_FREESCALE_MMCAU_SHA1   /* Enable use of MMCAU SHA1.*/
+#define MBEDTLS_FREESCALE_MMCAU_SHA256 /* Enable use of MMCAU SHA256.*/
+#define MBEDTLS_FREESCALE_MMCAU_DES    /* Enable use of MMCAU DES, when LTC is disabled.*/
+#define MBEDTLS_FREESCALE_MMCAU_AES    /* Enable use of MMCAU AES, when LTC is disabled.*/
 #endif
 
 /* Define ALT MMCAU & LTC functions. Do not change it. */
 #if defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_LTC_DES)
-    #define MBEDTLS_DES_SETKEY_ENC_ALT
-    #define MBEDTLS_DES_SETKEY_DEC_ALT
-    #define MBEDTLS_DES_CRYPT_ECB_ALT
-    #define MBEDTLS_DES3_CRYPT_ECB_ALT
+#define MBEDTLS_DES_SETKEY_ENC_ALT
+#define MBEDTLS_DES_SETKEY_DEC_ALT
+#define MBEDTLS_DES_CRYPT_ECB_ALT
+#define MBEDTLS_DES3_CRYPT_ECB_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_DES)
-    #define MBEDTLS_DES_CRYPT_CBC_ALT
-    #define MBEDTLS_DES3_CRYPT_CBC_ALT
+#define MBEDTLS_DES_CRYPT_CBC_ALT
+#define MBEDTLS_DES3_CRYPT_CBC_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES)
-    #define MBEDTLS_AES_SETKEY_ENC_ALT
-    #define MBEDTLS_AES_SETKEY_DEC_ALT
-    #define MBEDTLS_AES_ENCRYPT_ALT
-    #define MBEDTLS_AES_DECRYPT_ALT
+#define MBEDTLS_AES_SETKEY_ENC_ALT
+#define MBEDTLS_AES_SETKEY_DEC_ALT
+#define MBEDTLS_AES_ENCRYPT_ALT
+#define MBEDTLS_AES_DECRYPT_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_AES)
-    #define MBEDTLS_AES_CRYPT_CBC_ALT
-    #define MBEDTLS_AES_CRYPT_CTR_ALT
-    #define MBEDTLS_CCM_CRYPT_ALT
+#define MBEDTLS_AES_CRYPT_CBC_ALT
+#define MBEDTLS_AES_CRYPT_CTR_ALT
+#define MBEDTLS_CCM_CRYPT_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_AES_GCM)
-    #define MBEDTLS_GCM_CRYPT_ALT
+#define MBEDTLS_GCM_CRYPT_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_PKHA)
-    #define MBEDTLS_MPI_ADD_ABS_ALT
-    #define MBEDTLS_MPI_SUB_ABS_ALT
-    #define MBEDTLS_MPI_MUL_MPI_ALT
-    #define MBEDTLS_MPI_MOD_MPI_ALT
-    #define MBEDTLS_MPI_EXP_MOD_ALT
-    #define MBEDTLS_MPI_GCD_ALT
-    #define MBEDTLS_MPI_INV_MOD_ALT
-    #define MBEDTLS_MPI_IS_PRIME_ALT
-    #define MBEDTLS_ECP_MUL_COMB_ALT
-    #define MBEDTLS_ECP_ADD_ALT
+#define MBEDTLS_MPI_ADD_ABS_ALT
+#define MBEDTLS_MPI_SUB_ABS_ALT
+#define MBEDTLS_MPI_MUL_MPI_ALT
+#define MBEDTLS_MPI_MOD_MPI_ALT
+#define MBEDTLS_MPI_EXP_MOD_ALT
+#define MBEDTLS_MPI_GCD_ALT
+#define MBEDTLS_MPI_INV_MOD_ALT
+#define MBEDTLS_MPI_IS_PRIME_ALT
+#define MBEDTLS_ECP_MUL_COMB_ALT
+#define MBEDTLS_ECP_ADD_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_SHA1)
-    #define MBEDTLS_SHA1_ALT
+#define MBEDTLS_SHA1_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_SHA256)
-    #define MBEDTLS_SHA256_ALT
+#define MBEDTLS_SHA256_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_MMCAU_MD5)
-    #define MBEDTLS_MD5_PROCESS_ALT
+#define MBEDTLS_MD5_PROCESS_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_MMCAU_SHA1)
-    #define MBEDTLS_SHA1_PROCESS_ALT
+#define MBEDTLS_SHA1_PROCESS_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_MMCAU_SHA256)
-    #define MBEDTLS_SHA256_PROCESS_ALT
+#define MBEDTLS_SHA256_PROCESS_ALT
 #endif
 /**************************** KSDK end ****************************************/
 
@@ -379,7 +379,7 @@
  *
  * Uncomment to use your own hardware entropy collector.
  */
-//#define MBEDTLS_ENTROPY_HARDWARE_ALT
+#define MBEDTLS_ENTROPY_HARDWARE_ALT
 
 /**
  * \def MBEDTLS_AES_ROM_TABLES
@@ -510,7 +510,7 @@
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP384R1_ENABLED
 #ifndef MBEDTLS_FREESCALE_LTC_PKHA /* PKHA suports only <=512 */
-#define MBEDTLS_ECP_DP_SECP521R1_ENABLED 
+#define MBEDTLS_ECP_DP_SECP521R1_ENABLED
 #endif
 #define MBEDTLS_ECP_DP_SECP192K1_ENABLED
 #define MBEDTLS_ECP_DP_SECP224K1_ENABLED
@@ -1855,7 +1855,7 @@
  *
  * This module provides a generic entropy pool
  */
-//#define MBEDTLS_ENTROPY_C
+#define MBEDTLS_ENTROPY_C
 
 /**
  * \def MBEDTLS_ERROR_C
@@ -2509,7 +2509,8 @@
 //#define MBEDTLS_MPI_MAX_SIZE            1024 /**< Maximum number of bytes for usable MPIs. */
 
 /* CTR_DRBG options */
-//#define MBEDTLS_CTR_DRBG_ENTROPY_LEN               48 /**< Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */
+//#define MBEDTLS_CTR_DRBG_ENTROPY_LEN               48 /**< Amount of entropy used per seed by default (48 with
+// SHA-512, 32 with SHA-256) */
 //#define MBEDTLS_CTR_DRBG_RESEED_INTERVAL        10000 /**< Interval before reseed is performed by default */
 //#define MBEDTLS_CTR_DRBG_MAX_INPUT                256 /**< Maximum number of additional input bytes */
 //#define MBEDTLS_CTR_DRBG_MAX_REQUEST             1024 /**< Maximum number of requested bytes per call */
@@ -2534,7 +2535,8 @@
 //#define MBEDTLS_MEMORY_ALIGN_MULTIPLE      4 /**< Align on multiples of this value */
 
 /* Platform options */
-//#define MBEDTLS_PLATFORM_STD_MEM_HDR   <stdlib.h> /**< Header to include if MBEDTLS_PLATFORM_NO_STD_FUNCTIONS is defined. Don't define if no header is needed. */
+//#define MBEDTLS_PLATFORM_STD_MEM_HDR   <stdlib.h> /**< Header to include if MBEDTLS_PLATFORM_NO_STD_FUNCTIONS is
+// defined. Don't define if no header is needed. */
 //#define MBEDTLS_PLATFORM_STD_CALLOC        calloc /**< Default allocator to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_FREE            free /**< Default free to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_EXIT            exit /**< Default exit to use, can be undefined */
@@ -2558,10 +2560,12 @@
 //#define MBEDTLS_SSL_CACHE_DEFAULT_MAX_ENTRIES      50 /**< Maximum entries in cache */
 
 /* SSL options */
-//#define MBEDTLS_SSL_MAX_CONTENT_LEN             16384 /**< Maxium fragment length in bytes, determines the size of each of the two internal I/O buffers */
+//#define MBEDTLS_SSL_MAX_CONTENT_LEN             16384 /**< Maxium fragment length in bytes, determines the size of
+// each of the two internal I/O buffers */
 //#define MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
 //#define MBEDTLS_PSK_MAX_LEN               32 /**< Max size of TLS pre-shared keys, in bytes (default 256 bits) */
-//#define MBEDTLS_SSL_COOKIE_TIMEOUT        60 /**< Default expiration delay of DTLS cookies, in seconds if HAVE_TIME, or in number of cookies issued */
+//#define MBEDTLS_SSL_COOKIE_TIMEOUT        60 /**< Default expiration delay of DTLS cookies, in seconds if HAVE_TIME,
+// or in number of cookies issued */
 
 /**
  * Complete list of ciphersuites to use, in order of preference.
@@ -2575,7 +2579,8 @@
  *
  * The value below is only an example, not the default.
  */
-//#define MBEDTLS_SSL_CIPHERSUITES MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+//#define MBEDTLS_SSL_CIPHERSUITES
+// MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
 
 /* X509 options */
 //#define MBEDTLS_X509_MAX_INTERMEDIATE_CA   8   /**< Maximum number of intermediate CAs in a verification chain. */

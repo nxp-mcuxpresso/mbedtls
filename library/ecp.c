@@ -404,6 +404,22 @@ int mbedtls_ecp_is_zero( mbedtls_ecp_point *pt )
 }
 
 /*
+ * Compare two points lazyly
+ */
+int mbedtls_ecp_point_cmp( const mbedtls_ecp_point *P,
+                           const mbedtls_ecp_point *Q )
+{
+    if( mbedtls_mpi_cmp_mpi( &P->X, &Q->X ) == 0 &&
+        mbedtls_mpi_cmp_mpi( &P->Y, &Q->Y ) == 0 &&
+        mbedtls_mpi_cmp_mpi( &P->Z, &Q->Z ) == 0 )
+    {
+        return( 0 );
+    }
+
+    return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+}
+
+/*
  * Import a non-zero point from ASCII strings
  */
 int mbedtls_ecp_point_read_string( mbedtls_ecp_point *P, int radix,
@@ -724,7 +740,6 @@ cleanup:
  * Normalize jacobian coordinates so that Z == 0 || Z == 1  (GECC 3.2.1)
  * Cost: 1N := 1I + 3M + 1S
  */
-#if !defined(MBEDTLS_ECP_MUL_COMB_ALT) || !defined(MBEDTLS_ECP_ADD_ALT) 
 static int ecp_normalize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt )
 {
     int ret;
@@ -759,7 +774,6 @@ cleanup:
 
     return( ret );
 }
-#endif /*!MBEDTLS_ECP_MUL_COMB_ALT || !MBEDTLS_ECP_ADD_ALT */
 
 /*
  * Normalize jacobian coordinates of an array of (pointers to) points,
@@ -772,7 +786,6 @@ cleanup:
  *
  * Cost: 1N(t) := 1I + (6t - 3)M + 1S
  */
-#if !defined(MBEDTLS_ECP_MUL_COMB_ALT)
 static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
                                    mbedtls_ecp_point *T[], size_t t_len )
 {
@@ -849,13 +862,11 @@ cleanup:
 
     return( ret );
 }
-#endif /*!MBEDTLS_ECP_MUL_COMB_ALT*/
 
 /*
  * Conditional point inversion: Q -> -Q = (Q.X, -Q.Y, Q.Z) without leak.
  * "inv" must be 0 (don't invert) or 1 (invert) or the result will be invalid
  */
-#if !defined(MBEDTLS_ECP_MUL_COMB_ALT)
 static int ecp_safe_invert_jac( const mbedtls_ecp_group *grp,
                             mbedtls_ecp_point *Q,
                             unsigned char inv )
@@ -876,7 +887,6 @@ cleanup:
 
     return( ret );
 }
-#endif /*!MBEDTLS_ECP_MUL_COMB_ALT*/
 
 /*
  * Point doubling R = 2 P, Jacobian coordinates
@@ -892,7 +902,6 @@ cleanup:
  *             4M + 4S          (A == -3)
  *             3M + 6S + 1a     otherwise
  */
-#if !defined(MBEDTLS_ECP_MUL_COMB_ALT)
 static int ecp_double_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                            const mbedtls_ecp_point *P )
 {
@@ -965,7 +974,6 @@ cleanup:
 
     return( ret );
 }
-#endif /*!MBEDTLS_ECP_MUL_COMB_ALT*/
 
 /*
  * Addition: R = P + Q, mixed affine-Jacobian coordinates (GECC 3.22)
@@ -985,7 +993,6 @@ cleanup:
  *
  * Cost: 1A := 8M + 3S
  */
-#if !defined(MBEDTLS_ECP_MUL_COMB_ALT)
 static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                           const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
 {
@@ -1060,7 +1067,6 @@ cleanup:
 
     return( ret );
 }
-#endif /*!MBEDTLS_ECP_MUL_COMB_ALT*/
 
 /*
  * Randomize jacobian coordinates:
@@ -1069,7 +1075,6 @@ cleanup:
  *
  * This countermeasure was first suggested in [2].
  */
-#if !defined(MBEDTLS_ECP_MUL_COMB_ALT)
 static int ecp_randomize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
@@ -1109,7 +1114,6 @@ cleanup:
 
     return( ret );
 }
-#endif /*!MBEDTLS_ECP_MUL_COMB_ALT*/
 
 /*
  * Check and define parameters used by the comb method (see below for details)
@@ -1144,7 +1148,6 @@ cleanup:
  * - m is the MPI, expected to be odd and such that bitlength(m) <= w * d
  *   (the result will be incorrect if these assumptions are not satisfied)
  */
-#if !defined(MBEDTLS_ECP_MUL_COMB_ALT)
 static void ecp_comb_fixed( unsigned char x[], size_t d,
                             unsigned char w, const mbedtls_mpi *m )
 {
@@ -1174,7 +1177,6 @@ static void ecp_comb_fixed( unsigned char x[], size_t d,
         x[i-1] |= adjust << 7;
     }
 }
-#endif /*!MBEDTLS_ECP_MUL_COMB_ALT*/
 
 /*
  * Precompute points for the comb method
@@ -1186,7 +1188,6 @@ static void ecp_comb_fixed( unsigned char x[], size_t d,
  *
  * Cost: d(w-1) D + (2^{w-1} - 1) A + 1 N(w-1) + 1 N(2^{w-1} - 1)
  */
-#if !defined(MBEDTLS_ECP_MUL_COMB_ALT)
 static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
                                 mbedtls_ecp_point T[], const mbedtls_ecp_point *P,
                                 unsigned char w, size_t d )
@@ -1235,12 +1236,10 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
 cleanup:
     return( ret );
 }
-#endif /*!MBEDTLS_ECP_MUL_COMB_ALT*/
 
 /*
  * Select precomputed point: R = sign(i) * T[ abs(i) / 2 ]
  */
-#if !defined(MBEDTLS_ECP_MUL_COMB_ALT)
 static int ecp_select_comb( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                             const mbedtls_ecp_point T[], unsigned char t_len,
                             unsigned char i )
@@ -1264,7 +1263,6 @@ static int ecp_select_comb( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 cleanup:
     return( ret );
 }
-#endif
 
 /*
  * Core multiplication algorithm for the (modified) comb method.
@@ -1272,7 +1270,6 @@ cleanup:
  *
  * Cost: d A + d D + 1 R
  */
-#if !defined(MBEDTLS_ECP_MUL_COMB_ALT)
 static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                               const mbedtls_ecp_point T[], unsigned char t_len,
                               const unsigned char x[], size_t d,
@@ -1304,13 +1301,11 @@ cleanup:
 
     return( ret );
 }
-#endif /*!MBEDTLS_ECP_MUL_COMB_ALT*/
 
 /*
  * Multiplication using the comb method,
  * for curves in short Weierstrass form
  */
-#if !defined(MBEDTLS_ECP_MUL_COMB_ALT)
 static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                          const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                          int (*f_rng)(void *, unsigned char *, size_t),
@@ -1426,12 +1421,6 @@ cleanup:
 
     return( ret );
 }
-#else
-int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-                         const mbedtls_mpi *m, const mbedtls_ecp_point *P,
-                         int (*f_rng)(void *, unsigned char *, size_t),
-                         void *p_rng );
-#endif /* !MBEDTLS_ECP_MUL_COMB_ALT */
 
 #endif /* ECP_SHORTWEIERSTRASS */
 
@@ -1695,28 +1684,38 @@ cleanup:
 #endif /* ECP_SHORTWEIERSTRASS */
 
 /*
- * Addition: R = P + Q, result's coordinates normalized
+ * R = m * P with shortcuts for m == 1 and m == -1
+ * NOT constant-time - ONLY for short Weierstrass!
  */
-#if !defined(MBEDTLS_ECP_ADD_ALT) 
-int ecp_add( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,  const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
-{    
+static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
+                                      mbedtls_ecp_point *R,
+                                      const mbedtls_mpi *m,
+                                      const mbedtls_ecp_point *P )
+{
     int ret;
 
-    if( ecp_get_type( grp ) != ECP_TYPE_SHORT_WEIERSTRASS )
-        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
-
-    MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, P, Q ) );
-    MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, R ) );
+    if( mbedtls_mpi_cmp_int( m, 1 ) == 0 )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, P ) );
+    }
+    else if( mbedtls_mpi_cmp_int( m, -1 ) == 0 )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, P ) );
+        if( mbedtls_mpi_cmp_int( &R->Y, 0 ) != 0 )
+            MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &R->Y, &grp->P, &R->Y ) );
+    }
+    else
+    {
+        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R, m, P, NULL, NULL ) );
+    }
 
 cleanup:
     return( ret );
 }
-#else
-int ecp_add( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,  const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q );
-#endif /* !MBEDTLS_ECP_ADD_ALT */
 
 /*
  * Linear combination
+ * NOT constant-time
  */
 int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
@@ -1730,10 +1729,11 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
     mbedtls_ecp_point_init( &mP );
 
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &mP, m, P, NULL, NULL ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R,   n, Q, NULL, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, &mP, m, P ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, R,   n, Q ) );
 
-    MBEDTLS_MPI_CHK(ecp_add(grp, R, &mP, R ));
+    MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, &mP, R ) );
+    MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, R ) );
 
 cleanup:
     mbedtls_ecp_point_free( &mP );
@@ -1810,9 +1810,11 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp, const mbedtls_mpi *
 }
 
 /*
- * Generate a keypair
+ * Generate a keypair with configurable base point
  */
-int mbedtls_ecp_gen_keypair( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp_point *Q,
+int mbedtls_ecp_gen_keypair_base( mbedtls_ecp_group *grp,
+                     const mbedtls_ecp_point *G,
+                     mbedtls_mpi *d, mbedtls_ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
@@ -1884,7 +1886,18 @@ cleanup:
     if( ret != 0 )
         return( ret );
 
-    return( mbedtls_ecp_mul( grp, Q, d, &grp->G, f_rng, p_rng ) );
+    return( mbedtls_ecp_mul( grp, Q, d, G, f_rng, p_rng ) );
+}
+
+/*
+ * Generate key pair, wrapper for conventional base point
+ */
+int mbedtls_ecp_gen_keypair( mbedtls_ecp_group *grp,
+                             mbedtls_mpi *d, mbedtls_ecp_point *Q,
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng )
+{
+    return( mbedtls_ecp_gen_keypair_base( grp, &grp->G, d, Q, f_rng, p_rng ) );
 }
 
 /*
@@ -2009,7 +2022,7 @@ int mbedtls_ecp_self_test( int verbose )
             mul_count != mul_c_prev )
         {
             if( verbose != 0 )
-                mbedtls_printf( "failed (%u)\r\n", (unsigned int) i );
+                mbedtls_printf( "failed (%u)\n", (unsigned int) i );
 
             ret = 1;
             goto cleanup;
@@ -2017,7 +2030,7 @@ int mbedtls_ecp_self_test( int verbose )
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\r\n" );
+        mbedtls_printf( "passed\n" );
 
     if( verbose != 0 )
         mbedtls_printf( "  ECP test #2 (constant op_count, other point): " );
@@ -2046,7 +2059,7 @@ int mbedtls_ecp_self_test( int verbose )
             mul_count != mul_c_prev )
         {
             if( verbose != 0 )
-                mbedtls_printf( "failed (%u)\r\n", (unsigned int) i );
+                mbedtls_printf( "failed (%u)\n", (unsigned int) i );
 
             ret = 1;
             goto cleanup;
@@ -2054,12 +2067,12 @@ int mbedtls_ecp_self_test( int verbose )
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\r\n" );
+        mbedtls_printf( "passed\n" );
 
 cleanup:
 
     if( ret < 0 && verbose != 0 )
-        mbedtls_printf( "Unexpected error, return code = %08X\r\n", ret );
+        mbedtls_printf( "Unexpected error, return code = %08X\n", ret );
 
     mbedtls_ecp_group_free( &grp );
     mbedtls_ecp_point_free( &R );
@@ -2067,7 +2080,7 @@ cleanup:
     mbedtls_mpi_free( &m );
 
     if( verbose != 0 )
-        mbedtls_printf( "\r\n" );
+        mbedtls_printf( "\n" );
 
     return( ret );
 }

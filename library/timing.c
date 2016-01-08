@@ -376,7 +376,7 @@ static void busy_msleep( unsigned long msec )
 #define FAIL    do                      \
 {                                       \
     if( verbose != 0 )                  \
-        mbedtls_printf( "failed\r\n" );   \
+        mbedtls_printf( "failed\n" );   \
                                         \
     return( 1 );                        \
 } while( 0 )
@@ -397,7 +397,7 @@ int mbedtls_timing_self_test( int verbose )
     mbedtls_timing_delay_context ctx;
 
     if( verbose != 0 )
-        mbedtls_printf( "  TIMING tests note: will take some time!\r\n" );
+        mbedtls_printf( "  TIMING tests note: will take some time!\n" );
 
 
     if( verbose != 0 )
@@ -418,14 +418,14 @@ int mbedtls_timing_self_test( int verbose )
         if( millisecs < 800 * secs || millisecs > 1200 * secs + 300 )
         {
             if( verbose != 0 )
-                mbedtls_printf( "failed\r\n" );
+                mbedtls_printf( "failed\n" );
 
             return( 1 );
         }
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\r\n" );
+        mbedtls_printf( "passed\n" );
 
     if( verbose != 0 )
         mbedtls_printf( "  TIMING test #2 (set/get_delay        ): " );
@@ -460,7 +460,7 @@ int mbedtls_timing_self_test( int verbose )
         FAIL;
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\r\n" );
+        mbedtls_printf( "passed\n" );
 
     if( verbose != 0 )
         mbedtls_printf( "  TIMING test #3 (hardclock / get_timer): " );
@@ -476,7 +476,7 @@ hard_test:
     if( hardfail > 1 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed (ignored)\r\n" );
+            mbedtls_printf( "failed (ignored)\n" );
 
         goto hard_test_done;
     }
@@ -505,12 +505,12 @@ hard_test:
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\r\n" );
+        mbedtls_printf( "passed\n" );
 
 hard_test_done:
 
     if( verbose != 0 )
-        mbedtls_printf( "\r\n" );
+        mbedtls_printf( "\n" );
 
     return( 0 );
 }

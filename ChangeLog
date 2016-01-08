@@ -1,5 +1,74 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.2.1 released 2016-01-05
+
+Security
+   * Fix potential double free when mbedtls_asn1_store_named_data() fails to
+     allocate memory. Only used for certificate generation, not triggerable
+     remotely in SSL/TLS. Found by Rafał Przywara. #367
+   * Disable MD5 handshake signatures in TLS 1.2 by default
+
+Bugfix
+   * Fix over-restrictive length limit in GCM. Found by Andreas-N. #362
+   * Fix bug in certificate validation that caused valid chains to be rejected
+     when the first intermediate certificate has pathLenConstraint=0. Found by
+     Nicholas Wilson. Introduced in mbed TLS 2.2.0. #280
+   * Removed potential leak in mbedtls_rsa_rsassa_pkcs1_v15_sign(), found by
+     JayaraghavendranK. #372
+   * Fix suboptimal handling of unexpected records that caused interop issues
+     with some peers over unreliable links. Avoid dropping an entire DTLS
+     datagram if a single record in a datagram is unexpected, instead only
+     drop the record and look at subsequent records (if any are present) in
+     the same datagram. Found by jeannotlapin. #345
+
+= mbed TLS 2.2.0 released 2015-11-04
+
+Security
+   * Fix potential double free if mbedtls_ssl_conf_psk() is called more than
+     once and some allocation fails. Cannot be forced remotely. Found by Guido
+     Vranken, Intelworks.
+   * Fix potential heap corruption on Windows when
+     mbedtls_x509_crt_parse_path() is passed a path longer than 2GB. Cannot be
+     triggered remotely. Found by Guido Vranken, Intelworks.
+   * Fix potential buffer overflow in some asn1_write_xxx() functions.
+     Cannot be triggered remotely unless you create X.509 certificates based
+     on untrusted input or write keys of untrusted origin. Found by Guido
+     Vranken, Intelworks.
+   * The X509 max_pathlen constraint was not enforced on intermediate
+     certificates. Found by Nicholas Wilson, fix and tests provided by
+     Janos Follath. #280 and #319
+
+Features
+   * Experimental support for EC J-PAKE as defined in Thread 1.0.0.
+     Disabled by default as the specification might still change.
+   * Added a key extraction callback to accees the master secret and key
+     block. (Potential uses include EAP-TLS and Thread.)
+
+Bugfix
+   * Self-signed certificates were not excluded from pathlen counting,
+     resulting in some valid X.509 being incorrectly rejected. Found and fix
+     provided by Janos Follath. #319
+   * Fix build error with configurations where ECDHE-PSK is the only key
+     exchange. Found and fix provided by Chris Hammond. #270
+   * Fix build error with configurations where RSA, RSA-PSK, ECDH-RSA or
+     ECHD-ECDSA if the only key exchange. Multiple reports. #310
+   * Fixed a bug causing some handshakes to fail due to some non-fatal alerts
+     not being properly ignored. Found by mancha and Kasom Koht-arsa, #308
+   * mbedtls_x509_crt_verify(_with_profile)() now also checks the key type and
+     size/curve against the profile. Before that, there was no way to set a
+     minimum key size for end-entity certificates with RSA keys. Found by
+     Matthew Page of Scannex Electronics Ltd.
+   * Fix failures in MPI on Sparc(64) due to use of bad assembly code.
+     Found by Kurt Danielson. #292
+   * Fix typo in name of the extKeyUsage OID. Found by inestlerode, #314
+   * Fix bug in ASN.1 encoding of booleans that caused generated CA
+     certificates to be rejected by some applications, including OS X
+     Keychain. Found and fixed by Jonathan Leroy, Inikup.
+
+Changes
+   * Improved performance of mbedtls_ecp_muladd() when one of the scalars is 1
+     or -1.
+
 = mbed TLS 2.1.2 released 2015-10-06
 
 Security

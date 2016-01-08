@@ -181,18 +181,18 @@ int mbedtls_arc4_self_test( int verbose )
         if( memcmp( obuf, arc4_test_ct[i], 8 ) != 0 )
         {
             if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
+                mbedtls_printf( "failed\r\n" );
 
             ret = 1;
             goto exit;
         }
 
         if( verbose != 0 )
-            mbedtls_printf( "passed\n" );
+            mbedtls_printf( "passed\r\n" );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "\n" );
+        mbedtls_printf( "\r\n" );
 
 exit:
     mbedtls_arc4_free( &ctx );

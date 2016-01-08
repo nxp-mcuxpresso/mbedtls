@@ -384,17 +384,17 @@ int mbedtls_md5_self_test( int verbose )
         if( memcmp( md5sum, md5_test_sum[i], 16 ) != 0 )
         {
             if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
+                mbedtls_printf( "failed\r\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            mbedtls_printf( "passed\n" );
+            mbedtls_printf( "passed\r\n" );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "\n" );
+        mbedtls_printf( "\r\n" );
 
     return( 0 );
 }

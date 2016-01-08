@@ -459,7 +459,7 @@ static int hmac_drbg_self_test_entropy( void *data,
 #define CHK( c )    if( (c) != 0 )                          \
                     {                                       \
                         if( verbose != 0 )                  \
-                            mbedtls_printf( "failed\n" );  \
+                            mbedtls_printf( "failed\r\n" );  \
                         return( 1 );                        \
                     }
 
@@ -493,7 +493,7 @@ int mbedtls_hmac_drbg_self_test( int verbose )
     mbedtls_hmac_drbg_free( &ctx );
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\n" );
+        mbedtls_printf( "passed\r\n" );
 
     /*
      * PR = False
@@ -516,10 +516,10 @@ int mbedtls_hmac_drbg_self_test( int verbose )
     mbedtls_hmac_drbg_free( &ctx );
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\n" );
+        mbedtls_printf( "passed\r\n" );
 
     if( verbose != 0 )
-        mbedtls_printf( "\n" );
+        mbedtls_printf( "\r\n" );
 
     return( 0 );
 }

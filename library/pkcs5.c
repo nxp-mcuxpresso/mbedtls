@@ -291,7 +291,7 @@ int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx, const unsigned char *p
 int mbedtls_pkcs5_self_test( int verbose )
 {
     if( verbose != 0 )
-        mbedtls_printf( "  PBKDF2 (SHA1): skipped\n\n" );
+        mbedtls_printf( "  PBKDF2 (SHA1): skipped\r\n\n" );
 
     return( 0 );
 }
@@ -381,14 +381,14 @@ int mbedtls_pkcs5_self_test( int verbose )
             memcmp( result_key[i], key, key_len[i] ) != 0 )
         {
             if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
+                mbedtls_printf( "failed\r\n" );
 
             ret = 1;
             goto exit;
         }
 
         if( verbose != 0 )
-            mbedtls_printf( "passed\n" );
+            mbedtls_printf( "passed\r\n" );
     }
 
     mbedtls_printf( "\n" );

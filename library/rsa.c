@@ -1615,13 +1615,13 @@ int mbedtls_rsa_self_test( int verbose )
         mbedtls_rsa_check_privkey( &rsa ) != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed\n" );
+            mbedtls_printf( "failed\r\n" );
 
         return( 1 );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\n  PKCS#1 encryption : " );
+        mbedtls_printf( "passed\r\n  PKCS#1 encryption : " );
 
     memcpy( rsa_plaintext, RSA_PT, PT_LEN );
 
@@ -1629,20 +1629,20 @@ int mbedtls_rsa_self_test( int verbose )
                            rsa_plaintext, rsa_ciphertext ) != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed\n" );
+            mbedtls_printf( "failed\r\n" );
 
         return( 1 );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\n  PKCS#1 decryption : " );
+        mbedtls_printf( "passed\r\n  PKCS#1 decryption : " );
 
     if( mbedtls_rsa_pkcs1_decrypt( &rsa, myrand, NULL, MBEDTLS_RSA_PRIVATE, &len,
                            rsa_ciphertext, rsa_decrypted,
                            sizeof(rsa_decrypted) ) != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed\n" );
+            mbedtls_printf( "failed\r\n" );
 
         return( 1 );
     }
@@ -1650,13 +1650,13 @@ int mbedtls_rsa_self_test( int verbose )
     if( memcmp( rsa_decrypted, rsa_plaintext, len ) != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed\n" );
+            mbedtls_printf( "failed\r\n" );
 
         return( 1 );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\n" );
+        mbedtls_printf( "passed\r\n" );
 
 #if defined(MBEDTLS_SHA1_C)
     if( verbose != 0 )
@@ -1668,25 +1668,25 @@ int mbedtls_rsa_self_test( int verbose )
                         sha1sum, rsa_ciphertext ) != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed\n" );
+            mbedtls_printf( "failed\r\n" );
 
         return( 1 );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\n  PKCS#1 sig. verify: " );
+        mbedtls_printf( "passed\r\n  PKCS#1 sig. verify: " );
 
     if( mbedtls_rsa_pkcs1_verify( &rsa, NULL, NULL, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA1, 0,
                           sha1sum, rsa_ciphertext ) != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed\n" );
+            mbedtls_printf( "failed\r\n" );
 
         return( 1 );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\n" );
+        mbedtls_printf( "passed\r\n" );
 #endif /* MBEDTLS_SHA1_C */
 
     if( verbose != 0 )

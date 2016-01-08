@@ -439,6 +439,7 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
     return( 0 );
 }
 
+#if !defined(MBEDTLS_GCM_CRYPT_ALT)
 int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
                        int mode,
                        size_t length,
@@ -464,6 +465,7 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
 
     return( 0 );
 }
+#endif /* !MBEDTLS_GCM_CRYPT_ALT */
 
 int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
                       size_t length,
@@ -768,7 +770,7 @@ int mbedtls_gcm_self_test( int verbose )
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    mbedtls_printf( "failed\n" );
+                    mbedtls_printf( "failed\r\n" );
 
                 return( 1 );
             }
@@ -776,7 +778,7 @@ int mbedtls_gcm_self_test( int verbose )
             mbedtls_gcm_free( &ctx );
 
             if( verbose != 0 )
-                mbedtls_printf( "passed\n" );
+                mbedtls_printf( "passed\r\n" );
 
             if( verbose != 0 )
                 mbedtls_printf( "  AES-GCM-%3d #%d (%s): ",
@@ -795,7 +797,7 @@ int mbedtls_gcm_self_test( int verbose )
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    mbedtls_printf( "failed\n" );
+                    mbedtls_printf( "failed\r\n" );
 
                 return( 1 );
             }
@@ -803,7 +805,7 @@ int mbedtls_gcm_self_test( int verbose )
             mbedtls_gcm_free( &ctx );
 
             if( verbose != 0 )
-                mbedtls_printf( "passed\n" );
+                mbedtls_printf( "passed\r\n" );
 
             if( verbose != 0 )
                 mbedtls_printf( "  AES-GCM-%3d #%d split (%s): ",
@@ -817,7 +819,7 @@ int mbedtls_gcm_self_test( int verbose )
             if( ret != 0 )
             {
                 if( verbose != 0 )
-                    mbedtls_printf( "failed\n" );
+                    mbedtls_printf( "failed\r\n" );
 
                 return( 1 );
             }
@@ -829,7 +831,7 @@ int mbedtls_gcm_self_test( int verbose )
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        mbedtls_printf( "failed\n" );
+                        mbedtls_printf( "failed\r\n" );
 
                     return( 1 );
                 }
@@ -839,7 +841,7 @@ int mbedtls_gcm_self_test( int verbose )
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        mbedtls_printf( "failed\n" );
+                        mbedtls_printf( "failed\r\n" );
 
                     return( 1 );
                 }
@@ -850,7 +852,7 @@ int mbedtls_gcm_self_test( int verbose )
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        mbedtls_printf( "failed\n" );
+                        mbedtls_printf( "failed\r\n" );
 
                     return( 1 );
                 }
@@ -862,7 +864,7 @@ int mbedtls_gcm_self_test( int verbose )
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    mbedtls_printf( "failed\n" );
+                    mbedtls_printf( "failed\r\n" );
 
                 return( 1 );
             }
@@ -870,7 +872,7 @@ int mbedtls_gcm_self_test( int verbose )
             mbedtls_gcm_free( &ctx );
 
             if( verbose != 0 )
-                mbedtls_printf( "passed\n" );
+                mbedtls_printf( "passed\r\n" );
 
             if( verbose != 0 )
                 mbedtls_printf( "  AES-GCM-%3d #%d split (%s): ",
@@ -884,7 +886,7 @@ int mbedtls_gcm_self_test( int verbose )
             if( ret != 0 )
             {
                 if( verbose != 0 )
-                    mbedtls_printf( "failed\n" );
+                    mbedtls_printf( "failed\r\n" );
 
                 return( 1 );
             }
@@ -896,7 +898,7 @@ int mbedtls_gcm_self_test( int verbose )
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        mbedtls_printf( "failed\n" );
+                        mbedtls_printf( "failed\r\n" );
 
                     return( 1 );
                 }
@@ -906,7 +908,7 @@ int mbedtls_gcm_self_test( int verbose )
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        mbedtls_printf( "failed\n" );
+                        mbedtls_printf( "failed\r\n" );
 
                     return( 1 );
                 }
@@ -917,7 +919,7 @@ int mbedtls_gcm_self_test( int verbose )
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        mbedtls_printf( "failed\n" );
+                        mbedtls_printf( "failed\r\n" );
 
                     return( 1 );
                 }
@@ -929,7 +931,7 @@ int mbedtls_gcm_self_test( int verbose )
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    mbedtls_printf( "failed\n" );
+                    mbedtls_printf( "failed\r\n" );
 
                 return( 1 );
             }
@@ -937,7 +939,7 @@ int mbedtls_gcm_self_test( int verbose )
             mbedtls_gcm_free( &ctx );
 
             if( verbose != 0 )
-                mbedtls_printf( "passed\n" );
+                mbedtls_printf( "passed\r\n" );
 
         }
     }

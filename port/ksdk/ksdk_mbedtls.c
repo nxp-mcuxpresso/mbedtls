@@ -1379,3 +1379,35 @@ void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char dat
 
 #endif /* MBEDTLS_FREESCALE_MMCAU_SHA1 */
 #endif /* MBEDTLS_SHA1_C */
+
+
+/* Entropy poll callback for a hardware source */
+#if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+
+#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+#include "fsl_trng.h"
+#elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
+#include "fsl_rnga.h"
+#endif
+
+int mbedtls_hardware_poll( void *data, unsigned char *output, size_t len, size_t *olen )
+{
+    status_t result = kStatus_Success;
+
+#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)  
+    result = TRNG_GetRandomData(TRNG0, output, len);
+#elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
+    result = RNGA_GetRandomData(RNG, (void *)output, len);
+#endif
+    if (result == kStatus_Success)
+    {
+        *olen = len;
+        return 0;
+    }
+    else
+    {
+        return result;
+    }
+}
+
+#endif

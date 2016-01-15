@@ -1061,6 +1061,9 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     int ret;
     bool is_inf;
     size_t size;
+    size_t size_bin;
+	int offset;
+
     ltc_pkha_ecc_point_t A;
     ltc_pkha_ecc_point_t result;
 
@@ -1068,7 +1071,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     uint8_t AY[LTC_MAX_ECC / 8] = {0};
     uint8_t RX[LTC_MAX_ECC / 8] = {0};
     uint8_t RY[LTC_MAX_ECC / 8] = {0};
-    uint8_t E[LTC_MAX_ECC / 8] = {0};
+    uint8_t E[LTC_MAX_ECC / 8] = {0}; 
     uint8_t N[LTC_MAX_ECC / 8] = {0};
     uint8_t paramA[LTC_MAX_ECC / 8] = {0};
     uint8_t paramB[LTC_MAX_ECC / 8] = {0};
@@ -1084,10 +1087,33 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     }
 
     /* Convert multi precision integers to arrays */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&P->X, A.X, size));
+    size_bin = mbedtls_mpi_size(&P->X);
+    /* compute offset from dst */
+    offset = size - size_bin;
+    if (offset < 0)
+    {
+       offset = 0;
+    }
+    else if (offset > size)
+    {
+        offset = size; 
+    }
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&P->X, A.X+offset, size_bin));
     ltc_reverse_array(A.X, size);
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&P->Y, A.Y, size));
+
+    size_bin = mbedtls_mpi_size(&P->Y);
+    offset = size - size_bin;
+    if (offset < 0)
+    {
+       offset = 0;
+    }
+    else if (offset > size)
+    {
+        offset = size; 
+    }
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&P->Y, A.Y+offset, size_bin));
     ltc_reverse_array(A.Y, size);
+
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(m, E, size));
     ltc_reverse_array(E, size);
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->A, paramA, size));

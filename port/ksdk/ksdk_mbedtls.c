@@ -504,19 +504,19 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
 
     uint8_t *key = (uint8_t *)ctx->rk;
     uint32_t keySize = ctx->nr;
-    memcpy(temp, input, 16);
 
     if (length % 16)
         return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
 
     if (mode == MBEDTLS_AES_DECRYPT)
     {
-        LTC_AES_DecryptCbc(LTC_INSTANCE, temp, output, length, iv, key, keySize, kLTC_EncryptKey);
+        memcpy(temp, input, 16);
+        LTC_AES_DecryptCbc(LTC_INSTANCE, input, output, length, iv, key, keySize, kLTC_EncryptKey);
         memcpy(iv, temp, 16);
     }
     else
     {
-        LTC_AES_EncryptCbc(LTC_INSTANCE, temp, output, length, iv, key, keySize);
+        LTC_AES_EncryptCbc(LTC_INSTANCE, input, output, length, iv, key, keySize);
         memcpy(iv, output, 16);
     }
 
@@ -1280,7 +1280,7 @@ void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
 void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
                          const mbedtls_sha1_context *src )
 {
-    memcpy(dst, src, sizeof(dst));
+    memcpy(dst, src, sizeof(mbedtls_sha1_context));
 }
 
 /*

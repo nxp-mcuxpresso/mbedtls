@@ -508,8 +508,8 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
 
     if (mode == MBEDTLS_AES_DECRYPT)
     {
-        LTC_AES_DecryptCbc(LTC_INSTANCE, input, output, length, iv, key, keySize, kLTC_EncryptKey);
         memcpy(iv, input + length - 16, 16);
+        LTC_AES_DecryptCbc(LTC_INSTANCE, input, output, length, iv, key, keySize, kLTC_EncryptKey);
     }
     else
     {
@@ -1047,7 +1047,7 @@ int mbedtls_mpi_is_prime(const mbedtls_mpi *X, int (*f_rng)(void *, unsigned cha
 /* convert from mbedtls_mpi to LTC integer, as array of bytes of size sz.
  * if mbedtls_mpi has less bytes than sz, add zero bytes at most significant byte positions.
  * This is when for example modulus is 32 bytes (P-256 curve)
- * and mbedtls_mpi has only 31 bytes, we add leading zeroes 
+ * and mbedtls_mpi has only 31 bytes, we add leading zeroes
  * so that result array has 32 bytes, same as modulus (sz).
  */
 static int ltc_get_from_mbedtls_mpi(uint8_t *dst, const mbedtls_mpi *a, size_t sz)
@@ -1055,24 +1055,24 @@ static int ltc_get_from_mbedtls_mpi(uint8_t *dst, const mbedtls_mpi *a, size_t s
     size_t szbin;
     int offset;
     int ret;
-    
+
     /* check how many bytes are in the mbedtls_mpi */
-    szbin = mbedtls_mpi_size (a);
-    
+    szbin = mbedtls_mpi_size(a);
+
     /* compute offset from dst */
     offset = sz - szbin;
     if (offset < 0)
         offset = 0;
     if (offset > sz)
         offset = sz;
-        
+
     /* add leading zeroes */
     if (offset)
         memset(dst, 0, offset);
-    
+
     /* convert mbedtls_mpi to array of bytes */
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(a, dst + offset, szbin));
-        
+
     /* reverse array for LTC direct use */
     ltc_reverse_array(dst, sz);
 cleanup:
@@ -1102,7 +1102,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     uint8_t AY[LTC_MAX_ECC / 8] = {0};
     uint8_t RX[LTC_MAX_ECC / 8] = {0};
     uint8_t RY[LTC_MAX_ECC / 8] = {0};
-    uint8_t E[LTC_MAX_INT] = {0}; 
+    uint8_t E[LTC_MAX_INT] = {0};
     uint8_t N[LTC_MAX_ECC / 8] = {0};
     uint8_t paramA[LTC_MAX_ECC / 8] = {0};
     uint8_t paramB[LTC_MAX_ECC / 8] = {0};
@@ -1118,20 +1118,20 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     }
 
     /* Convert multi precision integers to arrays */
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.X ,&P->X, size));
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.Y ,&P->Y, size));
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(paramA ,&grp->A, size));
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(paramB ,&grp->B, size));
-    
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.X, &P->X, size));
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.Y, &P->Y, size));
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(paramA, &grp->A, size));
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(paramB, &grp->B, size));
+
     /* scalar multiplier integer of any size */
     size_bin = mbedtls_mpi_size(m);
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(m, E, size_bin));
     ltc_reverse_array(E, size_bin);
-    
+
     /* modulus */
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, N, size));
     ltc_reverse_array(N, size);
-    
+
     /* Multiply */
     LTC_PKHA_ECC_PointMul(LTC_INSTANCE, &A, E, size_bin, N, NULL, paramA, paramB, size, kLTC_PKHA_TimingEqualized,
                           kLTC_PKHA_IntegerArith, &result, &is_inf);
@@ -1140,10 +1140,10 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->X, RX, size));
     ltc_reverse_array(RY, size);
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->Y, RY, size));
-    /* if the integer multiplier is negative, the computation happens with abs() value 
+    /* if the integer multiplier is negative, the computation happens with abs() value
      * and the result (x,y) is changed to (x, -y)
      */
-    R->Y.s = m->s;    
+    R->Y.s = m->s;
     mbedtls_mpi_read_string(&R->Z, 10, "1");
 
 cleanup:
@@ -1210,10 +1210,10 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
     }
 
     /* Convert multi precision integers to arrays */
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.X ,&P->X, size));
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.Y ,&P->Y, size));
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(B.X ,&Q->X, size));
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(B.Y ,&Q->Y, size));
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.X, &P->X, size));
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.Y, &P->Y, size));
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(B.X, &Q->X, size));
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(B.Y, &Q->Y, size));
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, N, size));
     ltc_reverse_array(N, size);
     /* Multiply */
@@ -1264,25 +1264,27 @@ void mbedtls_md5_process(mbedtls_md5_context *ctx, const unsigned char data[64])
 #include "mbedtls/sha1.h"
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+static void mbedtls_zeroize(void *v, size_t n)
+{
+    volatile unsigned char *p = v;
+    while (n--)
+        *p++ = 0;
 }
 
-void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
+void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
 {
-    memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
+    memset(ctx, 0, sizeof(mbedtls_sha1_context));
 }
 
-void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
+void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL)
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
+    mbedtls_zeroize(ctx, sizeof(mbedtls_sha1_context));
 }
 
-void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
-                         const mbedtls_sha1_context *src )
+void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
 {
     memcpy(dst, src, sizeof(mbedtls_sha1_context));
 }
@@ -1290,12 +1292,12 @@ void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
 /*
  * SHA-1 context setup
  */
-void mbedtls_sha1_starts( mbedtls_sha1_context *ctx )
+void mbedtls_sha1_starts(mbedtls_sha1_context *ctx)
 {
     LTC_HASH_Init(LTC_INSTANCE, ctx, kLTC_Sha1, NULL, 0);
 }
 
-void mbedtls_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[64] )
+void mbedtls_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
 {
     LTC_HASH_Update(ctx, data, 64);
 }
@@ -1303,7 +1305,7 @@ void mbedtls_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[6
 /*
  * SHA-1 process buffer
  */
-void mbedtls_sha1_update( mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen )
+void mbedtls_sha1_update(mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen)
 {
     LTC_HASH_Update(ctx, input, ilen);
 }
@@ -1311,7 +1313,7 @@ void mbedtls_sha1_update( mbedtls_sha1_context *ctx, const unsigned char *input,
 /*
  * SHA-1 final digest
  */
-void mbedtls_sha1_finish( mbedtls_sha1_context *ctx, unsigned char output[20] )
+void mbedtls_sha1_finish(mbedtls_sha1_context *ctx, unsigned char output[20])
 {
     LTC_HASH_Finish(ctx, output, 0);
 }
@@ -1338,25 +1340,27 @@ void mbedtls_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64
 #include "mbedtls/sha256.h"
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize_sha256( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+static void mbedtls_zeroize_sha256(void *v, size_t n)
+{
+    volatile unsigned char *p = v;
+    while (n--)
+        *p++ = 0;
 }
 
-void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
+void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
 {
-    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
+    memset(ctx, 0, sizeof(mbedtls_sha256_context));
 }
 
-void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
+void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL)
         return;
 
-    mbedtls_zeroize_sha256( ctx, sizeof( mbedtls_sha256_context ) );
+    mbedtls_zeroize_sha256(ctx, sizeof(mbedtls_sha256_context));
 }
 
-void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
-                           const mbedtls_sha256_context *src )
+void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
 {
     memcpy(dst, src, sizeof(*dst));
 }
@@ -1364,9 +1368,9 @@ void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
 /*
  * SHA-256 context setup
  */
-void mbedtls_sha256_starts( mbedtls_sha256_context *ctx, int is224 )
+void mbedtls_sha256_starts(mbedtls_sha256_context *ctx, int is224)
 {
-    if(is224)
+    if (is224)
     {
         LTC_HASH_Init(LTC_INSTANCE, ctx, kLTC_Sha224, NULL, 0);
     }
@@ -1376,7 +1380,7 @@ void mbedtls_sha256_starts( mbedtls_sha256_context *ctx, int is224 )
     }
 }
 
-void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char data[64] )
+void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
 {
     LTC_HASH_Update(ctx, data, 64);
 }
@@ -1384,8 +1388,7 @@ void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char da
 /*
  * SHA-256 process buffer
  */
-void mbedtls_sha256_update( mbedtls_sha256_context *ctx, const unsigned char *input,
-                    size_t ilen )
+void mbedtls_sha256_update(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
 {
     LTC_HASH_Update(ctx, input, ilen);
 }
@@ -1393,7 +1396,7 @@ void mbedtls_sha256_update( mbedtls_sha256_context *ctx, const unsigned char *in
 /*
  * SHA-256 final digest
  */
-void mbedtls_sha256_finish( mbedtls_sha256_context *ctx, unsigned char output[32] )
+void mbedtls_sha256_finish(mbedtls_sha256_context *ctx, unsigned char output[32])
 {
     LTC_HASH_Finish(ctx, output, 0);
 }
@@ -1410,7 +1413,6 @@ void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char dat
 #endif /* MBEDTLS_FREESCALE_MMCAU_SHA1 */
 #endif /* MBEDTLS_SHA1_C */
 
-
 /* Entropy poll callback for a hardware source */
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
 
@@ -1420,11 +1422,11 @@ void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char dat
 #include "fsl_rnga.h"
 #endif
 
-int mbedtls_hardware_poll( void *data, unsigned char *output, size_t len, size_t *olen )
+int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t *olen)
 {
     status_t result = kStatus_Success;
 
-#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)  
+#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
     result = TRNG_GetRandomData(TRNG0, output, len);
 #elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
     result = RNGA_GetRandomData(RNG, (void *)output, len);

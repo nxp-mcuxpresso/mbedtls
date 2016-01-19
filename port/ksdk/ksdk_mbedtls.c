@@ -500,8 +500,6 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
                           const unsigned char *input,
                           unsigned char *output)
 {
-    unsigned char temp[16];
-
     uint8_t *key = (uint8_t *)ctx->rk;
     uint32_t keySize = ctx->nr;
 
@@ -510,14 +508,13 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
 
     if (mode == MBEDTLS_AES_DECRYPT)
     {
-        memcpy(temp, input, 16);
         LTC_AES_DecryptCbc(LTC_INSTANCE, input, output, length, iv, key, keySize, kLTC_EncryptKey);
-        memcpy(iv, temp, 16);
+        memcpy(iv, input + length - 16, 16);
     }
     else
     {
         LTC_AES_EncryptCbc(LTC_INSTANCE, input, output, length, iv, key, keySize);
-        memcpy(iv, output, 16);
+        memcpy(iv, output + length - 16, 16);
     }
 
     return (0);
@@ -1047,6 +1044,41 @@ int mbedtls_mpi_is_prime(const mbedtls_mpi *X, int (*f_rng)(void *, unsigned cha
 
 #define LTC_MAX_ECC (512)
 
+/* convert from mbedtls_mpi to LTC integer, as array of bytes of size sz.
+ * if mbedtls_mpi has less bytes than sz, add zero bytes at most significant byte positions.
+ * This is when for example modulus is 32 bytes (P-256 curve)
+ * and mbedtls_mpi has only 31 bytes, we add leading zeroes 
+ * so that result array has 32 bytes, same as modulus (sz).
+ */
+static int ltc_get_from_mbedtls_mpi(uint8_t *dst, const mbedtls_mpi *a, size_t sz)
+{
+    size_t szbin;
+    int offset;
+    int ret;
+    
+    /* check how many bytes are in the mbedtls_mpi */
+    szbin = mbedtls_mpi_size (a);
+    
+    /* compute offset from dst */
+    offset = sz - szbin;
+    if (offset < 0)
+        offset = 0;
+    if (offset > sz)
+        offset = sz;
+        
+    /* add leading zeroes */
+    if (offset)
+        memset(dst, 0, offset);
+    
+    /* convert mbedtls_mpi to array of bytes */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(a, dst + offset, szbin));
+        
+    /* reverse array for LTC direct use */
+    ltc_reverse_array(dst, sz);
+cleanup:
+    return (ret);
+}
+
 /*
  * Multiplication using the comb method,
  * for curves in short Weierstrass form
@@ -1062,7 +1094,6 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     bool is_inf;
     size_t size;
     size_t size_bin;
-	int offset;
 
     ltc_pkha_ecc_point_t A;
     ltc_pkha_ecc_point_t result;
@@ -1071,7 +1102,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     uint8_t AY[LTC_MAX_ECC / 8] = {0};
     uint8_t RX[LTC_MAX_ECC / 8] = {0};
     uint8_t RY[LTC_MAX_ECC / 8] = {0};
-    uint8_t E[LTC_MAX_ECC / 8] = {0}; 
+    uint8_t E[LTC_MAX_INT] = {0}; 
     uint8_t N[LTC_MAX_ECC / 8] = {0};
     uint8_t paramA[LTC_MAX_ECC / 8] = {0};
     uint8_t paramB[LTC_MAX_ECC / 8] = {0};
@@ -1087,51 +1118,32 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     }
 
     /* Convert multi precision integers to arrays */
-    size_bin = mbedtls_mpi_size(&P->X);
-    /* compute offset from dst */
-    offset = size - size_bin;
-    if (offset < 0)
-    {
-       offset = 0;
-    }
-    else if (offset > size)
-    {
-        offset = size; 
-    }
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&P->X, A.X+offset, size_bin));
-    ltc_reverse_array(A.X, size);
-
-    size_bin = mbedtls_mpi_size(&P->Y);
-    offset = size - size_bin;
-    if (offset < 0)
-    {
-       offset = 0;
-    }
-    else if (offset > size)
-    {
-        offset = size; 
-    }
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&P->Y, A.Y+offset, size_bin));
-    ltc_reverse_array(A.Y, size);
-
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(m, E, size));
-    ltc_reverse_array(E, size);
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->A, paramA, size));
-    ltc_reverse_array(paramA, size);
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->B, paramB, size));
-    ltc_reverse_array(paramB, size);
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.X ,&P->X, size));
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.Y ,&P->Y, size));
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(paramA ,&grp->A, size));
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(paramB ,&grp->B, size));
+    
+    /* scalar multiplier integer of any size */
+    size_bin = mbedtls_mpi_size(m);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(m, E, size_bin));
+    ltc_reverse_array(E, size_bin);
+    
+    /* modulus */
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, N, size));
     ltc_reverse_array(N, size);
+    
     /* Multiply */
-    LTC_PKHA_ECC_PointMul(LTC_INSTANCE, &A, E, sizeof(E), N, NULL, paramA, paramB, size, kLTC_PKHA_TimingEqualized,
+    LTC_PKHA_ECC_PointMul(LTC_INSTANCE, &A, E, size_bin, N, NULL, paramA, paramB, size, kLTC_PKHA_TimingEqualized,
                           kLTC_PKHA_IntegerArith, &result, &is_inf);
     /* Convert result */
     ltc_reverse_array(RX, size);
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->X, RX, size));
     ltc_reverse_array(RY, size);
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->Y, RY, size));
-    R->X.s = P->X.s;
-    R->Y.s = P->Y.s;
+    /* if the integer multiplier is negative, the computation happens with abs() value 
+     * and the result (x,y) is changed to (x, -y)
+     */
+    R->Y.s = m->s;    
     mbedtls_mpi_read_string(&R->Z, 10, "1");
 
 cleanup:
@@ -1198,18 +1210,10 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
     }
 
     /* Convert multi precision integers to arrays */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&P->X, A.X, size));
-    ltc_reverse_array(A.X, size);
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&P->Y, A.Y, size));
-    ltc_reverse_array(A.Y, size);
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&Q->X, B.X, size));
-    ltc_reverse_array(B.X, size);
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&Q->Y, B.Y, size));
-    ltc_reverse_array(B.Y, size);
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->A, paramA, size));
-    ltc_reverse_array(paramA, size);
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->B, paramB, size));
-    ltc_reverse_array(paramB, size);
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.X ,&P->X, size));
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.Y ,&P->Y, size));
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(B.X ,&Q->X, size));
+    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(B.Y ,&Q->Y, size));
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, N, size));
     ltc_reverse_array(N, size);
     /* Multiply */
@@ -1354,7 +1358,7 @@ void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
 void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
                            const mbedtls_sha256_context *src )
 {
-    memcpy(dst, src, sizeof(dst));
+    memcpy(dst, src, sizeof(*dst));
 }
 
 /*

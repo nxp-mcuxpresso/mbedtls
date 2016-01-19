@@ -974,7 +974,7 @@ void ssl_calc_verify_ssl( mbedtls_ssl_context *ssl, unsigned char hash[36] )
     mbedtls_sha1_init( &sha1 );
 
     mbedtls_md5_clone( &md5, &ssl->handshake->fin_md5 );
-    mbedtls_sha1_clone( &sha1, &ssl->handshake->fin_sha1 );
+    mbedtls_sha1_clone( &sha1, (const mbedtls_sha1_context *)&ssl->handshake->fin_sha1 );
 
     memset( pad_1, 0x36, 48 );
     memset( pad_2, 0x5C, 48 );
@@ -1021,7 +1021,7 @@ void ssl_calc_verify_tls( mbedtls_ssl_context *ssl, unsigned char hash[36] )
     mbedtls_sha1_init( &sha1 );
 
     mbedtls_md5_clone( &md5, &ssl->handshake->fin_md5 );
-    mbedtls_sha1_clone( &sha1, &ssl->handshake->fin_sha1 );
+    mbedtls_sha1_clone( &sha1, (const mbedtls_sha1_context *)&ssl->handshake->fin_sha1 );
 
      mbedtls_md5_finish( &md5,  hash );
     mbedtls_sha1_finish( &sha1, hash + 16 );
@@ -1046,7 +1046,7 @@ void ssl_calc_verify_tls_sha256( mbedtls_ssl_context *ssl, unsigned char hash[32
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify sha256" ) );
 
-    mbedtls_sha256_clone( &sha256, &ssl->handshake->fin_sha256 );
+    mbedtls_sha256_clone( &sha256, (const mbedtls_sha256_context *)&ssl->handshake->fin_sha256 );
     mbedtls_sha256_finish( &sha256, hash );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, 32 );
@@ -4687,7 +4687,7 @@ static void ssl_calc_finished_ssl(
     mbedtls_sha1_init( &sha1 );
 
     mbedtls_md5_clone( &md5, &ssl->handshake->fin_md5 );
-    mbedtls_sha1_clone( &sha1, &ssl->handshake->fin_sha1 );
+    mbedtls_sha1_clone( &sha1, (const mbedtls_sha1_context *)&ssl->handshake->fin_sha1 );
 
     /*
      * SSLv3:
@@ -4770,7 +4770,7 @@ static void ssl_calc_finished_tls(
     mbedtls_sha1_init( &sha1 );
 
     mbedtls_md5_clone( &md5, &ssl->handshake->fin_md5 );
-    mbedtls_sha1_clone( &sha1, &ssl->handshake->fin_sha1 );
+    mbedtls_sha1_clone( &sha1, (const mbedtls_sha1_context *)&ssl->handshake->fin_sha1 );
 
     /*
      * TLSv1:
@@ -4827,7 +4827,7 @@ static void ssl_calc_finished_tls_sha256(
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished tls sha256" ) );
 
-    mbedtls_sha256_clone( &sha256, &ssl->handshake->fin_sha256 );
+    mbedtls_sha256_clone( &sha256, (const mbedtls_sha256_context *)&ssl->handshake->fin_sha256 );
 
     /*
      * TLSv1.2:

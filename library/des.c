@@ -76,6 +76,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 }
 #endif
 
+#if !defined(MBEDTLS_DES_CRYPT_ECB_ALT) && !defined(MBEDTLS_DES3_CRYPT_ECB_ALT)
 /*
  * Expanded DES S-boxes
  */
@@ -238,6 +239,7 @@ static const uint32_t SB8[64] =
     0x10041040, 0x00041000, 0x00041000, 0x00001040,
     0x00001040, 0x00040040, 0x10000000, 0x10041000
 };
+#endif /*!MBEDTLS_DES_CRYPT_ECB_ALT && !MBEDTLS_DES3_CRYPT_ECB_ALT*/
 
 /*
  * PC1: left and right halves bit-swap

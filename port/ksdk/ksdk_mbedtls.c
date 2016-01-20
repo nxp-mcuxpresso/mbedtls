@@ -508,8 +508,10 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
 
     if (mode == MBEDTLS_AES_DECRYPT)
     {
-        memcpy(iv, input + length - 16, 16);
+        uint8_t tmp[16];
+        memcpy(tmp, input + length - 16, 16);
         LTC_AES_DecryptCbc(LTC_INSTANCE, input, output, length, iv, key, keySize, kLTC_EncryptKey);
+        memcpy(iv, tmp, 16);
     }
     else
     {

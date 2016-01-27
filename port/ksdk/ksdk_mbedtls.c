@@ -1445,3 +1445,38 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 }
 
 #endif
+
+/******************************************************************************/
+/*************************** FreeRTOS ********************************************/
+/******************************************************************************/
+#if USE_RTOS && defined(FSL_RTOS_FREE_RTOS)
+#include "FreeRTOS.h"
+#include "task.h"
+#include <stdlib.h>
+
+/*---------HEAP_3 calloc --------------------------------------------------*/
+
+void *pvPortCalloc(size_t num, size_t size)
+{
+    void *pvReturn;
+
+    vTaskSuspendAll();
+    {
+        pvReturn = calloc(num, size);
+        traceMALLOC(pvReturn, xWantedSize);
+    }
+    (void)xTaskResumeAll();
+
+#if (configUSE_MALLOC_FAILED_HOOK == 1)
+    {
+        if (pvReturn == NULL)
+        {
+            extern void vApplicationMallocFailedHook(void);
+            vApplicationMallocFailedHook();
+        }
+    }
+#endif
+
+    return pvReturn;
+}
+#endif /* USE_RTOS && defined(FSL_RTOS_FREE_RTOS)*/

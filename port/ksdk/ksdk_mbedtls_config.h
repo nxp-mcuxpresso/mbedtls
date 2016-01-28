@@ -133,6 +133,15 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 
 #endif /* USE_RTOS*/
 
+/* Reduce RAM usage.*/
+/* More info: https://tls.mbed.org/kb/how-to/reduce-mbedtls-memory-and-storage-footprint */
+#define MBEDTLS_ECP_FIXED_POINT_OPTIM 0 /* To reduce peak memory usage */
+#define MBEDTLS_AES_ROM_TABLES 
+#define MBEDTLS_SSL_MAX_CONTENT_LEN (1024*10) /* Reduce SSL frame buffer. */
+#define MBEDTLS_MPI_WINDOW_SIZE 1
+#define MBEDTLS_ECP_WINDOW_SIZE 2
+#define MBEDTLS_MPI_MAX_SIZE 512 /* Maximum number of bytes for usable MPIs. */
+#define MBEDTLS_ECP_MAX_BITS 384 /* Maximum bit size of groups */
 /**************************** KSDK end ****************************************/
 
 /**
@@ -521,16 +530,16 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 #define MBEDTLS_ECP_DP_SECP224R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP384R1_ENABLED
-#ifndef MBEDTLS_FREESCALE_LTC_PKHA /* PKHA suports only <=512 */
-#define MBEDTLS_ECP_DP_SECP521R1_ENABLED
-#endif
-#define MBEDTLS_ECP_DP_SECP192K1_ENABLED
-#define MBEDTLS_ECP_DP_SECP224K1_ENABLED
-#define MBEDTLS_ECP_DP_SECP256K1_ENABLED
-#define MBEDTLS_ECP_DP_BP256R1_ENABLED
-#define MBEDTLS_ECP_DP_BP384R1_ENABLED
-#define MBEDTLS_ECP_DP_BP512R1_ENABLED
-#define MBEDTLS_ECP_DP_CURVE25519_ENABLED
+//#ifndef MBEDTLS_FREESCALE_LTC_PKHA /* PKHA suports only <=512 */
+//#define MBEDTLS_ECP_DP_SECP521R1_ENABLED
+//#endif
+//#define MBEDTLS_ECP_DP_SECP192K1_ENABLED
+//#define MBEDTLS_ECP_DP_SECP224K1_ENABLED
+//#define MBEDTLS_ECP_DP_SECP256K1_ENABLED
+//#define MBEDTLS_ECP_DP_BP256R1_ENABLED
+//#define MBEDTLS_ECP_DP_BP384R1_ENABLED
+//#define MBEDTLS_ECP_DP_BP512R1_ENABLED
+//#define MBEDTLS_ECP_DP_CURVE25519_ENABLED
 
 /**
  * \def MBEDTLS_ECP_NIST_OPTIM

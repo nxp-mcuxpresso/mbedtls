@@ -1,7 +1,7 @@
 ====== mbedTLS for KSDK ChangeLog ======
 
 == KSDK 2.0.0 ==
-- Ported mbedTLS 2.1.2 to KSDK 2.0.0.
+- Ported mbedTLS 2.2.1 to KSDK 2.0.0.
 - Added support of MMCAU cryptographic acceleration module.
   Accelerated MD5, SHA, AES and DES.
 - Added support of LTC cryptographic acceleration module.

@@ -25,7 +25,7 @@ Content
   |            -- mbedtls_benchmark        - Measure throughput of various crypto algorithms.
   |            -- mbedtls_selftest         - Tests right output from various crypto algorithms.
   |-- middleware
-  |   -- mbedtls_2.2.1                     - mbedTLS library source code.
+  |   -- mbedtls_<version>                     - mbedTLS library source code.
   |      -- include
   |         -- mbedtls
   |            -- *.h
@@ -61,9 +61,7 @@ with enough FLASH and RAM size (see section 4 of this readme).
 
 5. Release notes.
 -----------------
-
-5.1. mbedTLS 2.2.1
-     The middleware/mbedtls_2.2.1 library is based on mbedTLS version 2.2.1 (https://tls.mbed.org/).
+     The middleware/mbedtls_<version> library is based on the mbedTLS package from https://tls.mbed.org/.
      The original mbedTLS change log can be found in the middleware/mbedtls_<version>/ChangeLog file.
      The KSDK mbedTLS change log can be found in the middleware/mbedtls_<version>/ChangeLogKSDK file.
      Main modifications introduced to the original library source code:

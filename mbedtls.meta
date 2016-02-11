@@ -175,6 +175,7 @@
         <files mask="*.txt"/>
         <files mask="*.yml"/>
         <files mask="ChangeLog"/>
+        <files mask="ChangeLogKSDK"/>
         <files mask="LICENSE"/>
         <files mask="Makefile"/>
       </source>

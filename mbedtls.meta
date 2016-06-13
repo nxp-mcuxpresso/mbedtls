@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!-- This file is maintained by component support author -->
+<?xml version='1.0' encoding='UTF-8'?>
 <metadata>
   <components>
     <component name="middleware.mbedtls.support" requires="middleware.mmcau.support">
@@ -8,7 +7,7 @@
       </source>
     </component>
     <component name="middleware.mbedtls.support" requires="platform.drivers.ltc"/>
-    <component name="middleware.mbedtls" requires="nda middleware.mbedtls.support" provides="middleware" type="middleware" version="2.2.1">
+    <component name="middleware.mbedtls" requires="nda middleware.mbedtls.support" provides="middleware" type="middleware" version="2.2.1" change_log="./ChangeLogKSDK.txt">
       <source path="./configs">
         <files mask="*.h"/>
         <files mask="*.txt"/>

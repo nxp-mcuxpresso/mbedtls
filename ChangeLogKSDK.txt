@@ -2,8 +2,12 @@
 @page middleware_log Middleware Change Log
  
 @section mbedtls mbedTLS for KSDK
-  Current version of mbedTLS for KSDK is based on mbedTLS 2.2.1 released 2016-01-05
+  Current version of mbedTLS for KSDK is based on mbedTLS 2.3.0 released 2016-06-28
  
+ - 2.3.0
+    - New Features:
+      - Ported mbedTLS 2.3.0 to KSDK 2.0.0.
+
   - 2.2.1
     - New Features:
       - Ported mbedTLS 2.2.1 to KSDK 2.0.0.

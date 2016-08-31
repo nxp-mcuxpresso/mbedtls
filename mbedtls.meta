@@ -7,7 +7,7 @@
       </source>
     </component>
     <component name="middleware.mbedtls.support" requires="platform.drivers.ltc"/>
-    <component name="middleware.mbedtls" requires="nda middleware.mbedtls.support" provides="middleware" type="middleware" version="2.2.1" change_log="./ChangeLogKSDK.txt">
+    <component name="middleware.mbedtls" requires="nda middleware.mbedtls.support" provides="middleware" type="middleware" version="2.3.0" change_log="./ChangeLogKSDK.txt">
       <source path="./configs">
         <files mask="*.h"/>
         <files mask="*.txt"/>

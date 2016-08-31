@@ -421,18 +421,18 @@ int mbedtls_sha256_self_test( int verbose )
         if( memcmp( sha256sum, sha256_test_sum[i], 32 - k * 4 ) != 0 )
         {
             if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
+                mbedtls_printf( "failed\r\n" );
 
             ret = 1;
             goto exit;
         }
 
         if( verbose != 0 )
-            mbedtls_printf( "passed\n" );
+            mbedtls_printf( "passed\r\n" );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "\n" );
+        mbedtls_printf( "\r\n" );
 
 exit:
     mbedtls_sha256_free( &ctx );

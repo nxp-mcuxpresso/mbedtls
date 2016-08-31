@@ -19,9 +19,12 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 /*
- *  Reference:
+ *  The following sources were referenced in the design of this implementation
+ *  of the Diffie-Hellman-Merkle algorithm:
  *
- *  http://www.cacr.math.uwaterloo.ca/hac/ (chapter 12)
+ *  [1] Handbook of Applied Cryptography - 1997, Chapter 12
+ *      Menezes, van Oorschot and Vanstone
+ *
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -604,14 +607,14 @@ int mbedtls_dhm_self_test( int verbose )
                     mbedtls_test_dhm_params_len ) ) != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed\r\n" );
+            mbedtls_printf( "failed\n" );
 
         ret = 1;
         goto exit;
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\r\n\r\n" );
+        mbedtls_printf( "passed\n\n" );
 
 exit:
     mbedtls_dhm_free( &dhm );

@@ -53,10 +53,12 @@
 #else
 #include <stdio.h>
 #include <stdlib.h>
-#define mbedtls_free       free
+#define mbedtls_free      free
 #define mbedtls_calloc    calloc
-#define mbedtls_printf     printf
-#define mbedtls_snprintf   snprintf
+#define mbedtls_time      time
+#define mbedtls_time_t    time_t
+#define mbedtls_printf    printf
+#define mbedtls_snprintf  snprintf
 #endif
 
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
@@ -843,7 +845,7 @@ static int x509_get_current_time( mbedtls_x509_time *now )
 static int x509_get_current_time( mbedtls_x509_time *now )
 {
     struct tm *lt;
-    time_t tt;
+    mbedtls_time_t tt;
     int ret = 0;
 
 #if defined(MBEDTLS_THREADING_C)
@@ -851,7 +853,7 @@ static int x509_get_current_time( mbedtls_x509_time *now )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif
 
-    tt = time( NULL );
+    tt = mbedtls_time( NULL );
     lt = gmtime( &tt );
 
     if( lt == NULL )
@@ -977,7 +979,7 @@ int mbedtls_x509_self_test( int verbose )
     if( ret != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed\r\n" );
+            mbedtls_printf( "failed\n" );
 
         return( ret );
     }
@@ -989,25 +991,25 @@ int mbedtls_x509_self_test( int verbose )
     if( ret != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed\r\n" );
+            mbedtls_printf( "failed\n" );
 
         return( ret );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\r\n  X.509 signature verify: ");
+        mbedtls_printf( "passed\n  X.509 signature verify: ");
 
     ret = mbedtls_x509_crt_verify( &clicert, &cacert, NULL, NULL, &flags, NULL, NULL );
     if( ret != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed\r\n" );
+            mbedtls_printf( "failed\n" );
 
         return( ret );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\r\n\n");
+        mbedtls_printf( "passed\n\n");
 
     mbedtls_x509_crt_free( &cacert  );
     mbedtls_x509_crt_free( &clicert );

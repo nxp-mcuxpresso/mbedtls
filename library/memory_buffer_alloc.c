@@ -417,6 +417,12 @@ static void buffer_alloc_free( void *ptr )
     heap.total_used -= hdr->size;
 #endif
 
+#if defined(MBEDTLS_MEMORY_BACKTRACE)
+    free( hdr->trace );
+    hdr->trace = NULL;
+    hdr->trace_count = 0;
+#endif
+
     // Regroup with block before
     //
     if( hdr->prev != NULL && hdr->prev->alloc == 0 )
@@ -432,9 +438,6 @@ static void buffer_alloc_free( void *ptr )
         if( hdr->next != NULL )
             hdr->next->prev = hdr;
 
-#if defined(MBEDTLS_MEMORY_BACKTRACE)
-        free( old->trace );
-#endif
         memset( old, 0, sizeof(memory_header) );
     }
 
@@ -474,9 +477,6 @@ static void buffer_alloc_free( void *ptr )
         if( hdr->next != NULL )
             hdr->next->prev = hdr;
 
-#if defined(MBEDTLS_MEMORY_BACKTRACE)
-        free( old->trace );
-#endif
         memset( old, 0, sizeof(memory_header) );
     }
 
@@ -490,11 +490,6 @@ static void buffer_alloc_free( void *ptr )
             heap.first_free->prev_free = hdr;
         heap.first_free = hdr;
     }
-
-#if defined(MBEDTLS_MEMORY_BACKTRACE)
-    hdr->trace = NULL;
-    hdr->trace_count = 0;
-#endif
 
     if( ( heap.verify & MBEDTLS_MEMORY_VERIFY_FREE ) && verify_chain() != 0 )
         mbedtls_exit( 1 );
@@ -681,7 +676,7 @@ int mbedtls_memory_buffer_alloc_self_test( int verbose )
     mbedtls_memory_buffer_alloc_free( );
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\r\n" );
+        mbedtls_printf( "passed\n" );
 
     if( verbose != 0 )
         mbedtls_printf( "  MBA test #2 (buf not aligned): " );
@@ -707,7 +702,7 @@ int mbedtls_memory_buffer_alloc_self_test( int verbose )
     mbedtls_memory_buffer_alloc_free( );
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\r\n" );
+        mbedtls_printf( "passed\n" );
 
     if( verbose != 0 )
         mbedtls_printf( "  MBA test #3 (full): " );
@@ -738,7 +733,7 @@ int mbedtls_memory_buffer_alloc_self_test( int verbose )
     mbedtls_memory_buffer_alloc_free( );
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\r\n" );
+        mbedtls_printf( "passed\n" );
 
 cleanup:
     mbedtls_memory_buffer_alloc_free( );

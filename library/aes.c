@@ -56,7 +56,7 @@
 
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+    volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
 }
 
 /*
@@ -354,8 +354,6 @@ static const uint32_t RCON[10] =
 
 #else /* MBEDTLS_AES_ROM_TABLES */
 
-#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
-
 /*
  * Forward S-box & tables
  */
@@ -463,7 +461,6 @@ static void aes_gen_tables( void )
         RT3[i] = ROTL8( RT2[i] );
     }
 }
-#endif /*!MBEDTLS_AES_SETKEY_ENC_ALT*/
 
 #endif /* MBEDTLS_AES_ROM_TABLES */
 
@@ -860,7 +857,6 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
 /*
  * AES-CBC buffer encryption/decryption
  */
-#if !defined(MBEDTLS_AES_CRYPT_CBC_ALT)
 int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
                     int mode,
                     size_t length,
@@ -921,7 +917,6 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
 
     return( 0 );
 }
-#endif /* !MBEDTLS_AES_CRYPT_CBC_ALT */
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
@@ -1008,7 +1003,6 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
 /*
  * AES-CTR buffer encryption/decryption
  */
-#if !defined(MBEDTLS_AES_CRYPT_CTR_ALT)
 int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
                        size_t length,
                        size_t *nc_off,
@@ -1039,7 +1033,6 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
 
     return( 0 );
 }
-#endif /* !MBEDTLS_AES_CRYPT_CTR_ALT */
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
 #endif /* !MBEDTLS_AES_ALT */
@@ -1229,7 +1222,9 @@ int mbedtls_aes_self_test( int verbose )
     int ret = 0, i, j, u, v;
     unsigned char key[32];
     unsigned char buf[64];
+#if defined(MBEDTLS_CIPHER_MODE_CBC) || defined(MBEDTLS_CIPHER_MODE_CFB)
     unsigned char iv[16];
+#endif
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     unsigned char prv[16];
 #endif
@@ -1270,7 +1265,7 @@ int mbedtls_aes_self_test( int verbose )
             if( memcmp( buf, aes_test_ecb_dec[u], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    mbedtls_printf( "failed\r\n" );
+                    mbedtls_printf( "failed\n" );
 
                 ret = 1;
                 goto exit;
@@ -1286,7 +1281,7 @@ int mbedtls_aes_self_test( int verbose )
             if( memcmp( buf, aes_test_ecb_enc[u], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    mbedtls_printf( "failed\r\n" );
+                    mbedtls_printf( "failed\n" );
 
                 ret = 1;
                 goto exit;
@@ -1294,11 +1289,11 @@ int mbedtls_aes_self_test( int verbose )
         }
 
         if( verbose != 0 )
-            mbedtls_printf( "passed\r\n" );
+            mbedtls_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "\r\n" );
+        mbedtls_printf( "\n" );
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     /*
@@ -1327,7 +1322,7 @@ int mbedtls_aes_self_test( int verbose )
             if( memcmp( buf, aes_test_cbc_dec[u], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    mbedtls_printf( "failed\r\n" );
+                    mbedtls_printf( "failed\n" );
 
                 ret = 1;
                 goto exit;
@@ -1351,7 +1346,7 @@ int mbedtls_aes_self_test( int verbose )
             if( memcmp( prv, aes_test_cbc_enc[u], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    mbedtls_printf( "failed\r\n" );
+                    mbedtls_printf( "failed\n" );
 
                 ret = 1;
                 goto exit;
@@ -1359,11 +1354,11 @@ int mbedtls_aes_self_test( int verbose )
         }
 
         if( verbose != 0 )
-            mbedtls_printf( "passed\r\n" );
+            mbedtls_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "\r\n" );
+        mbedtls_printf( "\n" );
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
@@ -1393,7 +1388,7 @@ int mbedtls_aes_self_test( int verbose )
             if( memcmp( buf, aes_test_cfb128_pt, 64 ) != 0 )
             {
                 if( verbose != 0 )
-                    mbedtls_printf( "failed\r\n" );
+                    mbedtls_printf( "failed\n" );
 
                 ret = 1;
                 goto exit;
@@ -1407,7 +1402,7 @@ int mbedtls_aes_self_test( int verbose )
             if( memcmp( buf, aes_test_cfb128_ct[u], 64 ) != 0 )
             {
                 if( verbose != 0 )
-                    mbedtls_printf( "failed\r\n" );
+                    mbedtls_printf( "failed\n" );
 
                 ret = 1;
                 goto exit;
@@ -1415,11 +1410,11 @@ int mbedtls_aes_self_test( int verbose )
         }
 
         if( verbose != 0 )
-            mbedtls_printf( "passed\r\n" );
+            mbedtls_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "\r\n" );
+        mbedtls_printf( "\n" );
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
@@ -1452,7 +1447,7 @@ int mbedtls_aes_self_test( int verbose )
             if( memcmp( buf, aes_test_ctr_pt[u], len ) != 0 )
             {
                 if( verbose != 0 )
-                    mbedtls_printf( "failed\r\n" );
+                    mbedtls_printf( "failed\n" );
 
                 ret = 1;
                 goto exit;
@@ -1469,7 +1464,7 @@ int mbedtls_aes_self_test( int verbose )
             if( memcmp( buf, aes_test_ctr_ct[u], len ) != 0 )
             {
                 if( verbose != 0 )
-                    mbedtls_printf( "failed\r\n" );
+                    mbedtls_printf( "failed\n" );
 
                 ret = 1;
                 goto exit;
@@ -1477,11 +1472,11 @@ int mbedtls_aes_self_test( int verbose )
         }
 
         if( verbose != 0 )
-            mbedtls_printf( "passed\r\n" );
+            mbedtls_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "\r\n" );
+        mbedtls_printf( "\n" );
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
     ret = 0;

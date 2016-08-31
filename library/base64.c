@@ -97,7 +97,7 @@ int mbedtls_base64_encode( unsigned char *dst, size_t dlen, size_t *olen,
 
     n *= 4;
 
-    if( dlen < n + 1 )
+    if( ( dlen < n + 1 ) || ( NULL == dst ) )
     {
         *olen = n + 1;
         return( MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL );
@@ -259,13 +259,13 @@ int mbedtls_base64_self_test( int verbose )
          memcmp( base64_test_enc, buffer, 88 ) != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed\r\n" );
+            mbedtls_printf( "failed\n" );
 
         return( 1 );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\r\n  Base64 decoding test: " );
+        mbedtls_printf( "passed\n  Base64 decoding test: " );
 
     src = base64_test_enc;
 
@@ -273,13 +273,13 @@ int mbedtls_base64_self_test( int verbose )
          memcmp( base64_test_dec, buffer, 64 ) != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed\r\n" );
+            mbedtls_printf( "failed\n" );
 
         return( 1 );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\r\n\r\n" );
+        mbedtls_printf( "passed\n\n" );
 
     return( 0 );
 }

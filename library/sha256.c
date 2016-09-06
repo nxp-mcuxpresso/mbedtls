@@ -395,7 +395,11 @@ int mbedtls_sha256_self_test( int verbose )
 
     mbedtls_sha256_init( &ctx );
 
+#ifdef MBEDTLS_SHA256_ALT_NO_224 /* Skip SHA-224 tests, it would fail. */
+    for( i = 3; i < 6; i++ )
+#else
     for( i = 0; i < 6; i++ )
+#endif
     {
         j = i % 3;
         k = i < 3;

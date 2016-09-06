@@ -928,6 +928,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
 /*
  * AES-CFB128 buffer encryption/decryption
  */
+#if !defined(MBEDTLS_AES_CRYPT_CFB_ALT)
 int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
                        int mode,
                        size_t length,
@@ -1002,7 +1003,8 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
 
     return( 0 );
 }
-#endif /*MBEDTLS_CIPHER_MODE_CFB */
+#endif /* !MBEDTLS_AES_CRYPT_CFB_ALT */
+#endif /* MBEDTLS_CIPHER_MODE_CFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 /*

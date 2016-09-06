@@ -30,10 +30,21 @@
 extern "C" {
 #endif
 
+#if defined(MBEDTLS_FREESCALE_LTC_SHA256)
+
 /**
  * \brief          SHA-256 context structure
  */
 #define mbedtls_sha256_context ltc_hash_ctx_t
+
+#elif defined(MBEDTLS_FREESCALE_LPC_SHA256)
+
+/**
+ * \brief          SHA-256 context structure
+ */
+#define mbedtls_sha256_context sha_ctx_t
+
+#endif /* MBEDTLS_FREESCALE_LPC_SHA256 */
 
 /**
  * \brief          Initialize SHA-256 context

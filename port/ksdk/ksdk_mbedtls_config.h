@@ -69,6 +69,26 @@
 #define MBEDTLS_FREESCALE_MMCAU_AES    /* Enable use of MMCAU AES, when LTC is disabled.*/
 #endif
 
+/* Enable AES use in library if there is AES on chip. */
+#if defined(FSL_FEATURE_SOC_AES_COUNT) && (FSL_FEATURE_SOC_AES_COUNT > 0)
+#include "fsl_aes.h"
+
+#define AES_INSTANCE AES0             /* AES base register.*/
+#define MBEDTLS_FREESCALE_LPC_AES     /* Enable use of LPC AES.*/
+#define MBEDTLS_FREESCALE_LPC_AES_GCM /* Enable use of LPC AES GCM.*/
+
+#endif
+
+/* Enable SHA use in library if there is SHA on chip. */
+#if defined(FSL_FEATURE_SOC_SHA_COUNT) && (FSL_FEATURE_SOC_SHA_COUNT > 0)
+#include "fsl_sha.h"
+
+#define SHA_INSTANCE SHA0            /* AES base register.*/
+#define MBEDTLS_FREESCALE_LPC_SHA1   /* Enable use of LPC SHA.*/
+#define MBEDTLS_FREESCALE_LPC_SHA256 /* Enable use of LPC SHA256.*/
+
+#endif
+
 /* Define ALT MMCAU & LTC functions. Do not change it. */
 #if defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_LTC_DES)
 #define MBEDTLS_DES_SETKEY_ENC_ALT
@@ -80,7 +100,7 @@
 #define MBEDTLS_DES_CRYPT_CBC_ALT
 #define MBEDTLS_DES3_CRYPT_CBC_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || defined(MBEDTLS_FREESCALE_LPC_AES)
 #define MBEDTLS_AES_SETKEY_ENC_ALT
 #define MBEDTLS_AES_SETKEY_DEC_ALT
 #define MBEDTLS_AES_ENCRYPT_ALT
@@ -91,7 +111,7 @@
 #define MBEDTLS_AES_CRYPT_CTR_ALT
 #define MBEDTLS_CCM_CRYPT_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_AES_GCM)
+#if defined(MBEDTLS_FREESCALE_LTC_AES_GCM) || defined(MBEDTLS_FREESCALE_LPC_AES_GCM)
 #define MBEDTLS_GCM_CRYPT_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_PKHA)
@@ -106,11 +126,22 @@
 #define MBEDTLS_ECP_MUL_COMB_ALT
 #define MBEDTLS_ECP_ADD_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_SHA1)
+#if defined(MBEDTLS_FREESCALE_LTC_SHA1) || defined(MBEDTLS_FREESCALE_LPC_SHA1)
 #define MBEDTLS_SHA1_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_SHA256)
+#if defined(MBEDTLS_FREESCALE_LTC_SHA256) || defined(MBEDTLS_FREESCALE_LPC_SHA256)
 #define MBEDTLS_SHA256_ALT
+/*
+ * LPC SHA module does not support SHA-224.
+ *
+ * Since mbed TLS does not provide separate APIs for SHA-224 and SHA-256
+ * and SHA-224 is not widely used, this implementation provides HW accelerated SHA-256 only
+ * and SHA-224 is not available at all (calls will fail).
+ *
+ * To use SHA-224 on LPC, do not define MBEDTLS_SHA256_ALT and both SHA-224 and SHA-256 will use
+ * original mbed TLS software implementation.
+ */
+#define MBEDTLS_SHA256_ALT_NO_224
 #endif
 #if defined(MBEDTLS_FREESCALE_MMCAU_MD5)
 #define MBEDTLS_MD5_PROCESS_ALT
@@ -119,6 +150,17 @@
 #define MBEDTLS_SHA1_PROCESS_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_MMCAU_SHA256)
+#define MBEDTLS_SHA256_PROCESS_ALT
+#endif
+#if defined(MBEDTLS_FREESCALE_LPC_AES)
+#define MBEDTLS_AES_CRYPT_CBC_ALT
+#define MBEDTLS_AES_CRYPT_CFB_ALT
+#define MBEDTLS_AES_CRYPT_CTR_ALT
+#endif
+#if defined(MBEDTLS_FREESCALE_LPC_SHA1)
+#define MBEDTLS_SHA1_PROCESS_ALT
+#endif
+#if defined(MBEDTLS_FREESCALE_LPC_SHA256)
 #define MBEDTLS_SHA256_PROCESS_ALT
 #endif
 
@@ -136,12 +178,13 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 /* Reduce RAM usage.*/
 /* More info: https://tls.mbed.org/kb/how-to/reduce-mbedtls-memory-and-storage-footprint */
 #define MBEDTLS_ECP_FIXED_POINT_OPTIM 0 /* To reduce peak memory usage */
-#define MBEDTLS_AES_ROM_TABLES 
-#define MBEDTLS_SSL_MAX_CONTENT_LEN (1024*10) /* Reduce SSL frame buffer. */
+#define MBEDTLS_AES_ROM_TABLES
+#define MBEDTLS_SSL_MAX_CONTENT_LEN (1024 * 10) /* Reduce SSL frame buffer. */
 #define MBEDTLS_MPI_WINDOW_SIZE 1
 #define MBEDTLS_ECP_WINDOW_SIZE 2
 #define MBEDTLS_MPI_MAX_SIZE 512 /* Maximum number of bytes for usable MPIs. */
 #define MBEDTLS_ECP_MAX_BITS 384 /* Maximum bit size of groups */
+
 /**************************** KSDK end ****************************************/
 
 /**

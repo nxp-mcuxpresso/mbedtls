@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
+* Copyright (c) 2015-2016, Freescale Semiconductor, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification,
@@ -354,7 +354,7 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
 
 #if defined(MBEDTLS_AES_C)
 
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || defined(MBEDTLS_FREESCALE_LPC_AES)
 
 #include "mbedtls/aes.h"
 
@@ -365,7 +365,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
 {
     uint32_t *RK;
 
-#if defined(MBEDTLS_FREESCALE_LTC_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES)
     const unsigned char *key_tmp = key;
     ctx->rk = RK = ctx->buf;
     memcpy(RK, key_tmp, keybits / 8);
@@ -416,7 +416,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
 
     ctx->rk = RK = ctx->buf;
 
-#if defined(MBEDTLS_FREESCALE_LTC_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES)
     const unsigned char *key_tmp = key;
 
     memcpy(RK, key_tmp, keybits / 8);
@@ -455,6 +455,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
 
     MMCAU_AES_SetKey(key, keybits / 8, (uint8_t *)RK);
 #endif
+
     return 0;
 }
 
@@ -470,6 +471,9 @@ void mbedtls_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char input[16]
     LTC_AES_EncryptEcb(LTC_INSTANCE, input, output, 16, key, ctx->nr);
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     MMCAU_AES_EncryptEcb(input, key, ctx->nr, output);
+#elif defined(MBEDTLS_FREESCALE_LPC_AES)
+    AES_SetKey(AES_INSTANCE, key, ctx->nr);
+    AES_EncryptEcb(AES_INSTANCE, input, output, 16);
 #endif
 }
 
@@ -485,6 +489,9 @@ void mbedtls_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char input[16]
     LTC_AES_DecryptEcb(LTC_INSTANCE, input, output, 16, key, ctx->nr, kLTC_EncryptKey);
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     MMCAU_AES_DecryptEcb(input, key, ctx->nr, output);
+#elif defined(MBEDTLS_FREESCALE_LPC_AES)
+    AES_SetKey(AES_INSTANCE, key, ctx->nr);
+    AES_DecryptEcb(AES_INSTANCE, input, output, 16);
 #endif
 }
 
@@ -521,8 +528,107 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
 
     return (0);
 }
-#endif /* MBEDTLS_FREESCALE_LTC_AES */
+#elif defined(MBEDTLS_FREESCALE_LPC_AES)
+int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
+                          int mode,
+                          size_t length,
+                          unsigned char iv[16],
+                          const unsigned char *input,
+                          unsigned char *output)
+{
+    uint8_t *key;
+    size_t keySize;
+
+    if (length % 16)
+        return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
+
+    key = (uint8_t *)ctx->rk;
+    keySize = (size_t)ctx->nr;
+    AES_SetKey(AES_INSTANCE, key, keySize);
+
+    if (mode == MBEDTLS_AES_DECRYPT)
+    {
+        uint8_t tmp[16];
+        memcpy(tmp, input + length - 16, 16);
+        AES_DecryptCbc(AES_INSTANCE, tmp, output, length, iv);
+        memcpy(iv, tmp, 16);
+    }
+    else
+    {
+        AES_EncryptCbc(AES_INSTANCE, input, output, length, iv);
+        memcpy(iv, output + length - 16, 16);
+    }
+
+    return (0);
+}
+#endif
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
+
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+#if defined(MBEDTLS_FREESCALE_LPC_AES)
+/*
+ * AES-CFB128 buffer encryption/decryption
+ */
+int mbedtls_aes_crypt_cfb128(mbedtls_aes_context *ctx,
+                             int mode,
+                             size_t length,
+                             size_t *iv_off,
+                             unsigned char iv[16],
+                             const unsigned char *input,
+                             unsigned char *output)
+{
+    uint8_t *key;
+    size_t keySize;
+
+    key = (uint8_t *)ctx->rk;
+    keySize = (size_t)ctx->nr;
+    AES_SetKey(AES_INSTANCE, key, keySize);
+
+    if (mode == MBEDTLS_AES_DECRYPT)
+    {
+        AES_DecryptCfb(AES_INSTANCE, input, output, length, iv);
+    }
+    else
+    {
+        AES_EncryptCfb(AES_INSTANCE, input, output, length, iv);
+    }
+
+    return (0);
+}
+
+/*
+ * AES-CFB8 buffer encryption/decryption
+ */
+int mbedtls_aes_crypt_cfb8(mbedtls_aes_context *ctx,
+                           int mode,
+                           size_t length,
+                           unsigned char iv[16],
+                           const unsigned char *input,
+                           unsigned char *output)
+{
+    unsigned char c;
+    unsigned char ov[17];
+
+    while (length--)
+    {
+        memcpy(ov, iv, 16);
+        mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, iv, iv);
+
+        if (mode == MBEDTLS_AES_DECRYPT)
+            ov[16] = *input;
+
+        c = *output++ = (unsigned char)(iv[0] ^ *input++);
+
+        if (mode == MBEDTLS_AES_ENCRYPT)
+            ov[16] = c;
+
+        memcpy(iv, ov + 1, 16);
+    }
+
+    return (0);
+}
+#endif /* MBEDTLS_FREESCALE_LPC_AES */
+#endif /* MBEDTLS_CIPHER_MODE_CFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 /*
@@ -547,7 +653,27 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
 
     return (0);
 }
-#endif /* MBEDTLS_FREESCALE_LTC_AES */
+#elif defined(MBEDTLS_FREESCALE_LPC_AES)
+int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
+                          size_t length,
+                          size_t *nc_off,
+                          unsigned char nonce_counter[16],
+                          unsigned char stream_block[16],
+                          const unsigned char *input,
+                          unsigned char *output)
+{
+    uint8_t *key;
+    size_t keySize;
+
+    key = (uint8_t *)ctx->rk;
+    keySize = (size_t)ctx->nr;
+
+    AES_SetKey(AES_INSTANCE, key, keySize);
+    AES_CryptCtr(AES_INSTANCE, input, output, length, nonce_counter, stream_block, nc_off);
+
+    return (0);
+}
+#endif
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
 #if defined(MBEDTLS_CCM_C)
@@ -678,10 +804,49 @@ int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
     return (0);
 }
 
-#endif /* MBEDTLS_FREESCALE_LTC_AES_GCM */
+#elif defined(MBEDTLS_FREESCALE_LPC_AES_GCM)
+
+#include "mbedtls/gcm.h"
+
+int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
+                              int mode,
+                              size_t length,
+                              const unsigned char *iv,
+                              size_t iv_len,
+                              const unsigned char *add,
+                              size_t add_len,
+                              const unsigned char *input,
+                              unsigned char *output,
+                              size_t tag_len,
+                              unsigned char *tag)
+{
+    uint8_t *key;
+    size_t keySize;
+    mbedtls_aes_context *aes_ctx;
+
+    ctx->len = length;
+    ctx->add_len = add_len;
+    aes_ctx = (mbedtls_aes_context *)ctx->cipher_ctx.cipher_ctx;
+    key = (uint8_t *)aes_ctx->rk;
+    keySize = (size_t)aes_ctx->nr;
+    AES_SetKey(AES_INSTANCE, key, keySize);
+
+    if (mode == MBEDTLS_GCM_ENCRYPT)
+    {
+        AES_EncryptTagGcm(AES_INSTANCE, input, output, length, iv, iv_len, add, add_len, tag, tag_len);
+    }
+    else
+    {
+        AES_DecryptTagGcm(AES_INSTANCE, input, output, length, iv, iv_len, add, add_len, tag, tag_len);
+    }
+
+    return (0);
+}
+
+#endif
 #endif /* MBEDTLS_GCM_C */
 
-#endif /* MBEDTLS_FREESCALE_LTC_AES || MBEDTLS_FREESCALE_MMCAU_AES */
+#endif /* MBEDTLS_FREESCALE_LTC_AES || MBEDTLS_FREESCALE_MMCAU_AES || MBEDTLS_FREESCALE_LPC_AES */
 
 #endif /* MBEDTLS_AES_C */
 
@@ -1329,7 +1494,66 @@ void mbedtls_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64
     MMCAU_SHA1_HashN(data, 1, ctx->state);
 }
 
-#endif /* MBEDTLS_FREESCALE_MMCAU_SHA1 */
+#elif defined(MBEDTLS_FREESCALE_LPC_SHA1)
+#include "mbedtls/sha1.h"
+
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize(void *v, size_t n)
+{
+    volatile unsigned char *p = v;
+    while (n--)
+        *p++ = 0;
+}
+
+void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
+{
+    memset(ctx, 0, sizeof(mbedtls_sha1_context));
+}
+
+void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
+{
+    if (ctx == NULL)
+        return;
+
+    mbedtls_zeroize(ctx, sizeof(mbedtls_sha1_context));
+}
+
+void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
+{
+    memcpy(dst, src, sizeof(mbedtls_sha1_context));
+}
+
+/*
+ * SHA-1 context setup
+ */
+void mbedtls_sha1_starts(mbedtls_sha1_context *ctx)
+{
+    SHA_Init(SHA_INSTANCE, ctx, kSHA_Sha1);
+}
+
+void mbedtls_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
+{
+    SHA_Update(SHA_INSTANCE, ctx, data, 64);
+}
+
+/*
+ * SHA-1 process buffer
+ */
+void mbedtls_sha1_update(mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen)
+{
+    SHA_Update(SHA_INSTANCE, ctx, input, ilen);
+}
+
+/*
+ * SHA-1 final digest
+ */
+void mbedtls_sha1_finish(mbedtls_sha1_context *ctx, unsigned char output[20])
+{
+    size_t outputSize = 20;
+    SHA_Finish(SHA_INSTANCE, ctx, output, &outputSize);
+}
+
+#endif /* MBEDTLS_FREESCALE_LPC_SHA1 */
 #endif /* MBEDTLS_SHA1_C */
 
 /******************************************************************************/
@@ -1412,7 +1636,68 @@ void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char dat
     MMCAU_SHA256_HashN(data, 1, ctx->state);
 }
 
-#endif /* MBEDTLS_FREESCALE_MMCAU_SHA1 */
+#elif defined(MBEDTLS_FREESCALE_LPC_SHA256)
+#include "mbedtls/sha256.h"
+
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize_sha256(void *v, size_t n)
+{
+    volatile unsigned char *p = v;
+    while (n--)
+        *p++ = 0;
+}
+
+void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
+{
+    memset(ctx, 0, sizeof(mbedtls_sha256_context));
+}
+
+void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
+{
+    if (ctx == NULL)
+        return;
+
+    mbedtls_zeroize_sha256(ctx, sizeof(mbedtls_sha256_context));
+}
+
+void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
+{
+    memcpy(dst, src, sizeof(*dst));
+}
+
+/*
+ * SHA-256 context setup
+ */
+void mbedtls_sha256_starts(mbedtls_sha256_context *ctx, int is224)
+{
+    if (!is224) /* SHA-224 not supported */
+    {
+        SHA_Init(SHA_INSTANCE, ctx, kSHA_Sha256);
+    }
+}
+
+void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
+{
+    SHA_Update(SHA_INSTANCE, ctx, data, 64);
+}
+
+/*
+ * SHA-256 process buffer
+ */
+void mbedtls_sha256_update(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
+{
+    SHA_Update(SHA_INSTANCE, ctx, input, ilen);
+}
+
+/*
+ * SHA-256 final digest
+ */
+void mbedtls_sha256_finish(mbedtls_sha256_context *ctx, unsigned char output[32])
+{
+    size_t outputSize = 32;
+    SHA_Finish(SHA_INSTANCE, ctx, output, &outputSize);
+}
+#endif /* MBEDTLS_FREESCALE_LPC_SHA256 */
 #endif /* MBEDTLS_SHA1_C */
 
 /* Entropy poll callback for a hardware source */
@@ -1422,6 +1707,8 @@ void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char dat
 #include "fsl_trng.h"
 #elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
 #include "fsl_rnga.h"
+#elif defined(FSL_FEATURE_SOC_LPC_RNG_COUNT) && (FSL_FEATURE_SOC_LPC_RNG_COUNT > 0)
+#include "app.h" /* TODO offset of RNG ROM APIs is not in device header files */
 #endif
 
 int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t *olen)
@@ -1432,6 +1719,40 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
     result = TRNG_GetRandomData(TRNG0, output, len);
 #elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
     result = RNGA_GetRandomData(RNG, (void *)output, len);
+#elif defined(FSL_FEATURE_SOC_LPC_RNG_COUNT) && (FSL_FEATURE_SOC_LPC_RNG_COUNT > 0)
+    uint32_t (*rngRead)(void);
+    uint32_t rn;
+    size_t length;
+    int i;
+
+    rngRead = OTP_API->rngRead;
+    length = len;
+
+    while (length > 0)
+    {
+        rn = rngRead();
+
+        if (length >= sizeof(uint32_t))
+        {
+            memcpy(output, &rn, sizeof(uint32_t));
+            length -= sizeof(uint32_t);
+            output += sizeof(uint32_t);
+        }
+        else
+        {
+            memcpy(output, &rn, length);
+            output += length;
+            len = 0U;
+        }
+
+        /* Discard next 32 random words for better entropy */
+        for (i = 0; i < 32; i++)
+        {
+            rngRead();
+        }
+    }
+
+    result = kStatus_Success;
 #endif
     if (result == kStatus_Success)
     {

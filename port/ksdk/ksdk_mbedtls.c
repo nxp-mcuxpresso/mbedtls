@@ -1708,7 +1708,7 @@ void mbedtls_sha256_finish(mbedtls_sha256_context *ctx, unsigned char output[32]
 #elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
 #include "fsl_rnga.h"
 #elif defined(FSL_FEATURE_SOC_LPC_RNG_COUNT) && (FSL_FEATURE_SOC_LPC_RNG_COUNT > 0)
-#include "app.h" /* TODO offset of RNG ROM APIs is not in device header files */
+#include "fsl_rng.h"
 #endif
 
 int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t *olen)
@@ -1720,17 +1720,15 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 #elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
     result = RNGA_GetRandomData(RNG, (void *)output, len);
 #elif defined(FSL_FEATURE_SOC_LPC_RNG_COUNT) && (FSL_FEATURE_SOC_LPC_RNG_COUNT > 0)
-    uint32_t (*rngRead)(void);
     uint32_t rn;
     size_t length;
     int i;
 
-    rngRead = OTP_API->rngRead;
     length = len;
 
     while (length > 0)
     {
-        rn = rngRead();
+        rn = RNG_GetRandomData();
 
         if (length >= sizeof(uint32_t))
         {
@@ -1748,7 +1746,7 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
         /* Discard next 32 random words for better entropy */
         for (i = 0; i < 32; i++)
         {
-            rngRead();
+            RNG_GetRandomData();
         }
     }
 

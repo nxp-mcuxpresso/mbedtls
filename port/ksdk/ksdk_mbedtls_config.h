@@ -69,6 +69,18 @@
 #define MBEDTLS_FREESCALE_MMCAU_AES    /* Enable use of MMCAU AES, when LTC is disabled.*/
 #endif
 
+/* Enable CAU3 use in library if there is CAU3 on chip. */
+#if defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)
+#include "cau3_k3s_boot_rom_middleware_prototypes.h"
+#include "cau3_pkha.h"
+
+#define MBEDTLS_CAU3_COMPLETION_SIGNAL CAU3_CC_CMD_EVT
+
+#define MBEDTLS_FREESCALE_CAU3_AES    /* Enable use of CAU3 AES.*/
+#define MBEDTLS_FREESCALE_CAU3_SHA256 /* Enable use of CAU3 SHA256.*/
+#define MBEDTLS_FREESCALE_CAU3_PKHA   /* Enable use of CAU3 PKHA.*/
+#endif
+
 /* Enable AES use in library if there is AES on chip. */
 #if defined(FSL_FEATURE_SOC_AES_COUNT) && (FSL_FEATURE_SOC_AES_COUNT > 0)
 #include "fsl_aes.h"
@@ -100,7 +112,7 @@
 #define MBEDTLS_DES_CRYPT_CBC_ALT
 #define MBEDTLS_DES3_CRYPT_CBC_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || defined(MBEDTLS_FREESCALE_LPC_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES)
 #define MBEDTLS_AES_SETKEY_ENC_ALT
 #define MBEDTLS_AES_SETKEY_DEC_ALT
 #define MBEDTLS_AES_ENCRYPT_ALT
@@ -114,7 +126,7 @@
 #if defined(MBEDTLS_FREESCALE_LTC_AES_GCM) || defined(MBEDTLS_FREESCALE_LPC_AES_GCM)
 #define MBEDTLS_GCM_CRYPT_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_PKHA)
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
 #define MBEDTLS_MPI_ADD_ABS_ALT
 #define MBEDTLS_MPI_SUB_ABS_ALT
 #define MBEDTLS_MPI_MUL_MPI_ALT
@@ -123,8 +135,8 @@
 #define MBEDTLS_MPI_GCD_ALT
 #define MBEDTLS_MPI_INV_MOD_ALT
 #define MBEDTLS_MPI_IS_PRIME_ALT
-#define MBEDTLS_ECP_MUL_COMB_ALT
-#define MBEDTLS_ECP_ADD_ALT
+//#define MBEDTLS_ECP_MUL_COMB_ALT
+//#define MBEDTLS_ECP_ADD_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_SHA1) || defined(MBEDTLS_FREESCALE_LPC_SHA1)
 #define MBEDTLS_SHA1_ALT
@@ -141,7 +153,9 @@
  * To use SHA-224 on LPC, do not define MBEDTLS_SHA256_ALT and both SHA-224 and SHA-256 will use
  * original mbed TLS software implementation.
  */
+#if defined(defined(MBEDTLS_FREESCALE_LPC_SHA256))
 #define MBEDTLS_SHA256_ALT_NO_224
+#endif
 #endif
 #if defined(MBEDTLS_FREESCALE_MMCAU_MD5)
 #define MBEDTLS_MD5_PROCESS_ALT
@@ -151,6 +165,12 @@
 #endif
 #if defined(MBEDTLS_FREESCALE_MMCAU_SHA256)
 #define MBEDTLS_SHA256_PROCESS_ALT
+#endif
+#if defined(MBEDTLS_FREESCALE_CAU3_SHA256)
+#define MBEDTLS_SHA256_PROCESS_ALT
+#endif
+#if defined(MBEDTLS_FREESCALE_CAU3_AES)
+#define MBEDTLS_AES_ALT_NO_192
 #endif
 #if defined(MBEDTLS_FREESCALE_LPC_AES)
 #define MBEDTLS_AES_CRYPT_CBC_ALT

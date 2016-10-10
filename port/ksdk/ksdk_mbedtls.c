@@ -34,6 +34,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#include "fsl_common.h"
 /******************************************************************************/
 /*************************** DES **********************************************/
 /******************************************************************************/
@@ -354,7 +355,7 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
 
 #if defined(MBEDTLS_AES_C)
 
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || defined(MBEDTLS_FREESCALE_LPC_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES)
 
 #include "mbedtls/aes.h"
 
@@ -365,7 +366,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
 {
     uint32_t *RK;
 
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES)
     const unsigned char *key_tmp = key;
     ctx->rk = RK = ctx->buf;
     memcpy(RK, key_tmp, keybits / 8);
@@ -416,7 +417,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
 
     ctx->rk = RK = ctx->buf;
 
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES)
     const unsigned char *key_tmp = key;
 
     memcpy(RK, key_tmp, keybits / 8);
@@ -471,6 +472,14 @@ void mbedtls_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char input[16]
     LTC_AES_EncryptEcb(LTC_INSTANCE, input, output, 16, key, ctx->nr);
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     MMCAU_AES_EncryptEcb(input, key, ctx->nr, output);
+#elif defined(MBEDTLS_FREESCALE_CAU3_AES)
+    cauKeyContext cau_ctx;
+    
+    cau_ctx.keySched = ctx->rk;
+    cau_ctx.keySize = ctx->nr;
+    memcpy(&cau_ctx.key, key, cau_ctx.keySize);
+    CAU_LoadKeyContext((uint32_t *)&cau_ctx, 0, MBEDTLS_CAU3_COMPLETION_SIGNAL);
+    CAU_AesEncryptEcb((uint8_t *)input, 0, output, MBEDTLS_CAU3_COMPLETION_SIGNAL);
 #elif defined(MBEDTLS_FREESCALE_LPC_AES)
     AES_SetKey(AES_INSTANCE, key, ctx->nr);
     AES_EncryptEcb(AES_INSTANCE, input, output, 16);
@@ -489,6 +498,14 @@ void mbedtls_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char input[16]
     LTC_AES_DecryptEcb(LTC_INSTANCE, input, output, 16, key, ctx->nr, kLTC_EncryptKey);
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     MMCAU_AES_DecryptEcb(input, key, ctx->nr, output);
+#elif defined(MBEDTLS_FREESCALE_CAU3_AES)
+    cauKeyContext cau_ctx;
+    
+    cau_ctx.keySched = ctx->rk;
+    cau_ctx.keySize = ctx->nr;
+    memcpy(&cau_ctx.key, key, cau_ctx.keySize);
+    CAU_LoadKeyContext((uint32_t *)&cau_ctx, 0, MBEDTLS_CAU3_COMPLETION_SIGNAL);
+    CAU_AesDecryptEcb((uint8_t *)input, 0, output, MBEDTLS_CAU3_COMPLETION_SIGNAL);
 #elif defined(MBEDTLS_FREESCALE_LPC_AES)
     AES_SetKey(AES_INSTANCE, key, ctx->nr);
     AES_DecryptEcb(AES_INSTANCE, input, output, 16);
@@ -854,7 +871,15 @@ int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
 /*************************** PKHA *********************************************/
 /******************************************************************************/
 
-#if defined(MBEDTLS_FREESCALE_LTC_PKHA)
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
+
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#include <stdio.h>
+#define mbedtls_calloc calloc
+#define mbedtls_free free
+#endif
 
 static void ltc_reverse_array(uint8_t *src, size_t src_len)
 {
@@ -874,21 +899,48 @@ static void ltc_reverse_array(uint8_t *src, size_t src_len)
 
 #include "mbedtls/bignum.h"
 
+#if defined(MBEDTLS_FREESCALE_CAU3_PKHA)
+#define LTC_MAX_INT 512
+typedef size_t pkha_size_t;
+#define LTC_PKHA_ModAdd CAU3_PKHA_ModAdd
+#define LTC_PKHA_ModSub1 CAU3_PKHA_ModSub1
+#define LTC_PKHA_ModMul CAU3_PKHA_ModMul
+#define LTC_PKHA_ModRed CAU3_PKHA_ModRed
+#define LTC_PKHA_ModExp CAU3_PKHA_ModExp
+#define LTC_PKHA_GCD CAU3_PKHA_GCD
+#define LTC_PKHA_ModInv CAU3_PKHA_ModInv
+#define LTC_PKHA_PrimalityTest CAU3_PKHA_PrimalityTest
+#define LTC_INSTANCE ((CAU3_PKHA_Type *)CAU3_BASE)
+
+#define kLTC_PKHA_IntegerArith kCAU3_PKHA_IntegerArith
+#define kLTC_PKHA_NormalValue kCAU3_PKHA_NormalValue
+#define kLTC_PKHA_TimingEqualized kCAU3_PKHA_TimingEqualized
+#else
 #define LTC_MAX_INT 256
+typedef uint16_t pkha_size_t;
+#endif
 
 /*
  * Unsigned addition: X = |A| + |B|  (HAC 14.7)
  */
+#if defined(MBEDTLS_MPI_ADD_ABS_ALT)
 int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
 {
     int ret;
-    uint16_t sizeN = LTC_MAX_INT;
-    uint8_t N[LTC_MAX_INT];
+    pkha_size_t sizeN = LTC_MAX_INT;
+    uint8_t *N = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrA = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrB = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrC = mbedtls_calloc(LTC_MAX_INT, 1);
+    if ((NULL == N) || (NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
 
     memset(N, 0xFF, sizeN);
 
-    uint8_t ptrA[LTC_MAX_INT], ptrB[LTC_MAX_INT], ptrC[LTC_MAX_INT];
-    uint16_t sizeA, sizeB, sizeC;
+    pkha_size_t sizeA, sizeB, sizeC;
 
     sizeA = mbedtls_mpi_size(A);
     sizeB = mbedtls_mpi_size(B);
@@ -910,23 +962,48 @@ int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
     ltc_reverse_array(ptrC, sizeC);
     mbedtls_mpi_read_binary(X, ptrC, sizeC);
     X->s = 1;
-
+cleanup:
+    if (N)
+    {
+        mbedtls_free(N);
+    }
+    if (ptrA)
+    {
+        mbedtls_free(ptrA);
+    }
+    if (ptrB)
+    {
+        mbedtls_free(ptrB);
+    }
+    if (ptrC)
+    {
+        mbedtls_free(ptrC);
+    }
     return (ret);
 }
+#endif /* MBEDTLS_MPI_ADD_ABS_ALT */
 
 /*
  * Unsigned subtraction: X = |A| - |B|  (HAC 14.9)
  */
+#if defined(MBEDTLS_MPI_SUB_ABS_ALT)
 int mbedtls_mpi_sub_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
 {
     int ret;
-    uint16_t sizeN = LTC_MAX_INT;
-    uint8_t N[LTC_MAX_INT];
+    pkha_size_t sizeN = LTC_MAX_INT;
+    uint8_t *N = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrA = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrB = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrC = mbedtls_calloc(LTC_MAX_INT, 1);
+    if ((NULL == N) || (NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
 
     memset(N, 0xFF, sizeN);
 
-    uint8_t ptrA[LTC_MAX_INT], ptrB[LTC_MAX_INT], ptrC[LTC_MAX_INT];
-    uint16_t sizeA, sizeB, sizeC;
+    pkha_size_t sizeA, sizeB, sizeC;
 
     sizeA = mbedtls_mpi_size(A);
     sizeB = mbedtls_mpi_size(B);
@@ -948,20 +1025,46 @@ int mbedtls_mpi_sub_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
     ltc_reverse_array(ptrC, sizeC);
     mbedtls_mpi_read_binary(X, ptrC, sizeC);
     X->s = 1;
-
+cleanup:
+    if (N)
+    {
+        mbedtls_free(N);
+    }
+    if (ptrA)
+    {
+        mbedtls_free(ptrA);
+    }
+    if (ptrB)
+    {
+        mbedtls_free(ptrB);
+    }
+    if (ptrC)
+    {
+        mbedtls_free(ptrC);
+    }
     return (ret);
 }
+#endif /* MBEDTLS_MPI_SUB_ABS_ALT */
 
 /*
  * Baseline multiplication: X = A * B  (HAC 14.12)
  */
+#if defined(MBEDTLS_MPI_MUL_MPI_ALT)
 int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
 {
     int ret;
-    uint16_t sizeN = LTC_MAX_INT;
-    uint8_t N[LTC_MAX_INT];
-    uint8_t ptrA[LTC_MAX_INT], ptrB[LTC_MAX_INT], ptrC[LTC_MAX_INT];
-    uint16_t sizeA, sizeB, sizeC;
+    pkha_size_t sizeN = LTC_MAX_INT;
+    pkha_size_t sizeA, sizeB, sizeC;
+
+    uint8_t *N = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrA = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrB = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrC = mbedtls_calloc(LTC_MAX_INT, 1);
+    if ((NULL == N) || (NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
 
     memset(N, 0xFF, sizeN);
 
@@ -986,22 +1089,47 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
     ltc_reverse_array(ptrC, sizeC);
     mbedtls_mpi_read_binary(X, ptrC, sizeC);
     X->s = A->s * B->s;
-
+cleanup:
+    if (N)
+    {
+        mbedtls_free(N);
+    }
+    if (ptrA)
+    {
+        mbedtls_free(ptrA);
+    }
+    if (ptrB)
+    {
+        mbedtls_free(ptrB);
+    }
+    if (ptrC)
+    {
+        mbedtls_free(ptrC);
+    }
     return (ret);
 }
+#endif /* MBEDTLS_MPI_MUL_MPI_ALT */
 
 /*
  * Modulo: R = A mod B
  */
+#if defined(MBEDTLS_MPI_MOD_MPI_ALT)
 int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi *B)
 {
     int ret;
-    uint8_t ptrA[LTC_MAX_INT], ptrB[LTC_MAX_INT], ptrC[LTC_MAX_INT];
-    uint16_t sizeA, sizeB, sizeC;
+    pkha_size_t sizeA, sizeB, sizeC;
+    uint8_t *ptrA = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrB = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrC = mbedtls_calloc(LTC_MAX_INT, 1);
+    if ((NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
 
     sizeA = mbedtls_mpi_size(A);
     sizeB = mbedtls_mpi_size(B);
-    if ((sizeA > sizeof(ptrA)) || (sizeB > sizeof(ptrB)))
+    if ((sizeA > LTC_MAX_INT) || (sizeB > LTC_MAX_INT))
     {
         return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
     }
@@ -1025,19 +1153,40 @@ int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi 
 
     while (mbedtls_mpi_cmp_mpi(R, B) >= 0)
         mbedtls_mpi_sub_mpi(R, R, B); /* MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( R, R, B ) ); cleanup:*/
-
+cleanup:
+    if (ptrA)
+    {
+        mbedtls_free(ptrA);
+    }
+    if (ptrB)
+    {
+        mbedtls_free(ptrB);
+    }
+    if (ptrC)
+    {
+        mbedtls_free(ptrC);
+    }
     return (ret);
 }
+#endif /* MBEDTLS_MPI_MOD_MPI_ALT */
 
 /*
  * Sliding-window exponentiation: X = A^E mod N  (HAC 14.85)
  */
+#if defined(MBEDTLS_MPI_EXP_MOD_ALT)
 int mbedtls_mpi_exp_mod(
     mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *E, const mbedtls_mpi *N, mbedtls_mpi *_RR)
 {
     int ret;
-    uint8_t ptrA[LTC_MAX_INT], ptrE[LTC_MAX_INT], ptrN[LTC_MAX_INT];
-    uint16_t sizeA, sizeE, sizeN;
+    pkha_size_t sizeA, sizeE, sizeN;
+    uint8_t *ptrA = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrE = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrN = mbedtls_calloc(LTC_MAX_INT, 1);
+    if ((NULL == ptrA) || (NULL == ptrE) || (NULL == ptrN))
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
 
     sizeA = mbedtls_mpi_size(A);
     sizeE = mbedtls_mpi_size(E);
@@ -1079,18 +1228,39 @@ int mbedtls_mpi_exp_mod(
 
     ltc_reverse_array(ptrN, sizeN);
     mbedtls_mpi_read_binary(X, ptrN, sizeN);
-
+cleanup:
+    if (ptrA)
+    {
+        mbedtls_free(ptrA);
+    }
+    if (ptrE)
+    {
+        mbedtls_free(ptrE);
+    }
+    if (ptrN)
+    {
+        mbedtls_free(ptrN);
+    }
     return (ret);
 }
+#endif /* MBEDTLS_MPI_EXP_MOD_ALT */
 
 /*
  * Greatest common divisor: G = gcd(A, B)  (HAC 14.54)
  */
+#if defined(MBEDTLS_MPI_GCD_ALT)
 int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
 {
     int ret;
-    uint8_t ptrA[LTC_MAX_INT], ptrB[LTC_MAX_INT], ptrC[LTC_MAX_INT];
-    uint16_t sizeA, sizeB, sizeC;
+    pkha_size_t sizeA, sizeB, sizeC;
+    uint8_t *ptrA = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrB = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrC = mbedtls_calloc(LTC_MAX_INT, 1);
+    if ((NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
 
     sizeA = mbedtls_mpi_size(A);
     sizeB = mbedtls_mpi_size(B);
@@ -1119,18 +1289,39 @@ int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
 
     ltc_reverse_array(ptrC, sizeC);
     mbedtls_mpi_read_binary(G, ptrC, sizeC);
-
+cleanup:
+    if (ptrA)
+    {
+        mbedtls_free(ptrA);
+    }
+    if (ptrB)
+    {
+        mbedtls_free(ptrB);
+    }
+    if (ptrC)
+    {
+        mbedtls_free(ptrC);
+    }
     return (ret);
 }
+#endif /* MBEDTLS_MPI_GCD_ALT */
 
 /*
  * Modular inverse: X = A^-1 mod N  (HAC 14.61 / 14.64)
  */
+#if defined(MBEDTLS_MPI_INV_MOD_ALT)
 int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *N)
 {
     int ret;
-    uint8_t ptrA[LTC_MAX_INT], ptrN[LTC_MAX_INT], ptrC[LTC_MAX_INT];
-    uint16_t sizeA, sizeN, sizeC;
+    pkha_size_t sizeA, sizeN, sizeC;
+    uint8_t *ptrA = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrN = mbedtls_calloc(LTC_MAX_INT, 1);
+    uint8_t *ptrC = mbedtls_calloc(LTC_MAX_INT, 1);
+    if ((NULL == ptrA) || (NULL == ptrN) || (NULL == ptrC))
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
 
     /* N cannot be negative */
     if (N->s < 0 || mbedtls_mpi_cmp_int(N, 0) == 0)
@@ -1165,20 +1356,39 @@ int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 
     ltc_reverse_array(ptrC, sizeC);
     mbedtls_mpi_read_binary(X, ptrC, sizeC);
-
+cleanup:
+    if (ptrA)
+    {
+        mbedtls_free(ptrA);
+    }
+    if (ptrN)
+    {
+        mbedtls_free(ptrN);
+    }
+    if (ptrC)
+    {
+        mbedtls_free(ptrC);
+    }
     return (ret);
 }
+#endif /* MBEDTLS_MPI_INV_MOD_ALT */
 
 /*
  * Pseudo-primality test: small factors, then Miller-Rabin
  */
+#if defined(MBEDTLS_MPI_IS_PRIME_ALT)
 int mbedtls_mpi_is_prime(const mbedtls_mpi *X, int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
     int ret;
-    uint8_t ptrX[LTC_MAX_INT];
-    uint16_t sizeX;
+    pkha_size_t sizeX;
     int random;
     bool result = false;
+    uint8_t *ptrX = mbedtls_calloc(LTC_MAX_INT, 1);
+    if (NULL == ptrX)
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
 
     sizeX = mbedtls_mpi_size(X);
     if (sizeX > LTC_MAX_INT)
@@ -1199,9 +1409,14 @@ int mbedtls_mpi_is_prime(const mbedtls_mpi *X, int (*f_rng)(void *, unsigned cha
 
     if (result == false)
         return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
-
+cleanup:
+    if (ptrX)
+    {
+        mbedtls_free(ptrX);
+    }
     return ret;
 }
+#endif /* MBEDTLS_MPI_IS_PRIME_ALT */
 
 #endif /* MBEDTLS_BIGNUM_C */
 
@@ -1250,6 +1465,7 @@ cleanup:
  * Multiplication using the comb method,
  * for curves in short Weierstrass form
  */
+#if defined(MBEDTLS_ECP_MUL_COMB_ALT)
 int ecp_mul_comb(mbedtls_ecp_group *grp,
                  mbedtls_ecp_point *R,
                  const mbedtls_mpi *m,
@@ -1316,6 +1532,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
 cleanup:
     return (ret);
 }
+#endif /* MBEDTLS_ECP_MUL_COMB_ALT */
 
 /*
  * Curve types: internal for now, might be exposed later
@@ -1343,6 +1560,7 @@ static inline ecp_curve_type ecp_get_type(const mbedtls_ecp_group *grp)
 /*
  * Addition: R = P + Q, result's coordinates normalized
  */
+#if defined(MBEDTLS_ECP_ADD_ALT)
 int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q)
 {
     int ret;
@@ -1397,6 +1615,7 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
 cleanup:
     return (ret);
 }
+#endif /* MBEDTLS_ECP_ADD_ALT */
 
 #endif /* MBEDTLS_ECP_C */
 
@@ -1636,6 +1855,15 @@ void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char dat
     MMCAU_SHA256_HashN(data, 1, ctx->state);
 }
 
+#elif defined(MBEDTLS_FREESCALE_CAU3_SHA256)
+
+#include "mbedtls/sha256.h"
+
+void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
+{
+    CAU_Sha256Update((uint8_t *)data, 1, ctx->state, MBEDTLS_CAU3_COMPLETION_SIGNAL);
+}
+
 #elif defined(MBEDTLS_FREESCALE_LPC_SHA256)
 #include "mbedtls/sha256.h"
 
@@ -1716,6 +1944,9 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
     status_t result = kStatus_Success;
 
 #if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+#ifndef TRNG0
+#define TRNG0 TRNG
+#endif
     result = TRNG_GetRandomData(TRNG0, output, len);
 #elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
     result = RNGA_GetRandomData(RNG, (void *)output, len);

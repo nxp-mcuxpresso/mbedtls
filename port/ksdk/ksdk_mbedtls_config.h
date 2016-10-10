@@ -153,7 +153,7 @@
  * To use SHA-224 on LPC, do not define MBEDTLS_SHA256_ALT and both SHA-224 and SHA-256 will use
  * original mbed TLS software implementation.
  */
-#if defined(defined(MBEDTLS_FREESCALE_LPC_SHA256))
+#if defined(MBEDTLS_FREESCALE_LPC_SHA256)
 #define MBEDTLS_SHA256_ALT_NO_224
 #endif
 #endif

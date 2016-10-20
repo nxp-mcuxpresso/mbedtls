@@ -355,7 +355,8 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
 
 #if defined(MBEDTLS_AES_C)
 
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || \
+    defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES)
 
 #include "mbedtls/aes.h"
 
@@ -474,7 +475,7 @@ void mbedtls_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char input[16]
     MMCAU_AES_EncryptEcb(input, key, ctx->nr, output);
 #elif defined(MBEDTLS_FREESCALE_CAU3_AES)
     cauKeyContext cau_ctx;
-    
+
     cau_ctx.keySched = ctx->rk;
     cau_ctx.keySize = ctx->nr;
     memcpy(&cau_ctx.key, key, cau_ctx.keySize);
@@ -500,7 +501,7 @@ void mbedtls_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char input[16]
     MMCAU_AES_DecryptEcb(input, key, ctx->nr, output);
 #elif defined(MBEDTLS_FREESCALE_CAU3_AES)
     cauKeyContext cau_ctx;
-    
+
     cau_ctx.keySched = ctx->rk;
     cau_ctx.keySize = ctx->nr;
     memcpy(&cau_ctx.key, key, cau_ctx.keySize);
@@ -623,13 +624,18 @@ int mbedtls_aes_crypt_cfb8(mbedtls_aes_context *ctx,
                            const unsigned char *input,
                            unsigned char *output)
 {
+    int status;
     unsigned char c;
     unsigned char ov[17];
 
     while (length--)
     {
         memcpy(ov, iv, 16);
-        mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, iv, iv);
+        status = mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, iv, iv);
+        if (status != 0)
+        {
+            return status;
+        }
 
         if (mode == MBEDTLS_AES_DECRYPT)
             ov[16] = *input;
@@ -716,6 +722,7 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
                           unsigned char *tag,
                           size_t tag_len)
 {
+    status_t status;
     const uint8_t *key;
     uint8_t keySize;
     mbedtls_aes_context *aes_ctx;
@@ -725,14 +732,24 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
     keySize = aes_ctx->nr;
     if (mode == CCM_ENCRYPT)
     {
-        LTC_AES_EncryptTagCcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag,
-                              tag_len);
+        status = LTC_AES_EncryptTagCcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag,
+                                       tag_len);
     }
     else
     {
-        LTC_AES_DecryptTagCcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag,
-                              tag_len);
+        status = LTC_AES_DecryptTagCcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag,
+                                       tag_len);
     }
+
+    if (status == kStatus_InvalidArgument)
+    {
+        return MBEDTLS_ERR_CCM_BAD_INPUT;
+    }
+    else if (status != kStatus_Success)
+    {
+        return MBEDTLS_ERR_CCM_AUTH_FAILED;
+    }
+
     return (0);
 }
 
@@ -767,16 +784,10 @@ int mbedtls_ccm_auth_decrypt(mbedtls_ccm_context *ctx,
                              const unsigned char *tag,
                              size_t tag_len)
 {
-    int ret;
-    unsigned char check_tag[16];
+    unsigned char tag_copy[16];
 
-    if ((ret = ccm_auth_crypt(ctx, CCM_DECRYPT, length, iv, iv_len, add, add_len, input, output, check_tag, tag_len)) !=
-        0)
-    {
-        return (ret);
-    }
-
-    return (0);
+    memcpy(tag_copy, tag, tag_len);
+    return (ccm_auth_crypt(ctx, CCM_DECRYPT, length, iv, iv_len, add, add_len, input, output, tag_copy, tag_len));
 }
 #endif /* MBEDTLS_FREESCALE_LTC_AES */
 #endif /* MBEDTLS_CCM_C */
@@ -785,6 +796,51 @@ int mbedtls_ccm_auth_decrypt(mbedtls_ccm_context *ctx,
 #if defined(MBEDTLS_FREESCALE_LTC_AES_GCM)
 
 #include "mbedtls/gcm.h"
+
+static int gcm_auth_crypt(mbedtls_gcm_context *ctx,
+                          int mode,
+                          size_t length,
+                          const unsigned char *iv,
+                          size_t iv_len,
+                          const unsigned char *add,
+                          size_t add_len,
+                          const unsigned char *input,
+                          unsigned char *output,
+                          size_t tag_len,
+                          unsigned char *tag)
+{
+    status_t status;
+    uint8_t *key;
+    uint32_t keySize;
+    mbedtls_aes_context *aes_ctx;
+
+    ctx->len = length;
+    ctx->add_len = add_len;
+    aes_ctx = (mbedtls_aes_context *)ctx->cipher_ctx.cipher_ctx;
+    key = (uint8_t *)aes_ctx->rk;
+    keySize = aes_ctx->nr;
+    if (mode == MBEDTLS_GCM_ENCRYPT)
+    {
+        status = LTC_AES_EncryptTagGcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag,
+                                       tag_len);
+    }
+    else
+    {
+        status = LTC_AES_DecryptTagGcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag,
+                                       tag_len);
+    }
+
+    if (status == kStatus_InvalidArgument)
+    {
+        return MBEDTLS_ERR_GCM_BAD_INPUT;
+    }
+    else if (status != kStatus_Success)
+    {
+        return MBEDTLS_ERR_GCM_AUTH_FAILED;
+    }
+
+    return 0;
+}
 
 int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
                               int mode,
@@ -798,27 +854,25 @@ int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
                               size_t tag_len,
                               unsigned char *tag)
 {
-    uint8_t *key;
-    uint32_t keySize;
-    mbedtls_aes_context *aes_ctx;
+    return (gcm_auth_crypt(ctx, MBEDTLS_GCM_ENCRYPT, length, iv, iv_len, add, add_len, input, output, tag_len, tag));
+}
 
-    ctx->len = length;
-    ctx->add_len = add_len;
-    aes_ctx = (mbedtls_aes_context *)ctx->cipher_ctx.cipher_ctx;
-    key = (uint8_t *)aes_ctx->rk;
-    keySize = aes_ctx->nr;
-    if (mode == MBEDTLS_GCM_ENCRYPT)
-    {
-        LTC_AES_EncryptTagGcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag,
-                              tag_len);
-    }
-    else
-    {
-        LTC_AES_DecryptTagGcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag,
-                              tag_len);
-    }
+int mbedtls_gcm_auth_decrypt(mbedtls_gcm_context *ctx,
+                             size_t length,
+                             const unsigned char *iv,
+                             size_t iv_len,
+                             const unsigned char *add,
+                             size_t add_len,
+                             const unsigned char *tag,
+                             size_t tag_len,
+                             const unsigned char *input,
+                             unsigned char *output)
+{
+    unsigned char tag_copy[16];
 
-    return (0);
+    memcpy(tag_copy, tag, tag_len);
+    return (
+        gcm_auth_crypt(ctx, MBEDTLS_GCM_DECRYPT, length, iv, iv_len, add, add_len, input, output, tag_len, tag_copy));
 }
 
 #elif defined(MBEDTLS_FREESCALE_LPC_AES_GCM)
@@ -837,6 +891,7 @@ int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
                               size_t tag_len,
                               unsigned char *tag)
 {
+    status_t status;
     uint8_t *key;
     size_t keySize;
     mbedtls_aes_context *aes_ctx;
@@ -846,18 +901,50 @@ int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
     aes_ctx = (mbedtls_aes_context *)ctx->cipher_ctx.cipher_ctx;
     key = (uint8_t *)aes_ctx->rk;
     keySize = (size_t)aes_ctx->nr;
-    AES_SetKey(AES_INSTANCE, key, keySize);
+
+    status = AES_SetKey(AES_INSTANCE, key, keySize);
+    if (status != kStatus_Success)
+    {
+        return MBEDTLS_ERR_GCM_BAD_INPUT;
+    }
 
     if (mode == MBEDTLS_GCM_ENCRYPT)
     {
-        AES_EncryptTagGcm(AES_INSTANCE, input, output, length, iv, iv_len, add, add_len, tag, tag_len);
+        status = AES_EncryptTagGcm(AES_INSTANCE, input, output, length, iv, iv_len, add, add_len, tag, tag_len);
     }
     else
     {
-        AES_DecryptTagGcm(AES_INSTANCE, input, output, length, iv, iv_len, add, add_len, tag, tag_len);
+        status = AES_DecryptTagGcm(AES_INSTANCE, input, output, length, iv, iv_len, add, add_len, tag, tag_len);
     }
 
-    return (0);
+    if (status == kStatus_InvalidArgument)
+    {
+        return MBEDTLS_ERR_GCM_BAD_INPUT;
+    }
+    else if (status != kStatus_Success)
+    {
+        return MBEDTLS_ERR_GCM_AUTH_FAILED;
+    }
+
+    return 0;
+}
+
+int mbedtls_gcm_auth_decrypt(mbedtls_gcm_context *ctx,
+                             size_t length,
+                             const unsigned char *iv,
+                             size_t iv_len,
+                             const unsigned char *add,
+                             size_t add_len,
+                             const unsigned char *tag,
+                             size_t tag_len,
+                             const unsigned char *input,
+                             unsigned char *output)
+{
+    unsigned char tag_copy[16];
+
+    memcpy(tag_copy, tag, tag_len);
+    return (mbedtls_gcm_crypt_and_tag(ctx, MBEDTLS_GCM_DECRYPT, length, iv, iv_len, add, add_len, input, output,
+                                      tag_len, tag_copy));
 }
 
 #endif

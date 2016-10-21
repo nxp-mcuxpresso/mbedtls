@@ -1519,6 +1519,7 @@ cleanup:
  * and mbedtls_mpi has only 31 bytes, we add leading zeroes
  * so that result array has 32 bytes, same as modulus (sz).
  */
+#if defined(MBEDTLS_ECP_MUL_COMB_ALT) || defined(MBEDTLS_ECP_ADD_ALT)
 static int ltc_get_from_mbedtls_mpi(uint8_t *dst, const mbedtls_mpi *a, size_t sz)
 {
     size_t szbin;
@@ -1547,6 +1548,7 @@ static int ltc_get_from_mbedtls_mpi(uint8_t *dst, const mbedtls_mpi *a, size_t s
 cleanup:
     return (ret);
 }
+#endif /*MBEDTLS_ECP_MUL_COMB_ALT || MBEDTLS_ECP_ADD_ALT */
 
 /*
  * Multiplication using the comb method,

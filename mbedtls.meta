@@ -178,6 +178,8 @@
         <files mask="LICENSE"/>
         <files mask="Makefile"/>
       </source>
+      <include path="mbedtls/include">
+      <include path="mbedtls/port/ksdk">
     </component>
   </components>
 </metadata>

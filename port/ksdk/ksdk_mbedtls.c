@@ -480,7 +480,7 @@ void mbedtls_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char input[16]
     cau_ctx.keySize = ctx->nr;
     memcpy(&cau_ctx.key, key, cau_ctx.keySize);
     CAU_LoadKeyContext((uint32_t *)&cau_ctx, 0, MBEDTLS_CAU3_COMPLETION_SIGNAL);
-    CAU_AesEncryptEcb((uint8_t *)input, 0, output, MBEDTLS_CAU3_COMPLETION_SIGNAL);
+    CAU3_WRAP_AES_EncryptEcb(input, 0, output, MBEDTLS_CAU3_COMPLETION_SIGNAL);
 #elif defined(MBEDTLS_FREESCALE_LPC_AES)
     AES_SetKey(AES_INSTANCE, key, ctx->nr);
     AES_EncryptEcb(AES_INSTANCE, input, output, 16);
@@ -506,7 +506,7 @@ void mbedtls_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char input[16]
     cau_ctx.keySize = ctx->nr;
     memcpy(&cau_ctx.key, key, cau_ctx.keySize);
     CAU_LoadKeyContext((uint32_t *)&cau_ctx, 0, MBEDTLS_CAU3_COMPLETION_SIGNAL);
-    CAU_AesDecryptEcb((uint8_t *)input, 0, output, MBEDTLS_CAU3_COMPLETION_SIGNAL);
+    CAU3_WRAP_AES_DecryptEcb(input, 0, output, MBEDTLS_CAU3_COMPLETION_SIGNAL);
 #elif defined(MBEDTLS_FREESCALE_LPC_AES)
     AES_SetKey(AES_INSTANCE, key, ctx->nr);
     AES_DecryptEcb(AES_INSTANCE, input, output, 16);
@@ -1950,7 +1950,7 @@ void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char dat
 
 void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
 {
-    CAU_Sha256Update((uint8_t *)data, 1, ctx->state, MBEDTLS_CAU3_COMPLETION_SIGNAL);
+    CAU3_WRAP_SHA256_Update(data, 1, ctx->state, MBEDTLS_CAU3_COMPLETION_SIGNAL);
 }
 
 #elif defined(MBEDTLS_FREESCALE_LPC_SHA256)

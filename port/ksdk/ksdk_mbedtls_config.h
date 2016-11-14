@@ -71,10 +71,11 @@
 
 /* Enable CAU3 use in library if there is CAU3 on chip. */
 #if defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)
-#include "cau3_k3s_boot_rom_middleware_prototypes.h"
+#include "fsl_cau3.h"
 #include "cau3_pkha.h"
 
 #define MBEDTLS_CAU3_COMPLETION_SIGNAL CAU3_CC_CMD_EVT
+#define MBEDTLS_SHA256_ALT_NO_224
 
 #define MBEDTLS_FREESCALE_CAU3_AES    /* Enable use of CAU3 AES.*/
 #define MBEDTLS_FREESCALE_CAU3_SHA256 /* Enable use of CAU3 SHA256.*/

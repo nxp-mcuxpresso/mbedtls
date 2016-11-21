@@ -797,17 +797,17 @@ int mbedtls_ccm_auth_decrypt(mbedtls_ccm_context *ctx,
 
 #include "mbedtls/gcm.h"
 
-static int gcm_auth_crypt(mbedtls_gcm_context *ctx,
-                          int mode,
-                          size_t length,
-                          const unsigned char *iv,
-                          size_t iv_len,
-                          const unsigned char *add,
-                          size_t add_len,
-                          const unsigned char *input,
-                          unsigned char *output,
-                          size_t tag_len,
-                          unsigned char *tag)
+int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
+                              int mode,
+                              size_t length,
+                              const unsigned char *iv,
+                              size_t iv_len,
+                              const unsigned char *add,
+                              size_t add_len,
+                              const unsigned char *input,
+                              unsigned char *output,
+                              size_t tag_len,
+                              unsigned char *tag)
 {
     status_t status;
     uint8_t *key;
@@ -842,21 +842,6 @@ static int gcm_auth_crypt(mbedtls_gcm_context *ctx,
     return 0;
 }
 
-int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
-                              int mode,
-                              size_t length,
-                              const unsigned char *iv,
-                              size_t iv_len,
-                              const unsigned char *add,
-                              size_t add_len,
-                              const unsigned char *input,
-                              unsigned char *output,
-                              size_t tag_len,
-                              unsigned char *tag)
-{
-    return (gcm_auth_crypt(ctx, MBEDTLS_GCM_ENCRYPT, length, iv, iv_len, add, add_len, input, output, tag_len, tag));
-}
-
 int mbedtls_gcm_auth_decrypt(mbedtls_gcm_context *ctx,
                              size_t length,
                              const unsigned char *iv,
@@ -869,10 +854,9 @@ int mbedtls_gcm_auth_decrypt(mbedtls_gcm_context *ctx,
                              unsigned char *output)
 {
     unsigned char tag_copy[16];
-
     memcpy(tag_copy, tag, tag_len);
-    return (
-        gcm_auth_crypt(ctx, MBEDTLS_GCM_DECRYPT, length, iv, iv_len, add, add_len, input, output, tag_len, tag_copy));
+    return (mbedtls_gcm_crypt_and_tag(ctx, MBEDTLS_GCM_DECRYPT, length, iv, iv_len, add, add_len, input, output,
+                                      tag_len, tag_copy));
 }
 
 #elif defined(MBEDTLS_FREESCALE_LPC_AES_GCM)

@@ -1,81 +1,161 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <metadata>
   <components>
-    <component name="middleware.mbedtls.support" requires="middleware.mmcau.support">
-      <source path="./">
-        <files mask="*.meta"/>
+    <component name="middleware.mbedtls.support" requires="middleware.mmcau.support"/>
+    <component name="middleware.mbedtls.support" requires="platform.drivers.ltc"/>
+   
+    <component name="middleware.mbedtls_include" requires="middleware.mbedtls.support">
+      <source path="./include/mbedtls" target_path="mbedtls/include/mbedtls">
+        <files mask="*.h"/>        
+      </source>
+      <include_paths>
+        <include path="mbedtls/include"/>
+        <include path="mbedtls/port/ksdk"/>        
+      </include_paths>
+    </component>
+    
+    <component name="middleware.mbedtls_source" requires="middleware.mbedtls.support">
+      <source path="./library" target_path="mbedtls/library">
+          <files mask="aes.c"/>
+          <files mask="aesni.c"/>
+          <files mask="arc4.c"/>
+          <files mask="asn1parse.c"/>
+          <files mask="asn1write.c"/>
+          <files mask="base64.c"/>
+          <files mask="bignum.c"/>
+          <files mask="blowfish.c"/>
+          <files mask="camellia.c"/>
+          <files mask="ccm.c"/>
+          <files mask="certs.c"/>
+          <files mask="cipher.c"/>
+          <files mask="cipher_wrap.c"/>
+          <files mask="ctr_drbg.c"/>
+          <files mask="debug.c"/>
+          <files mask="des.c"/>
+          <files mask="dhm.c"/>
+          <files mask="ecdh.c"/>
+          <files mask="ecdsa.c"/>
+          <files mask="ecjpake.c"/>
+          <files mask="ecp.c"/>
+          <files mask="ecp_curves.c"/>
+          <files mask="entropy.c"/>
+          <files mask="entropy_poll.c"/>
+          <files mask="error.c"/>
+          <files mask="gcm.c"/>
+          <files mask="havege.c"/>
+          <files mask="hmac_drbg.c"/>
+          <files mask="md.c"/>
+          <files mask="md_wrap.c"/>
+          <files mask="md2.c"/>
+          <files mask="md4.c"/>
+          <files mask="md5.c"/>
+          <files mask="memory_buffer_alloc.c"/>          
+          <files mask="oid.c"/>
+          <files mask="padlock.c"/>
+          <files mask="pem.c"/>
+          <files mask="pk.c"/>
+          <files mask="pk_wrap.c"/>
+          <files mask="pkcs5.c"/>
+          <files mask="pkcs11.c"/>
+          <files mask="pkcs12.c"/>
+          <files mask="pkparse.c"/>
+          <files mask="pkwrite.c"/>
+          <files mask="platform.c"/>
+          <files mask="ripemd160.c"/>
+          <files mask="rsa.c"/>
+          <files mask="sha1.c"/>
+          <files mask="sha256.c"/>
+          <files mask="sha512.c"/>
+          <files mask="ssl_cache.c"/>
+          <files mask="ssl_ciphersuites.c"/>
+          <files mask="ssl_cli.c"/>
+          <files mask="ssl_cookie.c"/>
+          <files mask="ssl_srv.c"/>
+          <files mask="ssl_ticket.c"/>
+          <files mask="ssl_tls.c"/>
+          <files mask="threading.c"/>
+          <files mask="timing.c"/>
+          <files mask="version.c"/>
+          <files mask="version_features.c"/>
+          <files mask="x509.c"/>
+          <files mask="x509_create.c"/>
+          <files mask="x509_crl.c"/>
+          <files mask="x509_crt.c"/>
+          <files mask="x509_csr.c"/>
+          <files mask="x509write_crt.c"/>
+          <files mask="x509write_csr.c"/>
+          <files mask="xtea.c"/>
       </source>
     </component>
-    <component name="middleware.mbedtls.support" requires="platform.drivers.ltc"/>
-    <component name="middleware.mbedtls" requires="nda middleware.mbedtls.support" provides="middleware" type="middleware" version="2.3.0" change_log="./ChangeLogKSDK.txt">
-      <source path="./configs">
+    
+    <component name="middleware.mbedtls_port" requires="middleware.mbedtls.support">
+      <source path="./port/ksdk" target_path="mbedtls/port/ksdk">
+        <files mask="*.c"/>
+        <files mask="*.h"/>
+      </source>
+    </component>
+   
+    <component name="middleware.mbedtls_files" requires="middleware.mbedtls.support">
+      <source path="./configs" target_path="mbedtls/configs">
         <files mask="*.h"/>
         <files mask="*.txt"/>
       </source>
-      <source path="./doxygen">
+      <source path="./doxygen" target_path="mbedtls/doxygen">
         <files mask="*.doxyfile"/>
       </source>
-      <source path="./doxygen/input">
+      <source path="./doxygen/input" target_path="mbedtls/doxygen/input">
         <files mask="*.h"/>
       </source>
-      <source path="./include">
+      <source path="./include" target_path="mbedtls/include">
         <files mask="*.txt"/>
-      </source>
-      <source path="./include/mbedtls">
-        <files mask="*.h"/>
-      </source>
-      <source path="./library">
+      </source>      
+      <source path="./library" target_path="mbedtls/library">
+        <files mask="*.txt"/>
+        <files mask="Makefile"/>
+      </source>      
+      <source path="./programs" target_path="mbedtls/programs">
         <files mask="*.c"/>
         <files mask="*.txt"/>
         <files mask="Makefile"/>
       </source>
-      <source path="./port/ksdk">
-        <files mask="*.c"/>
-        <files mask="*.h"/>
-      </source>
-      <source path="./programs">
-        <files mask="*.c"/>
-        <files mask="*.txt"/>
-        <files mask="Makefile"/>
-      </source>
-      <source path="./programs/aes">
+      <source path="./programs/aes" target_path="mbedtls/programs/aes">
         <files mask="*.c"/>
         <files mask="*.txt"/>
       </source>
-      <source path="./programs/hash">
+      <source path="./programs/hash" target_path="mbedtls/programs/hash">
         <files mask="*.c"/>
         <files mask="*.txt"/>
       </source>
-      <source path="./programs/pkey">
+      <source path="./programs/pkey" target_path="mbedtls/programs/pkey" exclude="true">
         <files mask="*.c"/>
         <files mask="*.txt"/>
       </source>
-      <source path="./programs/random">
+      <source path="./programs/random" target_path="mbedtls/programs/random" exclude="true">
         <files mask="*.c"/>
         <files mask="*.txt"/>
       </source>
-      <source path="./programs/ssl">
+      <source path="./programs/ssl" target_path="mbedtls/programs/ssl">
         <files mask="*.c"/>
         <files mask="*.txt"/>
       </source>
-      <source path="./programs/test">
+      <source path="./programs/test" target_path="mbedtls/programs/test">
         <files mask="*.txt"/>
         <files mask="*.c"/>
       </source>
-      <source path="./programs/util">
+      <source path="./programs/util" target_path="mbedtls/programs/util" exclude="true">
         <files mask="*.c"/>
         <files mask="*.txt"/>
       </source>
-      <source path="./programs/x509">
+      <source path="./programs/x509" target_path="mbedtls/programs/x509">
         <files mask="*.c"/>
         <files mask="*.txt"/>
       </source>
-      <source path="./scripts">
+      <source path="./scripts" target_path="mbedtls/scripts">
         <files mask="*.cocci"/>
         <files mask="*.pl"/>
         <files mask="*.sh"/>
       </source>
-      <source path="./scripts/data_files">
+      <source path="./scripts/data_files" target_path="mbedtls/scripts/data_files">
         <files mask="*.dsp"/>
         <files mask="*.dsw"/>
         <files mask="*.fmt"/>
@@ -83,12 +163,12 @@
         <files mask="*.txt"/>
         <files mask="*.vcxproj"/>
       </source>
-      <source path="./tests">
+      <source path="./tests" target_path="mbedtls/tests">
         <files mask="*.txt"/>
         <files mask="*.sh"/>
         <files mask="Makefile"/>
       </source>
-      <source path="./tests/data_files">
+      <source path="./tests/data_files" target_path="mbedtls/tests/data_files">
         <files mask="*"/>
         <files mask="*.3des"/>
         <files mask="*.aes128"/>
@@ -115,59 +195,59 @@
         <files mask="*.sha512"/>
         <files mask="*.txt"/>
       </source>
-      <source path="./tests/data_files/dir1">
+      <source path="./tests/data_files/dir1" target_path="mbedtls/tests/data_files/dir1">
         <files mask="*.crt"/>
       </source>
-      <source path="./tests/data_files/dir2">
+      <source path="./tests/data_files/dir2" target_path="mbedtls/tests/data_files/dir2">
         <files mask="*.crt"/>
       </source>
-      <source path="./tests/data_files/dir3">
+      <source path="./tests/data_files/dir3" target_path="mbedtls/tests/data_files/dir3">
         <files mask="*.crt"/>
         <files mask="Readme"/>
       </source>
-      <source path="./tests/scripts">
+      <source path="./tests/scripts" target_path="mbedtls/tests/scripts">
         <files mask="*.sh"/>
         <files mask="*.pl"/>
       </source>
-      <source path="./tests/suites">
+      <source path="./tests/suites" target_path="mbedtls/tests/suites">
         <files mask="*.data"/>
         <files mask="*.function"/>
       </source>
-      <source path="./visualc/VS2010">
+      <source path="./visualc/VS2010" target_path="mbedtls/visualc/VS2010">
         <files mask="*.sln"/>
         <files mask="*.vcxproj"/>
       </source>
-      <source path="./yotta">
+      <source path="./yotta" target_path="mbedtls/yotta">
         <files mask="*.sh"/>
       </source>
-      <source path="./yotta/data">
+      <source path="./yotta/data" target_path="mbedtls/yotta/data">
         <files mask="*.c"/>
         <files mask="*.h"/>
         <files mask="*.json"/>
         <files mask="*.md"/>
         <files mask="*.sh"/>
       </source>
-      <source path="./yotta/data/example-authcrypt">
+      <source path="./yotta/data/example-authcrypt" target_path="mbedtls/yotta/data/example-authcrypt">
         <files mask="*.cpp"/>
         <files mask="*.md"/>
       </source>
-      <source path="./yotta/data/example-benchmark">
+      <source path="./yotta/data/example-benchmark" target_path="mbedtls/yotta/data/example-benchmark">
         <files mask="*.cpp"/>
         <files mask="*.md"/>
       </source>
-      <source path="./yotta/data/example-hashing">
+      <source path="./yotta/data/example-hashing" target_path="mbedtls/yotta/data/example-hashing">
         <files mask="*.cpp"/>
         <files mask="*.md"/>
       </source>
-      <source path="./yotta/data/example-selftest">
+      <source path="./yotta/data/example-selftest" target_path="mbedtls/yotta/data/example-selftest">
         <files mask="*.cpp"/>
         <files mask="*.md"/>
       </source>
-      <source path="./yotta/data/example-tls-client">
+      <source path="./yotta/data/example-tls-client" target_path="mbedtls/yotta/data/example-tls-client">
         <files mask="*.cpp"/>
         <files mask="*.md"/>
       </source>
-      <source path="./">
+      <source path="./" target_path="mbedtls/">
         <files mask="*.meta"/>
         <files mask="*.md"/>
         <files mask="*.tcl"/>
@@ -177,9 +257,10 @@
         <files mask="ChangeLogKSDK.txt"/>
         <files mask="LICENSE"/>
         <files mask="Makefile"/>
-      </source>
-      <include path="mbedtls/include"/>
-      <include path="mbedtls/port/ksdk"/>
+      </source>      
+    </component>
+    
+    <component name="middleware.mbedtls" requires="middleware.mbedtls.support middleware.mbedtls_include middleware.mbedtls_source middleware.mbedtls_port middleware.mbedtls_files" provides="middleware" type="middleware" version="2.3.0" change_log="./ChangeLogKSDK.txt">
     </component>
   </components>
 </metadata>

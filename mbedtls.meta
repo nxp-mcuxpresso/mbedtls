@@ -260,7 +260,7 @@
       </source>      
     </component>
     
-    <component name="middleware.mbedtls" requires="middleware.mbedtls.support middleware.mbedtls_include middleware.mbedtls_source middleware.mbedtls_port middleware.mbedtls_files" provides="middleware" type="middleware" version="2.3.0" change_log="./ChangeLogKSDK.txt">
+    <component name="middleware.mbedtls" requires="middleware.mbedtls.support middleware.mbedtls_include middleware.mbedtls_source middleware.mbedtls_port middleware.mbedtls_files" provides="middleware" type="middleware" version="2.3.0" ui_name="mbedtls" ui_description="mbedTLS SSL/TLS library" ui_category="Middleware" ui_control="True" ui_release_specific="True" change_log="./ChangeLogKSDK.txt">
     </component>
   </components>
 </metadata>

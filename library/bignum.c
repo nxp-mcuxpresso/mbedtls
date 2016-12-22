@@ -879,8 +879,11 @@ int mbedtls_mpi_cmp_int( const mbedtls_mpi *X, mbedtls_mpi_sint z )
 /*
  * Unsigned addition: X = |A| + |B|  (HAC 14.7)
  */
-#if !defined(MBEDTLS_MPI_ADD_ABS_ALT)
+#if defined(MBEDTLS_MPI_ADD_ABS_ALT)
+int mbedtls_mpi_add_abs_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#else
 int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#endif /* MBEDTLS_MPI_ADD_ABS_ALT */
 {
     int ret;
     size_t i, j;
@@ -932,12 +935,10 @@ cleanup:
 
     return( ret );
 }
-#endif /* !MBEDTLS_MPI_ADD_ABS_ALT */
 
 /*
  * Helper for mbedtls_mpi subtraction
  */
-#if !defined(MBEDTLS_MPI_SUB_ABS_ALT) || !defined(MBEDTLS_MPI_EXP_MOD_ALT) 
 static void mpi_sub_hlp( size_t n, mbedtls_mpi_uint *s, mbedtls_mpi_uint *d )
 {
     size_t i;
@@ -955,13 +956,15 @@ static void mpi_sub_hlp( size_t n, mbedtls_mpi_uint *s, mbedtls_mpi_uint *d )
         c = z; i++; d++;
     }
 }
-#endif /* !(MBEDTLS_MPI_SUB_ABS_ALT) || !(MBEDTLS_MPI_EXP_MOD_ALT) */
 
 /*
  * Unsigned subtraction: X = |A| - |B|  (HAC 14.9)
  */
-#if !defined(MBEDTLS_MPI_SUB_ABS_ALT)
+#if defined(MBEDTLS_MPI_SUB_ABS_ALT)
+int mbedtls_mpi_sub_abs_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#else
 int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#endif /* MBEDTLS_MPI_SUB_ABS_ALT */
 {
     mbedtls_mpi TB;
     int ret;
@@ -1000,7 +1003,6 @@ cleanup:
 
     return( ret );
 }
-#endif /*!MBEDTLS_MPI_SUB_ABS_ALT*/
 
 /*
  * Signed addition: X = A + B
@@ -1099,7 +1101,6 @@ int mbedtls_mpi_sub_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint 
 /*
  * Helper for mbedtls_mpi multiplication
  */
-#if !defined(MBEDTLS_MPI_MUL_MPI_ALT) || !defined(MBEDTLS_MPI_EXP_MOD_ALT) 
 static
 #if defined(__APPLE__) && defined(__arm__)
 /*
@@ -1168,13 +1169,15 @@ void mpi_mul_hlp( size_t i, mbedtls_mpi_uint *s, mbedtls_mpi_uint *d, mbedtls_mp
     }
     while( c != 0 );
 }
-#endif /*!MBEDTLS_MPI_MUL_MPI_ALT || !MBEDTLS_MPI_EXP_MOD_ALT */
 
 /*
  * Baseline multiplication: X = A * B  (HAC 14.12)
  */
-#if !defined(MBEDTLS_MPI_MUL_MPI_ALT)
+#if defined(MBEDTLS_MPI_MUL_MPI_ALT)
+int mbedtls_mpi_mul_mpi_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#else
 int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#endif /* MBEDTLS_MPI_MUL_MPI_ALT */
 {
     int ret;
     size_t i, j;
@@ -1207,7 +1210,6 @@ cleanup:
 
     return( ret );
 }
-#endif /* !MBEDTLS_MPI_MUL_MPI_ALT */
 
 /*
  * Baseline multiplication: X = A * b
@@ -1455,8 +1457,11 @@ int mbedtls_mpi_div_int( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A, m
 /*
  * Modulo: R = A mod B
  */
-#if !defined(MBEDTLS_MPI_MOD_MPI_ALT)
+#if defined(MBEDTLS_MPI_MOD_MPI_ALT)
+int mbedtls_mpi_mod_mpi_orig( mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#else
 int mbedtls_mpi_mod_mpi( mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#endif /* MBEDTLS_MPI_MOD_MPI_ALT */
 {
     int ret;
 
@@ -1475,7 +1480,6 @@ cleanup:
 
     return( ret );
 }
-#endif /* !MBEDTLS_MPI_MOD_MPI_ALT */
 
 /*
  * Modulo: r = A mod b
@@ -1537,7 +1541,6 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_
 /*
  * Fast Montgomery initialization (thanks to Tom St Denis)
  */
-#if !defined(MBEDTLS_MPI_EXP_MOD_ALT)
 static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
 {
     mbedtls_mpi_uint x, m0 = N->p[0];
@@ -1551,12 +1554,10 @@ static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
 
     *mm = ~x + 1;
 }
-#endif /*!MBEDTLS_MPI_EXP_MOD_ALT*/
 
 /*
  * Montgomery multiplication: A = A * B * R^-1 mod N  (HAC 14.36)
  */
-#if !defined(MBEDTLS_MPI_EXP_MOD_ALT) 
 static int mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N, mbedtls_mpi_uint mm,
                          const mbedtls_mpi *T )
 {
@@ -1596,9 +1597,7 @@ static int mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi 
 
     return( 0 );
 }
-#endif /*!MBEDTLS_MPI_EXP_MOD_ALT*/
 
-#if !defined(MBEDTLS_MPI_EXP_MOD_ALT) 
 /*
  * Montgomery reduction: A = A * R^-1 mod N
  */
@@ -1616,7 +1615,11 @@ static int mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N, mbedtls_mpi_uint m
 /*
  * Sliding-window exponentiation: X = A^E mod N  (HAC 14.85)
  */
+#if defined(MBEDTLS_MPI_EXP_MOD_ALT)
+int mbedtls_mpi_exp_mod_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *E, const mbedtls_mpi *N, mbedtls_mpi *_RR )
+#else
 int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *E, const mbedtls_mpi *N, mbedtls_mpi *_RR )
+#endif /* MBEDTLS_MPI_EXP_MOD_ALT */
 {
     int ret;
     size_t wbits, wsize, one = 1;
@@ -1820,13 +1823,15 @@ cleanup:
 
     return( ret );
 }
-#endif /* !MBEDTLS_MPI_EXP_MOD_ALT */
 
 /*
  * Greatest common divisor: G = gcd(A, B)  (HAC 14.54)
  */
-#if !defined(MBEDTLS_MPI_GCD_ALT)
+#if defined(MBEDTLS_MPI_GCD_ALT)
+int mbedtls_mpi_gcd_orig( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#else
 int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#endif /* MBEDTLS_MPI_GCD_ALT */
 {
     int ret;
     size_t lz, lzt;
@@ -1874,7 +1879,6 @@ cleanup:
 
     return( ret );
 }
-#endif /* !MBEDTLS_MPI_GCD_ALT */
 
 /*
  * Fill X with size bytes of random.
@@ -1903,8 +1907,11 @@ cleanup:
 /*
  * Modular inverse: X = A^-1 mod N  (HAC 14.61 / 14.64)
  */
-#if !defined(MBEDTLS_MPI_INV_MOD_ALT)
+#if defined(MBEDTLS_MPI_INV_MOD_ALT)
+int mbedtls_mpi_inv_mod_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *N )
+#else
 int mbedtls_mpi_inv_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *N )
+#endif /* MBEDTLS_MPI_INV_MOD_ALT */
 {
     int ret;
     mbedtls_mpi G, TA, TU, U1, U2, TB, TV, V1, V2;
@@ -1995,7 +2002,6 @@ cleanup:
 
     return( ret );
 }
-#endif /* !MBEDTLS_MPI_INV_MOD_ALT */
 
 #if defined(MBEDTLS_GENPRIME)
 
@@ -2164,10 +2170,15 @@ cleanup:
 /*
  * Pseudo-primality test: small factors, then Miller-Rabin
  */
-#if !defined(MBEDTLS_MPI_IS_PRIME_ALT)
+#if defined(MBEDTLS_MPI_IS_PRIME_ALT)
+int mbedtls_mpi_is_prime_orig( const mbedtls_mpi *X,
+                  int (*f_rng)(void *, unsigned char *, size_t),
+                  void *p_rng )
+#else
 int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng )
+#endif /* MBEDTLS_MPI_IS_PRIME_ALT */
 {
     int ret;
     mbedtls_mpi XX;
@@ -2193,7 +2204,6 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
 
     return( mpi_miller_rabin( &XX, f_rng, p_rng ) );
 }
-#endif /* !MBEDTLS_MPI_IS_PRIME_ALT */
 
 /*
  * Prime number generation

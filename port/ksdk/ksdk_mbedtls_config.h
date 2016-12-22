@@ -55,6 +55,7 @@
 #endif
 #if defined(FSL_FEATURE_LTC_HAS_PKHA) && FSL_FEATURE_LTC_HAS_PKHA
 #define MBEDTLS_FREESCALE_LTC_PKHA /* Enable use of LTC PKHA.*/
+#define FREESCALE_PKHA_INT_MAX_BYTES 256
 #endif
 #endif
 
@@ -80,6 +81,25 @@
 #define MBEDTLS_FREESCALE_CAU3_AES    /* Enable use of CAU3 AES.*/
 #define MBEDTLS_FREESCALE_CAU3_SHA256 /* Enable use of CAU3 SHA256.*/
 #define MBEDTLS_FREESCALE_CAU3_PKHA   /* Enable use of CAU3 PKHA.*/
+#define FREESCALE_PKHA_INT_MAX_BYTES 512
+#endif
+
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
+/* 
+ * This FREESCALE_PKHA_LONG_OPERANDS_ENABLE macro can be defined.
+ * In such a case both software and hardware algorithm for TFM is linked in.
+ * The decision for which algorithm is used is determined at runtime
+ * from size of inputs. If inputs and result can fit into LTC (see FREESCALE_PKHA_INT_MAX_BYTES)
+ * then we call hardware algorithm, otherwise we call software algorithm.
+ *
+ * Note that mbedTLS algorithms break modular operations unefficiently into two steps.
+ * First is normal operation, for example non-modular multiply, which can produce number
+ * with greater size than operands. Second is modular reduction.
+ * The implication of this is that if for example FREESCALE_PKHA_INT_MAX_BYTES is 256 (2048 bits),
+ * RSA-2048 still requires the FREESCALE_PKHA_LONG_OPERANDS_ENABLE macro to be defined,
+ * otherwise it fails at runtime.
+ */
+//#define FREESCALE_PKHA_LONG_OPERANDS_ENABLE
 #endif
 
 /* Enable AES use in library if there is AES on chip. */

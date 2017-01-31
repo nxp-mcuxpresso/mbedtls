@@ -721,7 +721,8 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
 
     key = (uint8_t *)ctx->rk;
     keySize = ctx->nr;
-    LTC_AES_CryptCtr(LTC_INSTANCE, input, output, length, nonce_counter, key, keySize, stream_block, nc_off);
+    LTC_AES_CryptCtr(LTC_INSTANCE, input, output, length, nonce_counter, key, keySize, stream_block,
+                     (uint32_t *)nc_off);
 
     return (0);
 }
@@ -761,7 +762,7 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
     keySize = ctx->nr;
 
     CAAM_AES_CryptCtr(CAAM_INSTANCE, &s_caamHandle, input, output, length, nonce_counter, key, keySize, stream_block,
-                      (uint32_t *)nc_off);
+                      nc_off);
 
     return (0);
 }

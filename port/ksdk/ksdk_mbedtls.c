@@ -56,7 +56,7 @@ static caam_handle_t s_caamHandle = {.jobRing = kCAAM_JobRing0};
 
 #if defined(MBEDTLS_DES_C)
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_MMCAU_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
 
 #include "mbedtls/des.h"
 
@@ -76,7 +76,7 @@ int mbedtls_des_setkey_enc(mbedtls_des_context *ctx, const unsigned char key[MBE
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE; i++)
     {
         sk_b[i] = key[i];
@@ -102,7 +102,7 @@ int mbedtls_des_setkey_dec(mbedtls_des_context *ctx, const unsigned char key[MBE
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE; i++)
     {
         sk_b[i] = key[i];
@@ -127,7 +127,7 @@ int mbedtls_des3_set2key_enc(mbedtls_des3_context *ctx, const unsigned char key[
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 2; i++)
     {
         sk_b[i] = key[i];
@@ -160,7 +160,7 @@ int mbedtls_des3_set2key_dec(mbedtls_des3_context *ctx, const unsigned char key[
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 2; i++)
     {
         sk_b[i] = key[i];
@@ -193,7 +193,7 @@ int mbedtls_des3_set3key_enc(mbedtls_des3_context *ctx, const unsigned char key[
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
         sk_b[i] = key[i];
@@ -218,7 +218,7 @@ int mbedtls_des3_set3key_dec(mbedtls_des3_context *ctx, const unsigned char key[
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
         sk_b[i] = key[i];
@@ -258,6 +258,15 @@ int mbedtls_des_crypt_ecb(mbedtls_des_context *ctx, const unsigned char input[8]
     {
         MMCAU_DES_DecryptEcb(input, key, output);
     }
+#elif defined(MBEDTLS_FREESCALE_CAAM_DES)
+    if (ctx->mode == MBEDTLS_DES_ENCRYPT)
+    {
+        CAAM_DES_EncryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key);
+    }
+    else
+    {
+        CAAM_DES_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key);
+    }
 #endif
     return (0);
 }
@@ -289,6 +298,15 @@ int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx, const unsigned char input[
         MMCAU_DES_DecryptEcb(input, key + 16, output);
         MMCAU_DES_EncryptEcb(output, key + 8, output);
         MMCAU_DES_DecryptEcb(output, key, output);
+    }
+#elif defined(MBEDTLS_FREESCALE_CAAM_DES)
+    if (ctx->mode == MBEDTLS_DES_ENCRYPT)
+    {
+        CAAM_DES3_EncryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key, key + 8, key + 16);
+    }
+    else
+    {
+        CAAM_DES3_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key, key + 8, key + 16);
     }
 #endif
     return (0);
@@ -356,11 +374,69 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
 
     return (0);
 }
+#elif defined(MBEDTLS_FREESCALE_CAAM_DES)
+int mbedtls_des_crypt_cbc(mbedtls_des_context *ctx,
+                          int mode,
+                          size_t length,
+                          unsigned char iv[8],
+                          const unsigned char *input,
+                          unsigned char *output)
+{
+    unsigned char temp[8];
+    uint8_t *key = (uint8_t *)ctx->sk;
+
+    if (length % 8)
+        return (MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH);
+
+    if (mode == MBEDTLS_DES_ENCRYPT)
+    {
+        CAAM_DES_EncryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key);
+        memcpy(iv, output + length - 8, 8);
+    }
+    else /* MBEDTLS_DES_DECRYPT */
+    {
+        memcpy(temp, input + length - 8, 8);
+        CAAM_DES_DecryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key);
+        memcpy(iv, temp, 8);
+    }
+    return (0);
+}
+
+/*
+ * 3DES-CBC buffer encryption/decryption
+ */
+int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
+                           int mode,
+                           size_t length,
+                           unsigned char iv[8],
+                           const unsigned char *input,
+                           unsigned char *output)
+{
+    unsigned char temp[8];
+    uint8_t *key = (uint8_t *)ctx->sk;
+
+    if (length % 8)
+        return (MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH);
+
+    if (mode == MBEDTLS_DES_ENCRYPT)
+    {
+        CAAM_DES3_EncryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, key + 8, key + 16);
+        memcpy(iv, output + length - 8, 8);
+    }
+    else /* MBEDTLS_DES_DECRYPT */
+    {
+        memcpy(temp, input + length - 8, 8);
+        CAAM_DES3_DecryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, key + 8, key + 16);
+        memcpy(iv, temp, 8);
+    }
+
+    return (0);
+}
 
 #endif /* MBEDTLS_FREESCALE_LTC_DES */
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-#endif /*MBEDTLS_FREESCALE_LTC_DES || MBEDTLS_FREESCALE_MMCAU_DES*/
+#endif /*MBEDTLS_FREESCALE_LTC_DES || MBEDTLS_FREESCALE_MMCAU_DES || MBEDTLS_FREESCALE_CAAM_DES*/
 
 #endif /* MBEDTLS_DES_C */
 

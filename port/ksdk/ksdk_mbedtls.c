@@ -44,6 +44,13 @@
     }
 
 /******************************************************************************/
+/*************************** CAAM *********************************************/
+/******************************************************************************/
+#if defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0)
+static caam_handle_t s_caamHandle = {.jobRing = kCAAM_JobRing0};
+#endif
+
+/******************************************************************************/
 /*************************** DES **********************************************/
 /******************************************************************************/
 
@@ -364,7 +371,7 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
 #if defined(MBEDTLS_AES_C)
 
 #if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || \
-    defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES)
+    defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES)
 
 #include "mbedtls/aes.h"
 
@@ -375,7 +382,8 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
 {
     uint32_t *RK;
 
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || \
+    defined(MBEDTLS_FREESCALE_CAAM_AES)
     const unsigned char *key_tmp = key;
     ctx->rk = RK = ctx->buf;
     memcpy(RK, key_tmp, keybits / 8);
@@ -426,7 +434,8 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
 
     ctx->rk = RK = ctx->buf;
 
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || \
+    defined(MBEDTLS_FREESCALE_CAAM_AES)
     const unsigned char *key_tmp = key;
 
     memcpy(RK, key_tmp, keybits / 8);
@@ -492,6 +501,8 @@ void mbedtls_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char input[16]
 #elif defined(MBEDTLS_FREESCALE_LPC_AES)
     AES_SetKey(AES_INSTANCE, key, ctx->nr);
     AES_EncryptEcb(AES_INSTANCE, input, output, 16);
+#elif defined(MBEDTLS_FREESCALE_CAAM_AES)
+    CAAM_AES_EncryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 16, key, ctx->nr);
 #endif
 }
 
@@ -518,6 +529,8 @@ void mbedtls_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char input[16]
 #elif defined(MBEDTLS_FREESCALE_LPC_AES)
     AES_SetKey(AES_INSTANCE, key, ctx->nr);
     AES_DecryptEcb(AES_INSTANCE, input, output, 16);
+#elif defined(MBEDTLS_FREESCALE_CAAM_AES)
+    CAAM_AES_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 16, key, ctx->nr);
 #endif
 }
 
@@ -582,6 +595,35 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     else
     {
         AES_EncryptCbc(AES_INSTANCE, input, output, length, iv);
+        memcpy(iv, output + length - 16, 16);
+    }
+
+    return (0);
+}
+#elif defined(MBEDTLS_FREESCALE_CAAM_AES)
+int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
+                          int mode,
+                          size_t length,
+                          unsigned char iv[16],
+                          const unsigned char *input,
+                          unsigned char *output)
+{
+    uint8_t *key = (uint8_t *)ctx->rk;
+    uint32_t keySize = ctx->nr;
+
+    if (length % 16)
+        return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
+
+    if (mode == MBEDTLS_AES_DECRYPT)
+    {
+        uint8_t tmp[16];
+        memcpy(tmp, input + length - 16, 16);
+        CAAM_AES_DecryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, keySize);
+        memcpy(iv, tmp, 16);
+    }
+    else
+    {
+        CAAM_AES_EncryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, keySize);
         memcpy(iv, output + length - 16, 16);
     }
 
@@ -704,6 +746,26 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
 
     return (0);
 }
+#elif defined(MBEDTLS_FREESCALE_CAAM_AES)
+int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
+                          size_t length,
+                          size_t *nc_off,
+                          unsigned char nonce_counter[16],
+                          unsigned char stream_block[16],
+                          const unsigned char *input,
+                          unsigned char *output)
+{
+    uint8_t *key;
+    uint32_t keySize;
+
+    key = (uint8_t *)ctx->rk;
+    keySize = ctx->nr;
+
+    CAAM_AES_CryptCtr(CAAM_INSTANCE, &s_caamHandle, input, output, length, nonce_counter, key, keySize, stream_block,
+                      (uint32_t *)nc_off);
+
+    return (0);
+}
 #endif
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
@@ -747,6 +809,49 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
     {
         status = LTC_AES_DecryptTagCcm(LTC_INSTANCE, input, output, length, iv, iv_len, add, add_len, key, keySize, tag,
                                        tag_len);
+    }
+
+    if (status == kStatus_InvalidArgument)
+    {
+        return MBEDTLS_ERR_CCM_BAD_INPUT;
+    }
+    else if (status != kStatus_Success)
+    {
+        return MBEDTLS_ERR_CCM_AUTH_FAILED;
+    }
+
+    return (0);
+}
+#elif defined(MBEDTLS_FREESCALE_CAAM_AES)
+static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
+                          int mode,
+                          size_t length,
+                          const unsigned char *iv,
+                          size_t iv_len,
+                          const unsigned char *add,
+                          size_t add_len,
+                          const unsigned char *input,
+                          unsigned char *output,
+                          unsigned char *tag,
+                          size_t tag_len)
+{
+    status_t status;
+    const uint8_t *key;
+    uint8_t keySize;
+    mbedtls_aes_context *aes_ctx;
+
+    aes_ctx = (mbedtls_aes_context *)ctx->cipher_ctx.cipher_ctx;
+    key = (uint8_t *)aes_ctx->rk;
+    keySize = aes_ctx->nr;
+    if (mode == CCM_ENCRYPT)
+    {
+        status = CAAM_AES_EncryptTagCcm(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, iv_len, add, add_len,
+                                        key, keySize, tag, tag_len);
+    }
+    else
+    {
+        status = CAAM_AES_DecryptTagCcm(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, iv_len, add, add_len,
+                                        key, keySize, tag, tag_len);
     }
 
     if (status == kStatus_InvalidArgument)
@@ -948,6 +1053,76 @@ int mbedtls_gcm_auth_decrypt(mbedtls_gcm_context *ctx,
                                       tag_len, tag_copy));
 }
 
+#elif defined(MBEDTLS_FREESCALE_CAAM_AES_GCM)
+
+#include "mbedtls/gcm.h"
+
+int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
+                              int mode,
+                              size_t length,
+                              const unsigned char *iv,
+                              size_t iv_len,
+                              const unsigned char *add,
+                              size_t add_len,
+                              const unsigned char *input,
+                              unsigned char *output,
+                              size_t tag_len,
+                              unsigned char *tag)
+{
+    status_t status;
+    uint8_t *key;
+    uint32_t keySize;
+    mbedtls_aes_context *aes_ctx;
+
+    ctx->len = length;
+    ctx->add_len = add_len;
+    aes_ctx = (mbedtls_aes_context *)ctx->cipher_ctx.cipher_ctx;
+    key = (uint8_t *)aes_ctx->rk;
+    keySize = aes_ctx->nr;
+    if (mode == MBEDTLS_GCM_ENCRYPT)
+    {
+        status = CAAM_AES_EncryptTagGcm(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, iv_len, add, add_len,
+                                        key, keySize, tag, tag_len);
+    }
+    else
+    {
+        status = CAAM_AES_DecryptTagGcm(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, iv_len, add, add_len,
+                                        key, keySize, tag, tag_len);
+    }
+
+    if (status == kStatus_InvalidArgument)
+    {
+        return MBEDTLS_ERR_GCM_BAD_INPUT;
+    }
+    else if (status != kStatus_Success)
+    {
+        return MBEDTLS_ERR_GCM_AUTH_FAILED;
+    }
+
+    return 0;
+}
+
+int mbedtls_gcm_auth_decrypt(mbedtls_gcm_context *ctx,
+                             size_t length,
+                             const unsigned char *iv,
+                             size_t iv_len,
+                             const unsigned char *add,
+                             size_t add_len,
+                             const unsigned char *tag,
+                             size_t tag_len,
+                             const unsigned char *input,
+                             unsigned char *output)
+{
+    unsigned char tag_copy[16];
+    unsigned char *actTag = NULL;
+    if (tag)
+    {
+        memcpy(tag_copy, tag, tag_len);
+        actTag = tag_copy;
+    }
+    return (mbedtls_gcm_crypt_and_tag(ctx, MBEDTLS_GCM_DECRYPT, length, iv, iv_len, add, add_len, input, output,
+                                      tag_len, actTag));
+}
 #endif
 #endif /* MBEDTLS_GCM_C */
 

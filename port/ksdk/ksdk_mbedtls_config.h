@@ -84,8 +84,18 @@
 #define FREESCALE_PKHA_INT_MAX_BYTES 512
 #endif
 
+/* Enable CAAM use in library if there is CAAM on chip. */
+#if defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0)
+#include "fsl_caam.h"
+
+#define CAAM_INSTANCE CAAM
+
+#define MBEDTLS_FREESCALE_CAAM_AES     /* Enable use of CAAM AES.*/
+#define MBEDTLS_FREESCALE_CAAM_AES_GCM /* Enable use of CAAM AES GCM.*/
+#endif
+
 #if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
-/* 
+/*
  * This FREESCALE_PKHA_LONG_OPERANDS_ENABLE macro can be defined.
  * In such a case both software and hardware algorithm for TFM is linked in.
  * The decision for which algorithm is used is determined at runtime
@@ -133,18 +143,20 @@
 #define MBEDTLS_DES_CRYPT_CBC_ALT
 #define MBEDTLS_DES3_CRYPT_CBC_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || \
+    defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES)
 #define MBEDTLS_AES_SETKEY_ENC_ALT
 #define MBEDTLS_AES_SETKEY_DEC_ALT
 #define MBEDTLS_AES_ENCRYPT_ALT
 #define MBEDTLS_AES_DECRYPT_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES)
 #define MBEDTLS_AES_CRYPT_CBC_ALT
 #define MBEDTLS_AES_CRYPT_CTR_ALT
 #define MBEDTLS_CCM_CRYPT_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_AES_GCM) || defined(MBEDTLS_FREESCALE_LPC_AES_GCM)
+#if defined(MBEDTLS_FREESCALE_LTC_AES_GCM) || defined(MBEDTLS_FREESCALE_LPC_AES_GCM) || \
+    defined(MBEDTLS_FREESCALE_CAAM_AES_GCM)
 #define MBEDTLS_GCM_CRYPT_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)

@@ -2231,6 +2231,63 @@ void mbedtls_sha1_finish(mbedtls_sha1_context *ctx, unsigned char output[20])
     size_t outputSize = 20;
     SHA_Finish(SHA_INSTANCE, ctx, output, &outputSize);
 }
+#elif defined(MBEDTLS_FREESCALE_CAAM_SHA1)
+#include "mbedtls/sha1.h"
+
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize(void *v, size_t n)
+{
+    volatile unsigned char *p = v;
+    while (n--)
+        *p++ = 0;
+}
+
+void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
+{
+    memset(ctx, 0, sizeof(mbedtls_sha1_context));
+}
+
+void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
+{
+    if (ctx == NULL)
+        return;
+
+    mbedtls_zeroize(ctx, sizeof(mbedtls_sha1_context));
+}
+
+void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
+{
+    memcpy(dst, src, sizeof(mbedtls_sha1_context));
+}
+
+/*
+ * SHA-1 context setup
+ */
+void mbedtls_sha1_starts(mbedtls_sha1_context *ctx)
+{
+    CAAM_HASH_Init(CAAM_INSTANCE, &s_caamHandle, ctx, kCAAM_Sha1, NULL, 0);
+}
+
+void mbedtls_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
+{
+    CAAM_HASH_Update(ctx, data, 64);
+}
+
+/*
+ * SHA-1 process buffer
+ */
+void mbedtls_sha1_update(mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen)
+{
+    CAAM_HASH_Update(ctx, input, ilen);
+}
+
+/*
+ * SHA-1 final digest
+ */
+void mbedtls_sha1_finish(mbedtls_sha1_context *ctx, unsigned char output[20])
+{
+    CAAM_HASH_Finish(ctx, output, 0);
+}
 
 #endif /* MBEDTLS_FREESCALE_LPC_SHA1 */
 #endif /* MBEDTLS_SHA1_C */
@@ -2385,8 +2442,73 @@ void mbedtls_sha256_finish(mbedtls_sha256_context *ctx, unsigned char output[32]
     size_t outputSize = 32;
     SHA_Finish(SHA_INSTANCE, ctx, output, &outputSize);
 }
-#endif /* MBEDTLS_FREESCALE_LPC_SHA256 */
-#endif /* MBEDTLS_SHA1_C */
+
+#elif defined(MBEDTLS_FREESCALE_CAAM_SHA256)
+#include "mbedtls/sha256.h"
+
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize_sha256(void *v, size_t n)
+{
+    volatile unsigned char *p = v;
+    while (n--)
+        *p++ = 0;
+}
+
+void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
+{
+    memset(ctx, 0, sizeof(mbedtls_sha256_context));
+}
+
+void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
+{
+    if (ctx == NULL)
+        return;
+
+    mbedtls_zeroize_sha256(ctx, sizeof(mbedtls_sha256_context));
+}
+
+void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
+{
+    memcpy(dst, src, sizeof(*dst));
+}
+
+/*
+ * SHA-256 context setup
+ */
+void mbedtls_sha256_starts(mbedtls_sha256_context *ctx, int is224)
+{
+    if (is224)
+    {
+        CAAM_HASH_Init(CAAM_INSTANCE, &s_caamHandle, ctx, kCAAM_Sha224, NULL, 0);
+    }
+    else
+    {
+        CAAM_HASH_Init(CAAM_INSTANCE, &s_caamHandle, ctx, kCAAM_Sha256, NULL, 0);
+    }
+}
+
+void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
+{
+    CAAM_HASH_Update(ctx, data, 64);
+}
+
+/*
+ * SHA-256 process buffer
+ */
+void mbedtls_sha256_update(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
+{
+    CAAM_HASH_Update(ctx, input, ilen);
+}
+
+/*
+ * SHA-256 final digest
+ */
+void mbedtls_sha256_finish(mbedtls_sha256_context *ctx, unsigned char output[32])
+{
+    CAAM_HASH_Finish(ctx, output, 0);
+}
+#endif /* MBEDTLS_FREESCALE_LTC_SHA256 */
+#endif /* MBEDTLS_SHA256_C */
 
 /* Entropy poll callback for a hardware source */
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)

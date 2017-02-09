@@ -1255,8 +1255,14 @@ int mbedtls_aes_self_test( int verbose )
      */
     for( i = 0; i < 6; i++ )
     {
-#ifdef MBEDTLS_AES_ALT_NO_192  
+#ifdef MBEDTLS_AES_ALT_NO_192
         i = (i == 2 ? 4 : i);
+#endif
+#ifdef MBEDTLS_AES_ALT_NO_256
+        if ((i == 4) || (i == 5))
+        {
+            continue;
+        }
 #endif
         u = i >> 1;
         v = i  & 1;
@@ -1313,8 +1319,14 @@ int mbedtls_aes_self_test( int verbose )
      */
     for( i = 0; i < 6; i++ )
     {
-#ifdef MBEDTLS_AES_ALT_NO_192  
+#ifdef MBEDTLS_AES_ALT_NO_192
         i = (i == 2 ? 4 : i);
+#endif
+#ifdef MBEDTLS_AES_ALT_NO_256
+        if ((i == 4) || (i == 5))
+        {
+            continue;
+        }
 #endif
         u = i >> 1;
         v = i  & 1;
@@ -1382,8 +1394,14 @@ int mbedtls_aes_self_test( int verbose )
      */
     for( i = 0; i < 6; i++ )
     {
-#ifdef MBEDTLS_AES_ALT_NO_192  
+#ifdef MBEDTLS_AES_ALT_NO_192
         i = (i == 2 ? 4 : i);
+#endif
+#ifdef MBEDTLS_AES_ALT_NO_256
+        if ((i == 4) || (i == 5))
+        {
+            continue;
+        }
 #endif
         u = i >> 1;
         v = i  & 1;
@@ -1441,8 +1459,14 @@ int mbedtls_aes_self_test( int verbose )
      */
     for( i = 0; i < 6; i++ )
     {
-#ifdef MBEDTLS_AES_ALT_NO_192  
+#ifdef MBEDTLS_AES_ALT_NO_192
         i = (i == 2 ? 4 : i);
+#endif
+#ifdef MBEDTLS_AES_ALT_NO_256
+        if ((i == 4) || (i == 5))
+        {
+            continue;
+        }
 #endif
         u = i >> 1;
         v = i  & 1;

@@ -107,7 +107,7 @@
  * This FREESCALE_PKHA_LONG_OPERANDS_ENABLE macro can be defined.
  * In such a case both software and hardware algorithm for TFM is linked in.
  * The decision for which algorithm is used is determined at runtime
- * from size of inputs. If inputs and result can fit into LTC (see FREESCALE_PKHA_INT_MAX_BYTES)
+ * from size of inputs. If inputs and result can fit into FREESCALE_PKHA_INT_MAX_BYTES
  * then we call hardware algorithm, otherwise we call software algorithm.
  *
  * Note that mbedTLS algorithms break modular operations unefficiently into two steps.

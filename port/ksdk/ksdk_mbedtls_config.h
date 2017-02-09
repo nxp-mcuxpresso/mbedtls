@@ -97,9 +97,12 @@
 
 #define MBEDTLS_FREESCALE_CAAM_SHA1   /* Enable use of CAAM SHA1.*/
 #define MBEDTLS_FREESCALE_CAAM_SHA256 /* Enable use of CAAM SHA256.*/
+
+#define MBEDTLS_FREESCALE_CAAM_PKHA /* Enable use of CAAM PKHA.*/
+#define FREESCALE_PKHA_INT_MAX_BYTES 512
 #endif
 
-#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA) || defined(MBEDTLS_FREESCALE_CAAM_PKHA)
 /*
  * This FREESCALE_PKHA_LONG_OPERANDS_ENABLE macro can be defined.
  * In such a case both software and hardware algorithm for TFM is linked in.
@@ -164,7 +167,7 @@
     defined(MBEDTLS_FREESCALE_CAAM_AES_GCM)
 #define MBEDTLS_GCM_CRYPT_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA) || defined(MBEDTLS_FREESCALE_CAAM_PKHA)
 #define MBEDTLS_MPI_ADD_ABS_ALT
 #define MBEDTLS_MPI_SUB_ABS_ALT
 #define MBEDTLS_MPI_MUL_MPI_ALT

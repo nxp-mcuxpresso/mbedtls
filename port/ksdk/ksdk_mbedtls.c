@@ -1237,7 +1237,7 @@ int mbedtls_gcm_auth_decrypt(mbedtls_gcm_context *ctx,
 /*************************** PKHA *********************************************/
 /******************************************************************************/
 
-#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA) || defined(MBEDTLS_FREESCALE_CAAM_PKHA)
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -1247,6 +1247,7 @@ int mbedtls_gcm_auth_decrypt(mbedtls_gcm_context *ctx,
 #define mbedtls_free free
 #endif
 
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
 static void ltc_reverse_array(uint8_t *src, size_t src_len)
 {
     int i;
@@ -1260,13 +1261,13 @@ static void ltc_reverse_array(uint8_t *src, size_t src_len)
         src[src_len - 1 - i] = tmp;
     }
 }
+#endif /* MBEDTLS_FREESCALE_LTC_PKHA || MBEDTLS_FREESCALE_CAU3_PKHA */
 
 #if defined(MBEDTLS_BIGNUM_C)
 
 #include "mbedtls/bignum.h"
 
 #if defined(MBEDTLS_FREESCALE_CAU3_PKHA)
-typedef size_t pkha_size_t;
 #define LTC_PKHA_ModAdd CAU3_PKHA_ModAdd
 #define LTC_PKHA_ModSub1 CAU3_PKHA_ModSub1
 #define LTC_PKHA_ModMul CAU3_PKHA_ModMul
@@ -1280,8 +1281,12 @@ typedef size_t pkha_size_t;
 #define kLTC_PKHA_IntegerArith kCAU3_PKHA_IntegerArith
 #define kLTC_PKHA_NormalValue kCAU3_PKHA_NormalValue
 #define kLTC_PKHA_TimingEqualized kCAU3_PKHA_TimingEqualized
-#else
+#endif
+
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA)
 typedef uint16_t pkha_size_t;
+#else
+typedef size_t pkha_size_t;
 #endif
 
 #if defined(MBEDTLS_MPI_ADD_ABS_ALT)
@@ -1292,6 +1297,7 @@ int mbedtls_mpi_add_abs_orig(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls
 /*
  * Unsigned addition: X = |A| + |B|  (HAC 14.7)
  */
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
 int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
 {
     pkha_size_t sizeA = mbedtls_mpi_size(A);
@@ -1361,6 +1367,74 @@ int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
     }
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
 }
+
+#elif defined(MBEDTLS_FREESCALE_CAAM_PKHA)
+int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
+{
+    pkha_size_t sizeA = mbedtls_mpi_size(A);
+    pkha_size_t sizeB = mbedtls_mpi_size(B);
+    pkha_size_t sizeN = FREESCALE_PKHA_INT_MAX_BYTES;
+
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    /*
+     * Perform HW acceleration only if the size in bytes is less than maximum.
+     * Since modular add is used below, the result would be wrong
+     * if the real sum of operands exceeded CAAM maximum number value.
+     */
+    if ((sizeA < sizeN) && (sizeB < sizeN))
+    {
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+        int ret;
+        pkha_size_t sizeC;
+        uint8_t *N = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrB = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        if ((NULL == N) || (NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+        {
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
+        }
+
+        memset(N, 0xFF, sizeN);
+
+        mbedtls_mpi_write_binary(A, ptrA, sizeA);
+        mbedtls_mpi_write_binary(B, ptrB, sizeB);
+
+        ret = (int)CAAM_PKHA_ModAdd(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrB, sizeB, N, sizeN, ptrC, &sizeC,
+                                    kCAAM_PKHA_IntegerArith);
+
+        if (ret != kStatus_Success)
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
+
+        mbedtls_mpi_read_binary(X, ptrC, sizeC);
+        X->s = 1;
+    cleanup:
+        if (N)
+        {
+            mbedtls_free(N);
+        }
+        if (ptrA)
+        {
+            mbedtls_free(ptrA);
+        }
+        if (ptrB)
+        {
+            mbedtls_free(ptrB);
+        }
+        if (ptrC)
+        {
+            mbedtls_free(ptrC);
+        }
+        return (ret);
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    }
+    else
+    {
+        return mbedtls_mpi_add_abs_orig(X, A, B);
+    }
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+}
+#endif /* MBEDTLS_FREESCALE_LTC_PKHA || MBEDTLS_FREESCALE_CAU3_PKHA */
 #endif /* MBEDTLS_MPI_ADD_ABS_ALT */
 
 #if defined(MBEDTLS_MPI_SUB_ABS_ALT)
@@ -1371,6 +1445,7 @@ int mbedtls_mpi_sub_abs_orig(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls
 /*
  * Unsigned subtraction: X = |A| - |B|  (HAC 14.9)
  */
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
 int mbedtls_mpi_sub_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
 {
     pkha_size_t sizeA = mbedtls_mpi_size(A);
@@ -1438,6 +1513,72 @@ int mbedtls_mpi_sub_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
     }
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
 }
+
+#elif defined(MBEDTLS_FREESCALE_CAAM_PKHA)
+int mbedtls_mpi_sub_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
+{
+    pkha_size_t sizeA = mbedtls_mpi_size(A);
+    pkha_size_t sizeB = mbedtls_mpi_size(B);
+    pkha_size_t sizeN = FREESCALE_PKHA_INT_MAX_BYTES;
+
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    /*
+     * Perform HW acceleration only if |A| >= |B|. Since modular subtraction is used below,
+     * the result would be wrong if the real sum of operands exceeded maximum.
+     */
+    if ((sizeA <= sizeN) && (sizeB <= sizeN) && (mbedtls_mpi_cmp_abs(A, B) >= 0))
+    {
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+        int ret;
+        pkha_size_t sizeC;
+        uint8_t *N = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrB = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        if ((NULL == N) || (NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+        {
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
+        }
+
+        memset(N, 0xFF, sizeN);
+
+        mbedtls_mpi_write_binary(A, ptrA, sizeA);
+        mbedtls_mpi_write_binary(B, ptrB, sizeB);
+
+        ret = (int)CAAM_PKHA_ModSub1(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrB, sizeB, N, sizeN, ptrC, &sizeC);
+
+        if (ret != kStatus_Success)
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
+
+        mbedtls_mpi_read_binary(X, ptrC, sizeC);
+        X->s = 1;
+    cleanup:
+        if (N)
+        {
+            mbedtls_free(N);
+        }
+        if (ptrA)
+        {
+            mbedtls_free(ptrA);
+        }
+        if (ptrB)
+        {
+            mbedtls_free(ptrB);
+        }
+        if (ptrC)
+        {
+            mbedtls_free(ptrC);
+        }
+        return (ret);
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    }
+    else
+    {
+        return mbedtls_mpi_sub_abs_orig(X, A, B);
+    }
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+}
+#endif /* MBEDTLS_FREESCALE_LTC_PKHA || MBEDTLS_FREESCALE_CAU3_PKHA */
 #endif /* MBEDTLS_MPI_SUB_ABS_ALT */
 
 #if defined(MBEDTLS_MPI_MUL_MPI_ALT)
@@ -1448,6 +1589,7 @@ int mbedtls_mpi_mul_mpi_orig(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls
 /*
  * Baseline multiplication: X = A * B  (HAC 14.12)
  */
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
 int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
 {
     pkha_size_t sizeA = mbedtls_mpi_size(A);
@@ -1524,6 +1666,81 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
     }
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
 }
+
+#elif defined(MBEDTLS_FREESCALE_CAAM_PKHA)
+int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
+{
+    pkha_size_t sizeA = mbedtls_mpi_size(A);
+    pkha_size_t sizeB = mbedtls_mpi_size(B);
+    pkha_size_t sizeN = FREESCALE_PKHA_INT_MAX_BYTES;
+
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    /*
+     * Should be "if ((sizeA + sizeB) <= sizeN)", but if the multiplication result
+     * would be maximum CAAM number (the same value as the modulus N below),
+     * zero would be returned instead, which is wrong value.
+     */
+    if ((sizeA + sizeB) < sizeN)
+    {
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+        int ret;
+        pkha_size_t sizeC;
+
+        uint8_t *N = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrB = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        if ((NULL == N) || (NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+        {
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
+        }
+
+        memset(N, 0xFF, sizeN);
+
+        mbedtls_mpi_write_binary(A, ptrA, sizeA);
+        mbedtls_mpi_write_binary(B, ptrB, sizeB);
+
+        /*
+         * Modular multiplication operation is used here. Since the modulus N is larger
+         * than the expected result of A * B, the effect is normal multiplication.
+         * TODO use PKHA MUL_IM_OM instead.
+         */
+        ret = (int)CAAM_PKHA_ModMul(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrB, sizeB, N, sizeN, ptrC, &sizeC,
+                                    kCAAM_PKHA_IntegerArith, kCAAM_PKHA_NormalValue, kCAAM_PKHA_NormalValue,
+                                    kCAAM_PKHA_TimingEqualized);
+
+        if (ret != kStatus_Success)
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
+
+        mbedtls_mpi_read_binary(X, ptrC, sizeC);
+        X->s = A->s * B->s;
+    cleanup:
+        if (N)
+        {
+            mbedtls_free(N);
+        }
+        if (ptrA)
+        {
+            mbedtls_free(ptrA);
+        }
+        if (ptrB)
+        {
+            mbedtls_free(ptrB);
+        }
+        if (ptrC)
+        {
+            mbedtls_free(ptrC);
+        }
+        return (ret);
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    }
+    else
+    {
+        return mbedtls_mpi_mul_mpi_orig(X, A, B);
+    }
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+}
+#endif /* MBEDTLS_FREESCALE_LTC_PKHA || MBEDTLS_FREESCALE_CAU3_PKHA */
 #endif /* MBEDTLS_MPI_MUL_MPI_ALT */
 
 #if defined(MBEDTLS_MPI_MOD_MPI_ALT)
@@ -1534,6 +1751,7 @@ int mbedtls_mpi_mod_mpi_orig(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls
 /*
  * Modulo: R = A mod B
  */
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
 int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi *B)
 {
     pkha_size_t sizeA = mbedtls_mpi_size(A);
@@ -1595,6 +1813,67 @@ int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi 
     }
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
 }
+
+#elif defined(MBEDTLS_FREESCALE_CAAM_PKHA)
+int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi *B)
+{
+    pkha_size_t sizeA = mbedtls_mpi_size(A);
+    pkha_size_t sizeB = mbedtls_mpi_size(B);
+
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    if ((sizeA <= FREESCALE_PKHA_INT_MAX_BYTES) && (sizeB <= FREESCALE_PKHA_INT_MAX_BYTES))
+    {
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+        int ret;
+        pkha_size_t sizeC;
+        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrB = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        if ((NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+        {
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
+        }
+
+        mbedtls_mpi_write_binary(A, ptrA, sizeA);
+        mbedtls_mpi_write_binary(B, ptrB, sizeB);
+
+        ret = (int)CAAM_PKHA_ModRed(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrB, sizeB, ptrC, &sizeC,
+                                    kCAAM_PKHA_IntegerArith);
+
+        if (ret != kStatus_Success)
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
+
+        mbedtls_mpi_read_binary(R, ptrC, sizeC);
+        R->s = A->s;
+
+        while (mbedtls_mpi_cmp_int(R, 0) < 0)
+            mbedtls_mpi_add_mpi(R, R, B); /* MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( R, R, B ) ); */
+
+        while (mbedtls_mpi_cmp_mpi(R, B) >= 0)
+            mbedtls_mpi_sub_mpi(R, R, B); /* MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( R, R, B ) ); cleanup:*/
+    cleanup:
+        if (ptrA)
+        {
+            mbedtls_free(ptrA);
+        }
+        if (ptrB)
+        {
+            mbedtls_free(ptrB);
+        }
+        if (ptrC)
+        {
+            mbedtls_free(ptrC);
+        }
+        return (ret);
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    }
+    else
+    {
+        return mbedtls_mpi_mod_mpi_orig(R, A, B);
+    }
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+}
+#endif /* MBEDTLS_FREESCALE_LTC_PKHA || MBEDTLS_FREESCALE_CAU3_PKHA */
 #endif /* MBEDTLS_MPI_MOD_MPI_ALT */
 
 #if defined(MBEDTLS_MPI_EXP_MOD_ALT)
@@ -1606,6 +1885,7 @@ int mbedtls_mpi_exp_mod_orig(
 /*
  * Sliding-window exponentiation: X = A^E mod N  (HAC 14.85)
  */
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
 int mbedtls_mpi_exp_mod(
     mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *E, const mbedtls_mpi *N, mbedtls_mpi *_RR)
 {
@@ -1693,6 +1973,90 @@ int mbedtls_mpi_exp_mod(
     }
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
 }
+
+#elif defined(MBEDTLS_FREESCALE_CAAM_PKHA)
+int mbedtls_mpi_exp_mod(
+    mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *E, const mbedtls_mpi *N, mbedtls_mpi *_RR)
+{
+    int ret;
+    pkha_size_t sizeE = mbedtls_mpi_size(E);
+    pkha_size_t sizeN = mbedtls_mpi_size(N);
+
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    if ((sizeE <= FREESCALE_PKHA_INT_MAX_BYTES) && (sizeN <= FREESCALE_PKHA_INT_MAX_BYTES))
+    {
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+        mbedtls_mpi *AA; // TODO rename etc.
+
+        /*
+         * If number is greater than modulus, we must first reduce it due to CAAM requirement
+         * on modular exponentiaton that it needs number less than modulus.
+         * We can take advantage of modular arithmetic rule that: A^B mod C = ( (A mod C)^B ) mod C.
+         * So we do (A mod N) first and if the size of A in bytes fits into CAAM, it will be done in CAAM
+         * (here CAAM does not give size requirement on A versus N), otherwise it will be done in SW
+         * and since the size of N fits into CAAM, the result of (A mod N) will also fit into CAAM.
+         * Then we can do modular exponentiation in CAAM.
+         */
+        if (mbedtls_mpi_cmp_mpi(A, N) >= 0)
+        {
+            /* A >= N, perform X = (A mod N). */
+            ret = mbedtls_mpi_mod_mpi(X, A, N);
+
+            if (ret != kStatus_Success)
+                return (MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
+
+            /* Exponenciation will be performed with X. */
+            AA = X;
+        }
+        else
+        {
+            /* Exponentiation will be performed with original A. */
+            AA = (mbedtls_mpi *)A;
+        }
+
+        pkha_size_t sizeA = mbedtls_mpi_size(AA);
+        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrE = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrN = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        if ((NULL == ptrA) || (NULL == ptrE) || (NULL == ptrN))
+        {
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
+        }
+
+        mbedtls_mpi_write_binary(AA, ptrA, sizeA);
+        mbedtls_mpi_write_binary(E, ptrE, sizeE);
+        mbedtls_mpi_write_binary(N, ptrN, sizeN);
+
+        ret = (int)CAAM_PKHA_ModExp(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrN, sizeN, ptrE, sizeE, ptrN, &sizeN,
+                                    kCAAM_PKHA_IntegerArith, kCAAM_PKHA_NormalValue, kCAAM_PKHA_TimingEqualized);
+
+        if (ret != kStatus_Success)
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
+
+        mbedtls_mpi_read_binary(X, ptrN, sizeN);
+    cleanup:
+        if (ptrA)
+        {
+            mbedtls_free(ptrA);
+        }
+        if (ptrE)
+        {
+            mbedtls_free(ptrE);
+        }
+        if (ptrN)
+        {
+            mbedtls_free(ptrN);
+        }
+        return (ret);
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    }
+    else
+    {
+        return mbedtls_mpi_exp_mod_orig(X, A, E, N, _RR);
+    }
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+}
+#endif /* MBEDTLS_FREESCALE_LTC_PKHA || MBEDTLS_FREESCALE_CAU3_PKHA */
 #endif /* MBEDTLS_MPI_EXP_MOD_ALT */
 
 #if defined(MBEDTLS_MPI_GCD_ALT)
@@ -1703,6 +2067,7 @@ int mbedtls_mpi_gcd_orig(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi
 /*
  * Greatest common divisor: G = gcd(A, B)  (HAC 14.54)
  */
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
 int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
 {
     pkha_size_t sizeA = mbedtls_mpi_size(A);
@@ -1765,6 +2130,69 @@ int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
     }
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
 }
+
+#elif defined(MBEDTLS_FREESCALE_CAAM_PKHA)
+int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
+{
+    pkha_size_t sizeA = mbedtls_mpi_size(A);
+    pkha_size_t sizeB = mbedtls_mpi_size(B);
+
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    if ((sizeA <= FREESCALE_PKHA_INT_MAX_BYTES) && (sizeB <= FREESCALE_PKHA_INT_MAX_BYTES))
+    {
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+        int ret;
+        pkha_size_t sizeC;
+        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrB = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        if ((NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+        {
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
+        }
+
+        mbedtls_mpi_write_binary(A, ptrA, sizeA);
+        mbedtls_mpi_write_binary(B, ptrB, sizeB);
+
+        if (mbedtls_mpi_cmp_mpi(A, B) >= 0)
+        {
+            ret = (int)CAAM_PKHA_ModRed(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrB, sizeB, ptrA, &sizeA,
+                                        kCAAM_PKHA_IntegerArith);
+
+            if (ret != kStatus_Success)
+                CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
+        }
+
+        ret = (int)CAAM_PKHA_ModGcd(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrB, sizeB, ptrC, &sizeC,
+                                    kCAAM_PKHA_IntegerArith);
+
+        if (ret != kStatus_Success)
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
+
+        mbedtls_mpi_read_binary(G, ptrC, sizeC);
+    cleanup:
+        if (ptrA)
+        {
+            mbedtls_free(ptrA);
+        }
+        if (ptrB)
+        {
+            mbedtls_free(ptrB);
+        }
+        if (ptrC)
+        {
+            mbedtls_free(ptrC);
+        }
+        return (ret);
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    }
+    else
+    {
+        return mbedtls_mpi_gcd_orig(G, A, B);
+    }
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+}
+#endif /* MBEDTLS_FREESCALE_LTC_PKHA || MBEDTLS_FREESCALE_CAU3_PKHA */
 #endif /* MBEDTLS_MPI_GCD_ALT */
 
 #if defined(MBEDTLS_MPI_INV_MOD_ALT)
@@ -1775,6 +2203,7 @@ int mbedtls_mpi_inv_mod_orig(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls
 /*
  * Modular inverse: X = A^-1 mod N  (HAC 14.61 / 14.64)
  */
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
 int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *N)
 {
     pkha_size_t sizeA = mbedtls_mpi_size(A);
@@ -1843,6 +2272,75 @@ int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
     }
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
 }
+
+#elif defined(MBEDTLS_FREESCALE_CAAM_PKHA)
+int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *N)
+{
+    pkha_size_t sizeA = mbedtls_mpi_size(A);
+    pkha_size_t sizeN = mbedtls_mpi_size(N);
+
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    if ((sizeA <= FREESCALE_PKHA_INT_MAX_BYTES) && (sizeN <= FREESCALE_PKHA_INT_MAX_BYTES))
+    {
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+        int ret;
+        pkha_size_t sizeC;
+        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrN = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        if ((NULL == ptrA) || (NULL == ptrN) || (NULL == ptrC))
+        {
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
+        }
+
+        /* N cannot be negative */
+        if (N->s < 0 || mbedtls_mpi_cmp_int(N, 0) == 0)
+        {
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_BAD_INPUT_DATA);
+        }
+
+        mbedtls_mpi_write_binary(A, ptrA, sizeA);
+        mbedtls_mpi_write_binary(N, ptrN, sizeN);
+
+        if (mbedtls_mpi_cmp_mpi(A, N) >= 0)
+        {
+            ret = (int)CAAM_PKHA_ModRed(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrN, sizeN, ptrA, &sizeA,
+                                        kCAAM_PKHA_IntegerArith);
+
+            if (ret != kStatus_Success)
+                CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
+        }
+
+        ret = (int)CAAM_PKHA_ModInv(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrN, sizeN, ptrC, &sizeC,
+                                    kCAAM_PKHA_IntegerArith);
+
+        if (ret != kStatus_Success)
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
+
+        mbedtls_mpi_read_binary(X, ptrC, sizeC);
+    cleanup:
+        if (ptrA)
+        {
+            mbedtls_free(ptrA);
+        }
+        if (ptrN)
+        {
+            mbedtls_free(ptrN);
+        }
+        if (ptrC)
+        {
+            mbedtls_free(ptrC);
+        }
+        return (ret);
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    }
+    else
+    {
+        return mbedtls_mpi_inv_mod_orig(X, A, N);
+    }
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+}
+#endif /* MBEDTLS_FREESCALE_LTC_PKHA || MBEDTLS_FREESCALE_CAU3_PKHA */
 #endif /* MBEDTLS_MPI_INV_MOD_ALT */
 
 #if defined(MBEDTLS_MPI_IS_PRIME_ALT)
@@ -1853,6 +2351,7 @@ int mbedtls_mpi_is_prime_orig(const mbedtls_mpi *X, int (*f_rng)(void *, unsigne
 /*
  * Pseudo-primality test: small factors, then Miller-Rabin
  */
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
 int mbedtls_mpi_is_prime(const mbedtls_mpi *X, int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
     pkha_size_t sizeX = mbedtls_mpi_size(X);
@@ -1902,6 +2401,57 @@ int mbedtls_mpi_is_prime(const mbedtls_mpi *X, int (*f_rng)(void *, unsigned cha
     }
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
 }
+
+#elif defined(MBEDTLS_FREESCALE_CAAM_PKHA)
+int mbedtls_mpi_is_prime(const mbedtls_mpi *X, int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
+{
+    pkha_size_t sizeX = mbedtls_mpi_size(X);
+
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    if (sizeX <= FREESCALE_PKHA_INT_MAX_BYTES)
+    {
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+        int ret;
+        int random;
+        bool result = false;
+        uint8_t *ptrX = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        if (NULL == ptrX)
+        {
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
+        }
+
+        mbedtls_mpi_write_binary(X, ptrX, FREESCALE_PKHA_INT_MAX_BYTES);
+
+        // Get the random seed number
+        f_rng(p_rng, (unsigned char *)(&random), sizeof(random));
+
+        ret = (int)CAAM_PKHA_PrimalityTest(CAAM_INSTANCE, &s_caamHandle, (unsigned char *)&random, sizeof(random),
+                                           (const uint8_t *)"1", 1u, ptrX, sizeX, &result);
+
+        if (ret != kStatus_Success)
+        {
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
+        }
+
+        if (result == false)
+        {
+            CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
+        }
+    cleanup:
+        if (ptrX)
+        {
+            mbedtls_free(ptrX);
+        }
+        return ret;
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+    }
+    else
+    {
+        return mbedtls_mpi_is_prime_orig(X, f_rng, p_rng);
+    }
+#endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
+}
+#endif /* MBEDTLS_FREESCALE_LTC_PKHA || MBEDTLS_FREESCALE_CAU3_PKHA */
 #endif /* MBEDTLS_MPI_IS_PRIME_ALT */
 
 #endif /* MBEDTLS_BIGNUM_C */

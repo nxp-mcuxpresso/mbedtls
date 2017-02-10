@@ -216,6 +216,14 @@
 #if defined(MBEDTLS_FREESCALE_CAU3_AES)
 #define MBEDTLS_AES_ALT_NO_192
 #endif
+#if defined(MBEDTLS_FREESCALE_LTC_AES)
+#if !defined(FSL_FEATURE_LTC_HAS_AES192) || !FSL_FEATURE_LTC_HAS_AES192
+#define MBEDTLS_AES_ALT_NO_192
+#endif
+#if !defined(FSL_FEATURE_LTC_HAS_AES256) || !FSL_FEATURE_LTC_HAS_AES256
+#define MBEDTLS_AES_ALT_NO_256
+#endif
+#endif
 #if defined(MBEDTLS_FREESCALE_LPC_AES)
 #define MBEDTLS_AES_CRYPT_CBC_ALT
 #define MBEDTLS_AES_CRYPT_CFB_ALT
@@ -1851,7 +1859,9 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  *
  * This module provides the CTR_DRBG AES-256 random number generator.
  */
+#if !(defined(MBEDTLS_AES_ENCRYPT_ALT) && defined(MBEDTLS_AES_ALT_NO_256))
 #define MBEDTLS_CTR_DRBG_C
+#endif
 
 /**
  * \def MBEDTLS_DEBUG_C

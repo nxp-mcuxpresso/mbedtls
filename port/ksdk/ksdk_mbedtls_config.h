@@ -35,6 +35,7 @@
 /**************************** KSDK ********************************************/
 
 #include "fsl_device_registers.h"
+#include "fsl_debug_console.h"
 
 /* Enable LTC use in library if there is LTC on chip. */
 #if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
@@ -2658,7 +2659,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 //#define MBEDTLS_PLATFORM_FREE_MACRO            free /**< Default free macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_EXIT_MACRO            exit /**< Default exit macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_FPRINTF_MACRO      fprintf /**< Default fprintf macro to use, can be undefined */
-//#define MBEDTLS_PLATFORM_PRINTF_MACRO        printf /**< Default printf macro to use, can be undefined */
+#define MBEDTLS_PLATFORM_PRINTF_MACRO        PRINTF /**< Default printf macro to use, can be undefined */
 /* Note: your snprintf must correclty zero-terminate the buffer! */
 //#define MBEDTLS_PLATFORM_SNPRINTF_MACRO    snprintf /**< Default snprintf macro to use, can be undefined */
 

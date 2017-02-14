@@ -2459,6 +2459,7 @@ int mbedtls_mpi_is_prime(const mbedtls_mpi *X, int (*f_rng)(void *, unsigned cha
 #include "mbedtls/ecp.h"
 
 #define LTC_MAX_ECC (512)
+#define CAAM_MAX_ECC (528)
 
 typedef enum
 {
@@ -2643,14 +2644,14 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     caam_pkha_ecc_point_t A;
     caam_pkha_ecc_point_t result;
 
-    uint8_t *ptrAX = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrAY = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrRX = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrRY = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
+    uint8_t *ptrAX = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
+    uint8_t *ptrAY = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
+    uint8_t *ptrRX = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
+    uint8_t *ptrRY = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
     uint8_t *ptrE = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-    uint8_t *ptrN = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrParamA = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrParamB = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
+    uint8_t *ptrN = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
+    uint8_t *ptrParamA = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
+    uint8_t *ptrParamB = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
     if ((NULL == ptrAX) || (NULL == ptrAY) || (NULL == ptrRX) || (NULL == ptrRY) || (NULL == ptrE) || (NULL == ptrN) ||
         (NULL == ptrParamA) || (NULL == ptrParamB))
     {
@@ -2662,7 +2663,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     result.X = ptrRX;
     result.Y = ptrRY;
     size = mbedtls_mpi_size(&grp->P);
-    if (mbedtls_mpi_size(&P->X) > (LTC_MAX_ECC / 8) || (mbedtls_mpi_get_bit(&grp->N, 0) != 1))
+    if (mbedtls_mpi_size(&P->X) > (CAAM_MAX_ECC / 8) || (mbedtls_mpi_get_bit(&grp->N, 0) != 1))
     {
         CLEAN_RETURN(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
     }
@@ -2864,15 +2865,15 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
     caam_pkha_ecc_point_t B;
     caam_pkha_ecc_point_t result;
 
-    uint8_t *ptrAX = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrAY = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrBX = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrBY = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrRX = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrRY = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrN = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrParamA = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrParamB = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
+    uint8_t *ptrAX = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
+    uint8_t *ptrAY = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
+    uint8_t *ptrBX = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
+    uint8_t *ptrBY = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
+    uint8_t *ptrRX = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
+    uint8_t *ptrRY = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
+    uint8_t *ptrN = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
+    uint8_t *ptrParamA = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
+    uint8_t *ptrParamB = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
     if ((NULL == ptrAX) || (NULL == ptrAY) || (NULL == ptrBX) || (NULL == ptrBY) || (NULL == ptrRX) ||
         (NULL == ptrRY) || (NULL == ptrN) || (NULL == ptrParamA) || (NULL == ptrParamB))
     {
@@ -2889,7 +2890,7 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
     result.X = ptrRX;
     result.Y = ptrRY;
     size = mbedtls_mpi_size(&grp->P);
-    if (mbedtls_mpi_size(&P->X) > (LTC_MAX_ECC / 8) || (mbedtls_mpi_get_bit(&grp->P, 0) != 1))
+    if (mbedtls_mpi_size(&P->X) > (CAAM_MAX_ECC / 8) || (mbedtls_mpi_get_bit(&grp->P, 0) != 1))
     {
         CLEAN_RETURN(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
     }

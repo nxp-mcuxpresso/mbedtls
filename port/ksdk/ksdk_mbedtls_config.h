@@ -255,11 +255,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 #define MBEDTLS_MPI_WINDOW_SIZE 1
 #define MBEDTLS_ECP_WINDOW_SIZE 2
 #define MBEDTLS_MPI_MAX_SIZE 512 /* Maximum number of bytes for usable MPIs. */
-#if defined(MBEDTLS_FREESCALE_LTC_PKHA)
-#define MBEDTLS_ECP_MAX_BITS 384
-#else
-#define MBEDTLS_ECP_MAX_BITS 521 /* Maximum bit size of groups */
-#endif
+#define MBEDTLS_ECP_MAX_BITS 384 /* Maximum bit size of groups */
 
 /**************************** KSDK end ****************************************/
 

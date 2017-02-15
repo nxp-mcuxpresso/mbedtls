@@ -1313,11 +1313,11 @@ int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
         int ret;
         pkha_size_t sizeC;
-        uint8_t *N = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrB = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        if ((NULL == N) || (NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+        uint8_t *N = mbedtls_calloc(4, FREESCALE_PKHA_INT_MAX_BYTES);
+        uint8_t *ptrA = N + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrB = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrC = ptrB + FREESCALE_PKHA_INT_MAX_BYTES;
+        if (NULL == N)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
         }
@@ -1343,18 +1343,6 @@ int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         if (N)
         {
             mbedtls_free(N);
-        }
-        if (ptrA)
-        {
-            mbedtls_free(ptrA);
-        }
-        if (ptrB)
-        {
-            mbedtls_free(ptrB);
-        }
-        if (ptrC)
-        {
-            mbedtls_free(ptrC);
         }
         return (ret);
 #if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
@@ -1384,11 +1372,11 @@ int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
         int ret;
         pkha_size_t sizeC;
-        uint8_t *N = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrB = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        if ((NULL == N) || (NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+        uint8_t *N = mbedtls_calloc(4, FREESCALE_PKHA_INT_MAX_BYTES);
+        uint8_t *ptrA = N + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrB = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrC = ptrB + FREESCALE_PKHA_INT_MAX_BYTES;
+        if (NULL == N)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
         }
@@ -1410,18 +1398,6 @@ int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         if (N)
         {
             mbedtls_free(N);
-        }
-        if (ptrA)
-        {
-            mbedtls_free(ptrA);
-        }
-        if (ptrB)
-        {
-            mbedtls_free(ptrB);
-        }
-        if (ptrC)
-        {
-            mbedtls_free(ptrC);
         }
         return (ret);
 #if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
@@ -1460,11 +1436,11 @@ int mbedtls_mpi_sub_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
         int ret;
         pkha_size_t sizeC;
-        uint8_t *N = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrB = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        if ((NULL == N) || (NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+        uint8_t *N = mbedtls_calloc(4, FREESCALE_PKHA_INT_MAX_BYTES);
+        uint8_t *ptrA = N + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrB = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrC = ptrB + FREESCALE_PKHA_INT_MAX_BYTES;
+        if (NULL == N)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
         }
@@ -1489,18 +1465,6 @@ int mbedtls_mpi_sub_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         if (N)
         {
             mbedtls_free(N);
-        }
-        if (ptrA)
-        {
-            mbedtls_free(ptrA);
-        }
-        if (ptrB)
-        {
-            mbedtls_free(ptrB);
-        }
-        if (ptrC)
-        {
-            mbedtls_free(ptrC);
         }
         return (ret);
 #if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
@@ -1529,11 +1493,11 @@ int mbedtls_mpi_sub_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
         int ret;
         pkha_size_t sizeC;
-        uint8_t *N = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrB = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        if ((NULL == N) || (NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+        uint8_t *N = mbedtls_calloc(4, FREESCALE_PKHA_INT_MAX_BYTES);
+        uint8_t *ptrA = N + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrB = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrC = ptrB + FREESCALE_PKHA_INT_MAX_BYTES;
+        if (NULL == N)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
         }
@@ -1554,18 +1518,6 @@ int mbedtls_mpi_sub_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         if (N)
         {
             mbedtls_free(N);
-        }
-        if (ptrA)
-        {
-            mbedtls_free(ptrA);
-        }
-        if (ptrB)
-        {
-            mbedtls_free(ptrB);
-        }
-        if (ptrC)
-        {
-            mbedtls_free(ptrC);
         }
         return (ret);
 #if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
@@ -1606,11 +1558,11 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         int ret;
         pkha_size_t sizeC;
 
-        uint8_t *N = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrB = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        if ((NULL == N) || (NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+        uint8_t *N = mbedtls_calloc(4, FREESCALE_PKHA_INT_MAX_BYTES);
+        uint8_t *ptrA = N + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrB = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrC = ptrB + FREESCALE_PKHA_INT_MAX_BYTES;
+        if (NULL == N)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
         }
@@ -1643,18 +1595,6 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         {
             mbedtls_free(N);
         }
-        if (ptrA)
-        {
-            mbedtls_free(ptrA);
-        }
-        if (ptrB)
-        {
-            mbedtls_free(ptrB);
-        }
-        if (ptrC)
-        {
-            mbedtls_free(ptrC);
-        }
         return (ret);
 #if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
     }
@@ -1684,11 +1624,11 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         int ret;
         pkha_size_t sizeC;
 
-        uint8_t *N = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrB = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        if ((NULL == N) || (NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+        uint8_t *N = mbedtls_calloc(4, FREESCALE_PKHA_INT_MAX_BYTES);
+        uint8_t *ptrA = N + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrB = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrC = ptrB + FREESCALE_PKHA_INT_MAX_BYTES;
+        if (NULL == N)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
         }
@@ -1716,18 +1656,6 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         if (N)
         {
             mbedtls_free(N);
-        }
-        if (ptrA)
-        {
-            mbedtls_free(ptrA);
-        }
-        if (ptrB)
-        {
-            mbedtls_free(ptrB);
-        }
-        if (ptrC)
-        {
-            mbedtls_free(ptrC);
         }
         return (ret);
 #if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
@@ -1761,10 +1689,10 @@ int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi 
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
         int ret;
         pkha_size_t sizeC;
-        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrB = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        if ((NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+        uint8_t *ptrA = mbedtls_calloc(3, FREESCALE_PKHA_INT_MAX_BYTES);
+        uint8_t *ptrB = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrC = ptrB + FREESCALE_PKHA_INT_MAX_BYTES;
+        if (NULL == ptrA)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
         }
@@ -1794,14 +1722,6 @@ int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi 
         {
             mbedtls_free(ptrA);
         }
-        if (ptrB)
-        {
-            mbedtls_free(ptrB);
-        }
-        if (ptrC)
-        {
-            mbedtls_free(ptrC);
-        }
         return (ret);
 #if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
     }
@@ -1824,10 +1744,10 @@ int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi 
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
         int ret;
         pkha_size_t sizeC;
-        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrB = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        if ((NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+        uint8_t *ptrA = mbedtls_calloc(3, FREESCALE_PKHA_INT_MAX_BYTES);
+        uint8_t *ptrB = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrC = ptrB + FREESCALE_PKHA_INT_MAX_BYTES;
+        if (NULL == ptrA)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
         }
@@ -1853,14 +1773,6 @@ int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi 
         if (ptrA)
         {
             mbedtls_free(ptrA);
-        }
-        if (ptrB)
-        {
-            mbedtls_free(ptrB);
-        }
-        if (ptrC)
-        {
-            mbedtls_free(ptrC);
         }
         return (ret);
 #if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
@@ -1924,10 +1836,10 @@ int mbedtls_mpi_exp_mod(
         }
 
         pkha_size_t sizeA = mbedtls_mpi_size(AA);
-        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrE = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrN = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        if ((NULL == ptrA) || (NULL == ptrE) || (NULL == ptrN))
+        uint8_t *ptrA = mbedtls_calloc(3, FREESCALE_PKHA_INT_MAX_BYTES);
+        uint8_t *ptrE = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrN = ptrE + FREESCALE_PKHA_INT_MAX_BYTES;
+        if (NULL == ptrA)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
         }
@@ -1953,14 +1865,6 @@ int mbedtls_mpi_exp_mod(
         if (ptrA)
         {
             mbedtls_free(ptrA);
-        }
-        if (ptrE)
-        {
-            mbedtls_free(ptrE);
-        }
-        if (ptrN)
-        {
-            mbedtls_free(ptrN);
         }
         return (ret);
 #if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
@@ -2013,10 +1917,10 @@ int mbedtls_mpi_exp_mod(
         }
 
         pkha_size_t sizeA = mbedtls_mpi_size(AA);
-        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrE = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrN = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        if ((NULL == ptrA) || (NULL == ptrE) || (NULL == ptrN))
+        uint8_t *ptrA = mbedtls_calloc(3, FREESCALE_PKHA_INT_MAX_BYTES);
+        uint8_t *ptrE = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrN = ptrE + FREESCALE_PKHA_INT_MAX_BYTES;
+        if (NULL == ptrA)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
         }
@@ -2036,14 +1940,6 @@ int mbedtls_mpi_exp_mod(
         if (ptrA)
         {
             mbedtls_free(ptrA);
-        }
-        if (ptrE)
-        {
-            mbedtls_free(ptrE);
-        }
-        if (ptrN)
-        {
-            mbedtls_free(ptrN);
         }
         return (ret);
 #if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
@@ -2077,10 +1973,10 @@ int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
         int ret;
         pkha_size_t sizeC;
-        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrB = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        if ((NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+        uint8_t *ptrA = mbedtls_calloc(3, FREESCALE_PKHA_INT_MAX_BYTES);
+        uint8_t *ptrB = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrC = ptrB + FREESCALE_PKHA_INT_MAX_BYTES;
+        if (NULL == ptrA)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
         }
@@ -2111,14 +2007,6 @@ int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
         {
             mbedtls_free(ptrA);
         }
-        if (ptrB)
-        {
-            mbedtls_free(ptrB);
-        }
-        if (ptrC)
-        {
-            mbedtls_free(ptrC);
-        }
         return (ret);
 #if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
     }
@@ -2141,10 +2029,10 @@ int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
         int ret;
         pkha_size_t sizeC;
-        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrB = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        if ((NULL == ptrA) || (NULL == ptrB) || (NULL == ptrC))
+        uint8_t *ptrA = mbedtls_calloc(3, FREESCALE_PKHA_INT_MAX_BYTES);
+        uint8_t *ptrB = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrC = ptrB + FREESCALE_PKHA_INT_MAX_BYTES;
+        if (NULL == ptrA)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
         }
@@ -2172,14 +2060,6 @@ int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
         if (ptrA)
         {
             mbedtls_free(ptrA);
-        }
-        if (ptrB)
-        {
-            mbedtls_free(ptrB);
-        }
-        if (ptrC)
-        {
-            mbedtls_free(ptrC);
         }
         return (ret);
 #if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
@@ -2213,10 +2093,10 @@ int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
         int ret;
         pkha_size_t sizeC;
-        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrN = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        if ((NULL == ptrA) || (NULL == ptrN) || (NULL == ptrC))
+        uint8_t *ptrA = mbedtls_calloc(3, FREESCALE_PKHA_INT_MAX_BYTES);
+        uint8_t *ptrN = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrC = ptrN + FREESCALE_PKHA_INT_MAX_BYTES;
+        if (NULL == ptrA)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
         }
@@ -2253,14 +2133,6 @@ int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         {
             mbedtls_free(ptrA);
         }
-        if (ptrN)
-        {
-            mbedtls_free(ptrN);
-        }
-        if (ptrC)
-        {
-            mbedtls_free(ptrC);
-        }
         return (ret);
 #if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
     }
@@ -2283,10 +2155,10 @@ int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
         int ret;
         pkha_size_t sizeC;
-        uint8_t *ptrA = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrN = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        uint8_t *ptrC = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-        if ((NULL == ptrA) || (NULL == ptrN) || (NULL == ptrC))
+        uint8_t *ptrA = mbedtls_calloc(3, FREESCALE_PKHA_INT_MAX_BYTES);
+        uint8_t *ptrN = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
+        uint8_t *ptrC = ptrN + FREESCALE_PKHA_INT_MAX_BYTES;
+        if (NULL == ptrA)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
         }
@@ -2321,14 +2193,6 @@ int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         {
             mbedtls_free(ptrA);
         }
-        if (ptrN)
-        {
-            mbedtls_free(ptrN);
-        }
-        if (ptrC)
-        {
-            mbedtls_free(ptrC);
-        }
         return (ret);
 #if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
     }
@@ -2361,7 +2225,7 @@ int mbedtls_mpi_is_prime(const mbedtls_mpi *X, int (*f_rng)(void *, unsigned cha
         int ret;
         int random;
         bool result = false;
-        uint8_t *ptrX = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrX = mbedtls_calloc(1, FREESCALE_PKHA_INT_MAX_BYTES);
         if (NULL == ptrX)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
@@ -2412,7 +2276,7 @@ int mbedtls_mpi_is_prime(const mbedtls_mpi *X, int (*f_rng)(void *, unsigned cha
         int ret;
         int random;
         bool result = false;
-        uint8_t *ptrX = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
+        uint8_t *ptrX = mbedtls_calloc(1, FREESCALE_PKHA_INT_MAX_BYTES);
         if (NULL == ptrX)
         {
             CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
@@ -2539,16 +2403,16 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     ltc_pkha_ecc_point_t A;
     ltc_pkha_ecc_point_t result;
 
-    uint8_t *ptrAX = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrAY = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrRX = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrRY = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrE = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-    uint8_t *ptrN = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrParamA = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrParamB = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    if ((NULL == ptrAX) || (NULL == ptrAY) || (NULL == ptrRX) || (NULL == ptrRY) || (NULL == ptrE) || (NULL == ptrN) ||
-        (NULL == ptrParamA) || (NULL == ptrParamB))
+    /* Allocate 7 elements with size of (LTC_MAX_ECC / 8) plus ptrE with size of FREESCALE_PKHA_INT_MAX_BYTES */
+    uint8_t *ptrAX = mbedtls_calloc((7 * (LTC_MAX_ECC / 8)) + FREESCALE_PKHA_INT_MAX_BYTES, 1);
+    uint8_t *ptrAY = ptrAX + (LTC_MAX_ECC / 8);
+    uint8_t *ptrRX = ptrAY + (LTC_MAX_ECC / 8);
+    uint8_t *ptrRY = ptrRX + (LTC_MAX_ECC / 8);
+    uint8_t *ptrN = ptrRY + (LTC_MAX_ECC / 8);
+    uint8_t *ptrParamA = ptrN + (LTC_MAX_ECC / 8);
+    uint8_t *ptrParamB = ptrParamA + (LTC_MAX_ECC / 8);
+    uint8_t *ptrE = ptrParamB + (LTC_MAX_ECC / 8);
+    if (NULL == ptrAX)
     {
         CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
     }
@@ -2597,34 +2461,6 @@ cleanup:
     {
         mbedtls_free(ptrAX);
     }
-    if (ptrAY)
-    {
-        mbedtls_free(ptrAY);
-    }
-    if (ptrRX)
-    {
-        mbedtls_free(ptrRX);
-    }
-    if (ptrRY)
-    {
-        mbedtls_free(ptrRY);
-    }
-    if (ptrE)
-    {
-        mbedtls_free(ptrE);
-    }
-    if (ptrN)
-    {
-        mbedtls_free(ptrN);
-    }
-    if (ptrParamA)
-    {
-        mbedtls_free(ptrParamA);
-    }
-    if (ptrParamB)
-    {
-        mbedtls_free(ptrParamB);
-    }
     return (ret);
 }
 
@@ -2644,16 +2480,16 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     caam_pkha_ecc_point_t A;
     caam_pkha_ecc_point_t result;
 
-    uint8_t *ptrAX = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    uint8_t *ptrAY = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    uint8_t *ptrRX = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    uint8_t *ptrRY = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    uint8_t *ptrE = mbedtls_calloc(FREESCALE_PKHA_INT_MAX_BYTES, 1);
-    uint8_t *ptrN = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    uint8_t *ptrParamA = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    uint8_t *ptrParamB = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    if ((NULL == ptrAX) || (NULL == ptrAY) || (NULL == ptrRX) || (NULL == ptrRY) || (NULL == ptrE) || (NULL == ptrN) ||
-        (NULL == ptrParamA) || (NULL == ptrParamB))
+    /* Allocate 7 elements with size of (CAAM_MAX_ECC / 8) plus ptrE with size of FREESCALE_PKHA_INT_MAX_BYTES */
+    uint8_t *ptrAX = mbedtls_calloc((7 * (CAAM_MAX_ECC / 8)) + FREESCALE_PKHA_INT_MAX_BYTES, 1);
+    uint8_t *ptrAY = ptrAX + (CAAM_MAX_ECC / 8);
+    uint8_t *ptrRX = ptrAY + (CAAM_MAX_ECC / 8);
+    uint8_t *ptrRY = ptrRX + (CAAM_MAX_ECC / 8);
+    uint8_t *ptrN = ptrRY + (CAAM_MAX_ECC / 8);
+    uint8_t *ptrParamA = ptrN + (CAAM_MAX_ECC / 8);
+    uint8_t *ptrParamB = ptrParamA + (CAAM_MAX_ECC / 8);
+    uint8_t *ptrE = ptrParamB + (CAAM_MAX_ECC / 8);
+    if (NULL == ptrAX)
     {
         CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
     }
@@ -2698,34 +2534,6 @@ cleanup:
     {
         mbedtls_free(ptrAX);
     }
-    if (ptrAY)
-    {
-        mbedtls_free(ptrAY);
-    }
-    if (ptrRX)
-    {
-        mbedtls_free(ptrRX);
-    }
-    if (ptrRY)
-    {
-        mbedtls_free(ptrRY);
-    }
-    if (ptrE)
-    {
-        mbedtls_free(ptrE);
-    }
-    if (ptrN)
-    {
-        mbedtls_free(ptrN);
-    }
-    if (ptrParamA)
-    {
-        mbedtls_free(ptrParamA);
-    }
-    if (ptrParamB)
-    {
-        mbedtls_free(ptrParamB);
-    }
     return (ret);
 }
 #endif /* MBEDTLS_FREESCALE_LTC_PKHA */
@@ -2767,17 +2575,16 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
     ltc_pkha_ecc_point_t B;
     ltc_pkha_ecc_point_t result;
 
-    uint8_t *ptrAX = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrAY = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrBX = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrBY = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrRX = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrRY = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrN = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrParamA = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    uint8_t *ptrParamB = mbedtls_calloc(LTC_MAX_ECC / 8, 1);
-    if ((NULL == ptrAX) || (NULL == ptrAY) || (NULL == ptrBX) || (NULL == ptrBY) || (NULL == ptrRX) ||
-        (NULL == ptrRY) || (NULL == ptrN) || (NULL == ptrParamA) || (NULL == ptrParamB))
+    uint8_t *ptrAX = mbedtls_calloc(9, (LTC_MAX_ECC / 8));
+    uint8_t *ptrAY = ptrAX + (LTC_MAX_ECC / 8);
+    uint8_t *ptrBX = ptrAY + (LTC_MAX_ECC / 8);
+    uint8_t *ptrBY = ptrBX + (LTC_MAX_ECC / 8);
+    uint8_t *ptrRX = ptrBY + (LTC_MAX_ECC / 8);
+    uint8_t *ptrRY = ptrRX + (LTC_MAX_ECC / 8);
+    uint8_t *ptrN = ptrRY + (LTC_MAX_ECC / 8);
+    uint8_t *ptrParamA = ptrN + (LTC_MAX_ECC / 8);
+    uint8_t *ptrParamB = ptrParamA + (LTC_MAX_ECC / 8);
+    if (NULL == ptrAX)
     {
         CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
     }
@@ -2821,38 +2628,6 @@ cleanup:
     {
         mbedtls_free(ptrAX);
     }
-    if (ptrAY)
-    {
-        mbedtls_free(ptrAY);
-    }
-    if (ptrBX)
-    {
-        mbedtls_free(ptrBX);
-    }
-    if (ptrBY)
-    {
-        mbedtls_free(ptrBY);
-    }
-    if (ptrRX)
-    {
-        mbedtls_free(ptrRX);
-    }
-    if (ptrRY)
-    {
-        mbedtls_free(ptrRY);
-    }
-    if (ptrN)
-    {
-        mbedtls_free(ptrN);
-    }
-    if (ptrParamA)
-    {
-        mbedtls_free(ptrParamA);
-    }
-    if (ptrParamB)
-    {
-        mbedtls_free(ptrParamB);
-    }
     return (ret);
 }
 
@@ -2865,17 +2640,16 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
     caam_pkha_ecc_point_t B;
     caam_pkha_ecc_point_t result;
 
-    uint8_t *ptrAX = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    uint8_t *ptrAY = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    uint8_t *ptrBX = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    uint8_t *ptrBY = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    uint8_t *ptrRX = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    uint8_t *ptrRY = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    uint8_t *ptrN = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    uint8_t *ptrParamA = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    uint8_t *ptrParamB = mbedtls_calloc(CAAM_MAX_ECC / 8, 1);
-    if ((NULL == ptrAX) || (NULL == ptrAY) || (NULL == ptrBX) || (NULL == ptrBY) || (NULL == ptrRX) ||
-        (NULL == ptrRY) || (NULL == ptrN) || (NULL == ptrParamA) || (NULL == ptrParamB))
+    uint8_t *ptrAX = mbedtls_calloc(9, (CAAM_MAX_ECC / 8));
+    uint8_t *ptrAY = ptrAX + (CAAM_MAX_ECC / 8);
+    uint8_t *ptrBX = ptrAY + (CAAM_MAX_ECC / 8);
+    uint8_t *ptrBY = ptrBX + (CAAM_MAX_ECC / 8);
+    uint8_t *ptrRX = ptrBY + (CAAM_MAX_ECC / 8);
+    uint8_t *ptrRY = ptrRX + (CAAM_MAX_ECC / 8);
+    uint8_t *ptrN = ptrRY + (CAAM_MAX_ECC / 8);
+    uint8_t *ptrParamA = ptrN + (CAAM_MAX_ECC / 8);
+    uint8_t *ptrParamB = ptrParamA + (CAAM_MAX_ECC / 8);
+    if (NULL == ptrAX)
     {
         CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
     }
@@ -2916,38 +2690,6 @@ cleanup:
     if (ptrAX)
     {
         mbedtls_free(ptrAX);
-    }
-    if (ptrAY)
-    {
-        mbedtls_free(ptrAY);
-    }
-    if (ptrBX)
-    {
-        mbedtls_free(ptrBX);
-    }
-    if (ptrBY)
-    {
-        mbedtls_free(ptrBY);
-    }
-    if (ptrRX)
-    {
-        mbedtls_free(ptrRX);
-    }
-    if (ptrRY)
-    {
-        mbedtls_free(ptrRY);
-    }
-    if (ptrN)
-    {
-        mbedtls_free(ptrN);
-    }
-    if (ptrParamA)
-    {
-        mbedtls_free(ptrParamA);
-    }
-    if (ptrParamB)
-    {
-        mbedtls_free(ptrParamB);
     }
     return (ret);
 }

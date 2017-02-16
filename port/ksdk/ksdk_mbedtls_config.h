@@ -85,7 +85,7 @@
 #endif
 
 /* Enable CAAM use in library if there is CAAM on chip. */
-#if defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0)
+#if defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0) && defined(CRYPTO_USE_DRIVER_CAAM)
 #include "fsl_caam.h"
 
 #define CAAM_INSTANCE CAAM

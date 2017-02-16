@@ -73,7 +73,7 @@
 /******************************************************************************/
 /*************************** CAAM *********************************************/
 /******************************************************************************/
-#if defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0)
+#if defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0) && defined(CRYPTO_USE_DRIVER_CAAM)
 static caam_handle_t s_caamHandle = {.jobRing = kCAAM_JobRing0};
 #endif
 
@@ -968,7 +968,9 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
 
     return (0);
 }
+#endif /* MBEDTLS_FREESCALE_LTC_AES */
 
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES)
 /*
  * Authenticated encryption
  */
@@ -1009,7 +1011,7 @@ int mbedtls_ccm_auth_decrypt(mbedtls_ccm_context *ctx,
     }
     return (ccm_auth_crypt(ctx, CCM_DECRYPT, length, iv, iv_len, add, add_len, input, output, actTag, tag_len));
 }
-#endif /* MBEDTLS_FREESCALE_LTC_AES */
+#endif /* MBEDTLS_FREESCALE_LTC_AES || MBEDTLS_FREESCALE_CAAM_AES */
 #endif /* MBEDTLS_CCM_C */
 
 #if defined(MBEDTLS_GCM_C)
@@ -3152,7 +3154,7 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
     result = TRNG_GetRandomData(TRNG0, output, len);
 #elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
     result = RNGA_GetRandomData(RNG, (void *)output, len);
-#elif defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0)
+#elif defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0) && defined(CRYPTO_USE_DRIVER_CAAM)
     result = CAAM_RNG_GetRandomData(CAAM_INSTANCE, &s_caamHandle, kCAAM_RngStateHandle0, output, len, kCAAM_RngDataAny,
                                     NULL);
 #elif defined(FSL_FEATURE_SOC_LPC_RNG_COUNT) && (FSL_FEATURE_SOC_LPC_RNG_COUNT > 0)

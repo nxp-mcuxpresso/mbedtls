@@ -35,6 +35,7 @@
 /**************************** KSDK ********************************************/
 
 #include "fsl_device_registers.h"
+#include "fsl_debug_console.h"
 
 /* Enable LTC use in library if there is LTC on chip. */
 #if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
@@ -84,30 +85,12 @@
 #define FREESCALE_PKHA_INT_MAX_BYTES 512
 #endif
 
-/* Enable CAAM use in library if there is CAAM on chip. */
-#if defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0) && defined(CRYPTO_USE_DRIVER_CAAM)
-#include "fsl_caam.h"
-
-#define CAAM_INSTANCE CAAM
-
-#define MBEDTLS_FREESCALE_CAAM_AES     /* Enable use of CAAM AES.*/
-#define MBEDTLS_FREESCALE_CAAM_AES_GCM /* Enable use of CAAM AES GCM.*/
-
-#define MBEDTLS_FREESCALE_CAAM_DES /* Enable use of CAAM DES.*/
-
-#define MBEDTLS_FREESCALE_CAAM_SHA1   /* Enable use of CAAM SHA1.*/
-#define MBEDTLS_FREESCALE_CAAM_SHA256 /* Enable use of CAAM SHA256.*/
-
-#define MBEDTLS_FREESCALE_CAAM_PKHA /* Enable use of CAAM PKHA.*/
-#define FREESCALE_PKHA_INT_MAX_BYTES 512
-#endif
-
-#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA) || defined(MBEDTLS_FREESCALE_CAAM_PKHA)
-/*
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
+/* 
  * This FREESCALE_PKHA_LONG_OPERANDS_ENABLE macro can be defined.
  * In such a case both software and hardware algorithm for TFM is linked in.
  * The decision for which algorithm is used is determined at runtime
- * from size of inputs. If inputs and result can fit into FREESCALE_PKHA_INT_MAX_BYTES
+ * from size of inputs. If inputs and result can fit into LTC (see FREESCALE_PKHA_INT_MAX_BYTES)
  * then we call hardware algorithm, otherwise we call software algorithm.
  *
  * Note that mbedTLS algorithms break modular operations unefficiently into two steps.
@@ -141,33 +124,31 @@
 #endif
 
 /* Define ALT MMCAU & LTC functions. Do not change it. */
-#if defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
+#if defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_LTC_DES)
 #define MBEDTLS_DES_SETKEY_ENC_ALT
 #define MBEDTLS_DES_SETKEY_DEC_ALT
 #define MBEDTLS_DES_CRYPT_ECB_ALT
 #define MBEDTLS_DES3_CRYPT_ECB_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES)
 #define MBEDTLS_DES_CRYPT_CBC_ALT
 #define MBEDTLS_DES3_CRYPT_CBC_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || \
-    defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES)
 #define MBEDTLS_AES_SETKEY_ENC_ALT
 #define MBEDTLS_AES_SETKEY_DEC_ALT
 #define MBEDTLS_AES_ENCRYPT_ALT
 #define MBEDTLS_AES_DECRYPT_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES)
 #define MBEDTLS_AES_CRYPT_CBC_ALT
 #define MBEDTLS_AES_CRYPT_CTR_ALT
 #define MBEDTLS_CCM_CRYPT_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_AES_GCM) || defined(MBEDTLS_FREESCALE_LPC_AES_GCM) || \
-    defined(MBEDTLS_FREESCALE_CAAM_AES_GCM)
+#if defined(MBEDTLS_FREESCALE_LTC_AES_GCM) || defined(MBEDTLS_FREESCALE_LPC_AES_GCM)
 #define MBEDTLS_GCM_CRYPT_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA) || defined(MBEDTLS_FREESCALE_CAAM_PKHA)
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
 #define MBEDTLS_MPI_ADD_ABS_ALT
 #define MBEDTLS_MPI_SUB_ABS_ALT
 #define MBEDTLS_MPI_MUL_MPI_ALT
@@ -176,16 +157,15 @@
 #define MBEDTLS_MPI_GCD_ALT
 #define MBEDTLS_MPI_INV_MOD_ALT
 #define MBEDTLS_MPI_IS_PRIME_ALT
-#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAAM_PKHA)
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA)
 #define MBEDTLS_ECP_MUL_COMB_ALT
 #define MBEDTLS_ECP_ADD_ALT
 #endif
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_SHA1) || defined(MBEDTLS_FREESCALE_LPC_SHA1) || defined(MBEDTLS_FREESCALE_CAAM_SHA1)
+#if defined(MBEDTLS_FREESCALE_LTC_SHA1) || defined(MBEDTLS_FREESCALE_LPC_SHA1)
 #define MBEDTLS_SHA1_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_SHA256) || defined(MBEDTLS_FREESCALE_LPC_SHA256) || \
-    defined(MBEDTLS_FREESCALE_CAAM_SHA256)
+#if defined(MBEDTLS_FREESCALE_LTC_SHA256) || defined(MBEDTLS_FREESCALE_LPC_SHA256)
 #define MBEDTLS_SHA256_ALT
 /*
  * LPC SHA module does not support SHA-224.
@@ -2679,7 +2659,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 //#define MBEDTLS_PLATFORM_FREE_MACRO            free /**< Default free macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_EXIT_MACRO            exit /**< Default exit macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_FPRINTF_MACRO      fprintf /**< Default fprintf macro to use, can be undefined */
-//#define MBEDTLS_PLATFORM_PRINTF_MACRO        printf /**< Default printf macro to use, can be undefined */
+#define MBEDTLS_PLATFORM_PRINTF_MACRO        PRINTF /**< Default printf macro to use, can be undefined */
 /* Note: your snprintf must correclty zero-terminate the buffer! */
 //#define MBEDTLS_PLATFORM_SNPRINTF_MACRO    snprintf /**< Default snprintf macro to use, can be undefined */
 

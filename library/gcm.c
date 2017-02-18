@@ -751,19 +751,6 @@ int mbedtls_gcm_self_test( int verbose )
     {
         int key_len = 128 + 64 * j;
 
-        #ifdef MBEDTLS_AES_ALT_NO_192
-        if (j == 1)
-        {
-            continue;
-        }
-        #endif
-        #ifdef MBEDTLS_AES_ALT_NO_256
-        if (j == 2)
-        {
-            continue;
-        }
-        #endif
-
         for( i = 0; i < MAX_TESTS; i++ )
         {
             if( verbose != 0 )

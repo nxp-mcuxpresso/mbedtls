@@ -35,6 +35,7 @@
 /**************************** KSDK ********************************************/
 
 #include "fsl_device_registers.h"
+#include "fsl_debug_console.h"
 
 /* Enable LTC use in library if there is LTC on chip. */
 #if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
@@ -215,6 +216,14 @@
 #endif
 #if defined(MBEDTLS_FREESCALE_CAU3_AES)
 #define MBEDTLS_AES_ALT_NO_192
+#endif
+#if defined(MBEDTLS_FREESCALE_LTC_AES)
+#if !defined(FSL_FEATURE_LTC_HAS_AES192) || !FSL_FEATURE_LTC_HAS_AES192
+#define MBEDTLS_AES_ALT_NO_192
+#endif
+#if !defined(FSL_FEATURE_LTC_HAS_AES256) || !FSL_FEATURE_LTC_HAS_AES256
+#define MBEDTLS_AES_ALT_NO_256
+#endif
 #endif
 #if defined(MBEDTLS_FREESCALE_LPC_AES)
 #define MBEDTLS_AES_CRYPT_CBC_ALT
@@ -1851,7 +1860,9 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  *
  * This module provides the CTR_DRBG AES-256 random number generator.
  */
+#if !(defined(MBEDTLS_AES_ENCRYPT_ALT) && defined(MBEDTLS_AES_ALT_NO_256))
 #define MBEDTLS_CTR_DRBG_C
+#endif
 
 /**
  * \def MBEDTLS_DEBUG_C
@@ -2679,7 +2690,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 //#define MBEDTLS_PLATFORM_FREE_MACRO            free /**< Default free macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_EXIT_MACRO            exit /**< Default exit macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_FPRINTF_MACRO      fprintf /**< Default fprintf macro to use, can be undefined */
-//#define MBEDTLS_PLATFORM_PRINTF_MACRO        printf /**< Default printf macro to use, can be undefined */
+#define MBEDTLS_PLATFORM_PRINTF_MACRO        PRINTF /**< Default printf macro to use, can be undefined */
 /* Note: your snprintf must correclty zero-terminate the buffer! */
 //#define MBEDTLS_PLATFORM_SNPRINTF_MACRO    snprintf /**< Default snprintf macro to use, can be undefined */
 

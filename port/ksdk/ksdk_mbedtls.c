@@ -64,6 +64,18 @@
 
 #include "fsl_common.h"
 
+#if FSL_FEATURE_SOC_LTC_COUNT
+#include "fsl_ltc.h"
+#endif
+#if FSL_FEATURE_SOC_CAAM_COUNT
+#include "fsl_caam.h"
+#endif
+#if FSL_FEATURE_SOC_TRNG_COUNT
+#include "fsl_trng.h"
+#elif FSL_FEATURE_SOC_RNG_COUNT
+#include "fsl_rnga.h"
+#endif
+
 #define CLEAN_RETURN(value) \
     {                       \
         ret = value;        \
@@ -76,6 +88,41 @@
 #if defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0) && defined(CRYPTO_USE_DRIVER_CAAM)
 static caam_handle_t s_caamHandle = {.jobRing = kCAAM_JobRing0};
 #endif
+
+/******************************************************************************/
+/******************** CRYPTO_InitHardware **************************************/
+/******************************************************************************/
+void CRYPTO_InitHardware(void)
+{
+#if FSL_FEATURE_SOC_LTC_COUNT
+    /* Initialize LTC driver.
+     * This enables clocking and resets the module to a known state. */
+    LTC_Init(LTC0);
+#endif
+#if FSL_FEATURE_SOC_CAAM_COUNT
+    /* Initialize CAAM driver. */
+    caam_config_t caamConfig;
+
+    CAAM_GetDefaultConfig(&caamConfig);
+    caamConfig.jobRingInterface[0] = &s_jrif0;
+    caamConfig.jobRingInterface[1] = &s_jrif1;
+    CAAM_Init(CAAM, &caamConfig);
+#endif
+    { /* Init RNG module.*/
+#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+        trng_config_t trngConfig;
+
+        TRNG_GetDefaultConfig(&trngConfig);
+        /* Set sample mode of the TRNG ring oscillator to Von Neumann, for better random data.*/
+        trngConfig.sampleMode = kTRNG_SampleModeVonNeumann;
+        /* Initialize TRNG */
+        TRNG_Init(TRNG0, &trngConfig);
+#elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
+        RNGA_Init(RNG);
+        RNGA_Seed(RNG, SIM->UIDL);
+#endif
+    }
+}
 
 /******************************************************************************/
 /*************************** DES **********************************************/

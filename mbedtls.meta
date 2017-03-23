@@ -17,75 +17,9 @@
     
     <component name="middleware.mbedtls_source" requires="middleware.mbedtls.support middleware.mbedtls">
       <source path="./library" target_path="mbedtls/library">
-          <files mask="aes.c"/>
-          <files mask="aesni.c"/>
-          <files mask="arc4.c"/>
-          <files mask="asn1parse.c"/>
-          <files mask="asn1write.c"/>
-          <files mask="base64.c"/>
-          <files mask="bignum.c"/>
-          <files mask="blowfish.c"/>
-          <files mask="camellia.c"/>
-          <files mask="ccm.c"/>
-          <files mask="certs.c"/>
-          <files mask="cipher.c"/>
-          <files mask="cipher_wrap.c"/>
-          <files mask="ctr_drbg.c"/>
-          <files mask="debug.c"/>
-          <files mask="des.c"/>
-          <files mask="dhm.c"/>
-          <files mask="ecdh.c"/>
-          <files mask="ecdsa.c"/>
-          <files mask="ecjpake.c"/>
-          <files mask="ecp.c"/>
-          <files mask="ecp_curves.c"/>
-          <files mask="entropy.c"/>
-          <files mask="entropy_poll.c"/>
-          <files mask="error.c"/>
-          <files mask="gcm.c"/>
-          <files mask="havege.c"/>
-          <files mask="hmac_drbg.c"/>
-          <files mask="md.c"/>
-          <files mask="md_wrap.c"/>
-          <files mask="md2.c"/>
-          <files mask="md4.c"/>
-          <files mask="md5.c"/>
-          <files mask="memory_buffer_alloc.c"/>          
-          <files mask="oid.c"/>
-          <files mask="padlock.c"/>
-          <files mask="pem.c"/>
-          <files mask="pk.c"/>
-          <files mask="pk_wrap.c"/>
-          <files mask="pkcs5.c"/>
-          <files mask="pkcs11.c"/>
-          <files mask="pkcs12.c"/>
-          <files mask="pkparse.c"/>
-          <files mask="pkwrite.c"/>
-          <files mask="platform.c"/>
-          <files mask="ripemd160.c"/>
-          <files mask="rsa.c"/>
-          <files mask="sha1.c"/>
-          <files mask="sha256.c"/>
-          <files mask="sha512.c"/>
-          <files mask="ssl_cache.c"/>
-          <files mask="ssl_ciphersuites.c"/>
-          <files mask="ssl_cli.c"/>
-          <files mask="ssl_cookie.c"/>
-          <files mask="ssl_srv.c"/>
-          <files mask="ssl_ticket.c"/>
-          <files mask="ssl_tls.c"/>
-          <files mask="threading.c"/>
-          <files mask="timing.c"/>
-          <files mask="version.c"/>
-          <files mask="version_features.c"/>
-          <files mask="x509.c"/>
-          <files mask="x509_create.c"/>
-          <files mask="x509_crl.c"/>
-          <files mask="x509_crt.c"/>
-          <files mask="x509_csr.c"/>
-          <files mask="x509write_crt.c"/>
-          <files mask="x509write_csr.c"/>
-          <files mask="xtea.c"/>
+          <files mask="*.c"/>
+          <files mask="*.txt"/>
+          <files mask="Makefile"/>
       </source>
     </component>
     
@@ -261,7 +195,7 @@
       </source>      
     </component>
     
-    <component name="middleware.mbedtls" requires="middleware.mbedtls.support middleware.mbedtls_include middleware.mbedtls_source middleware.mbedtls_port middleware.mbedtls_files" provides="middleware" type="middleware" version="2.3.0" ui_name="mbedtls" ui_description="mbedTLS SSL/TLS library" ui_category="Middleware" ui_control="True" ui_release_specific="True" change_log="./ChangeLogKSDK.txt">
+    <component name="middleware.mbedtls" requires="middleware.mbedtls.support middleware.mbedtls_include middleware.mbedtls_source middleware.mbedtls_port middleware.mbedtls_files" provides="middleware" type="middleware" version="2.4.2" ui_name="mbedtls" ui_description="mbedTLS SSL/TLS library" ui_category="Middleware" ui_control="True" ui_release_specific="True" change_log="./ChangeLogKSDK.txt">
       <source path="./">
         <files mask="*.meta"/>
       </source>

@@ -456,6 +456,9 @@ int mbedtls_ripemd160_self_test( int verbose )
             mbedtls_printf( "passed\r\n" );
     }
 
+    if( verbose != 0 )
+        mbedtls_printf( "\r\n" );
+
     return( 0 );
 }
 

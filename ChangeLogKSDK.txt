@@ -2,8 +2,15 @@
 @page middleware_log Middleware Change Log
  
 @section mbedtls mbedTLS for KSDK
-  Current version of mbedTLS for KSDK is based on mbedTLS 2.3.0 released 2016-06-28
+  Current version of mbedTLS for KSDK is based on mbedTLS 2.4.2 released 2017-03-08
  
+ - 2.4.2
+    - New Features:
+      - Ported mbedTLS 2.4.2 to KSDK 2.0.0.
+      - Added CRYPTO_InitHardware() function.
+      - Added new file:
+      - \middleware\mbedtls\port\ksdk\ksdk_mbedtls.h - contains declaration of CRYPTO_InitHardware() function and should be included in applications.
+
  - 2.3.0_rev1
     - New Features:
       - Add support for CAAM driver. 

@@ -190,6 +190,8 @@ int mbedtls_platform_set_exit( void (*exit_func)( int status ) )
 }
 #endif /* MBEDTLS_PLATFORM_EXIT_ALT */
 
+#if defined(MBEDTLS_HAVE_TIME)
+
 #if defined(MBEDTLS_PLATFORM_TIME_ALT)
 #if !defined(MBEDTLS_PLATFORM_STD_TIME)
 /*
@@ -213,6 +215,8 @@ int mbedtls_platform_set_time( mbedtls_time_t (*time_func)( mbedtls_time_t* time
 }
 #endif /* MBEDTLS_PLATFORM_TIME_ALT */
 
+#endif /* MBEDTLS_HAVE_TIME */
+
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 #if !defined(MBEDTLS_PLATFORM_NO_STD_FUNCTIONS) && defined(MBEDTLS_FS_IO)
 /* Default implementations for the platform independent seed functions use
@@ -233,7 +237,7 @@ int mbedtls_platform_std_nv_seed_read( unsigned char *buf, size_t buf_len )
     }
 
     fclose( file );
-    return( n );
+    return( (int)n );
 }
 
 int mbedtls_platform_std_nv_seed_write( unsigned char *buf, size_t buf_len )
@@ -251,7 +255,7 @@ int mbedtls_platform_std_nv_seed_write( unsigned char *buf, size_t buf_len )
     }
 
     fclose( file );
-    return( n );
+    return( (int)n );
 }
 #endif /* MBEDTLS_PLATFORM_NO_STD_FUNCTIONS */
 

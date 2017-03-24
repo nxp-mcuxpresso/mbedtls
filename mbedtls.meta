@@ -5,7 +5,7 @@
     <component name="middleware.mbedtls.support" requires="platform.drivers.ltc"/>
     <component name="middleware.mbedtls.support" requires="platform.drivers.aes"/>
    
-    <component name="middleware.mbedtls_include" requires="middleware.mbedtls.support middleware.mbedtls">
+    <component name="middleware.mbedtls_include" requires="middleware.mbedtls.support">
       <source path="./include/mbedtls" target_path="mbedtls/include/mbedtls">
         <files mask="*.h"/>        
       </source>
@@ -15,7 +15,7 @@
       </include_paths>
     </component>
     
-    <component name="middleware.mbedtls_source" requires="middleware.mbedtls.support middleware.mbedtls">
+    <component name="middleware.mbedtls_source" requires="middleware.mbedtls.support">
       <source path="./library" target_path="mbedtls/library">
           <files mask="*.c"/>
           <files mask="*.txt"/>
@@ -23,14 +23,14 @@
       </source>
     </component>
     
-    <component name="middleware.mbedtls_port" requires="middleware.mbedtls.support middleware.mbedtls">
+    <component name="middleware.mbedtls_port" requires="middleware.mbedtls.support">
       <source path="./port/ksdk" target_path="mbedtls/port/ksdk">
         <files mask="*.c"/>
         <files mask="*.h"/>
       </source>
     </component>
    
-    <component name="middleware.mbedtls_files" requires="middleware.mbedtls.support middleware.mbedtls">
+    <component name="middleware.mbedtls_files" requires="middleware.mbedtls.support">
       <source path="./configs" target_path="mbedtls/configs">
         <files mask="*.h"/>
         <files mask="*.txt"/>

@@ -147,7 +147,7 @@ void CRYPTO_InitHardware(void)
 
 #if defined(MBEDTLS_DES_C)
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
 
 #include "mbedtls/des.h"
 
@@ -159,6 +159,7 @@ const unsigned char parityLookup[128] = {1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 
                                          0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0};
 #endif
 
+#if defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
 /*
  * DES key schedule (56-bit, encryption)
  */
@@ -209,6 +210,7 @@ int mbedtls_des_setkey_dec(mbedtls_des_context *ctx, const unsigned char key[MBE
 
     return (0);
 }
+#endif /* MBEDTLS_FREESCALE_MMCAU_DES || MBEDTLS_FREESCALE_LTC_DES || MBEDTLS_FREESCALE_CAAM_DES */
 
 /*
  * Triple-DES key schedule (112-bit, encryption)
@@ -218,7 +220,7 @@ int mbedtls_des3_set2key_enc(mbedtls_des3_context *ctx, const unsigned char key[
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 2; i++)
     {
         sk_b[i] = key[i];
@@ -251,7 +253,7 @@ int mbedtls_des3_set2key_dec(mbedtls_des3_context *ctx, const unsigned char key[
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 2; i++)
     {
         sk_b[i] = key[i];
@@ -284,7 +286,7 @@ int mbedtls_des3_set3key_enc(mbedtls_des3_context *ctx, const unsigned char key[
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
         sk_b[i] = key[i];
@@ -309,7 +311,7 @@ int mbedtls_des3_set3key_dec(mbedtls_des3_context *ctx, const unsigned char key[
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
         sk_b[i] = key[i];
@@ -325,6 +327,7 @@ int mbedtls_des3_set3key_dec(mbedtls_des3_context *ctx, const unsigned char key[
     return (0);
 }
 
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
 /*
  * DES-ECB block encryption/decryption
  */
@@ -361,6 +364,7 @@ int mbedtls_des_crypt_ecb(mbedtls_des_context *ctx, const unsigned char input[8]
 #endif
     return (0);
 }
+#endif /* MBEDTLS_FREESCALE_LTC_DES || MBEDTLS_FREESCALE_MMCAU_DES || MBEDTLS_FREESCALE_CAAM_DES */
 
 /*
  * 3DES-ECB block encryption/decryption
@@ -398,6 +402,17 @@ int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx, const unsigned char input[
     else
     {
         CAAM_DES3_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key, key + 8, key + 16);
+    }
+#elif defined(MBEDTLS_FREESCALE_CAU3_DES)
+    CAU3_TDES_SetKey(CAU3, &s_cau3Handle, key, 24);
+
+    if (ctx->mode == MBEDTLS_DES_ENCRYPT)
+    {
+        CAU3_TDES_Encrypt(CAU3, &s_cau3Handle, input, output);
+    }
+    else
+    {
+        CAU3_TDES_Decrypt(CAU3, &s_cau3Handle, input, output);
     }
 #endif
     return (0);
@@ -2532,7 +2547,6 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
                  void *p_rng)
 {
     int ret;
-    bool is_inf;
     size_t size;
     size_t size_bin;
 
@@ -2605,7 +2619,6 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
                  void *p_rng)
 {
     int ret;
-    bool is_inf;
     size_t size;
     size_t size_bin;
 

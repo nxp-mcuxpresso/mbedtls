@@ -70,6 +70,9 @@
 #if FSL_FEATURE_SOC_CAAM_COUNT
 #include "fsl_caam.h"
 #endif
+#if FSL_FEATURE_SOC_CAU3_COUNT
+#include "fsl_cau3.h"
+#endif
 #if FSL_FEATURE_SOC_TRNG_COUNT
 #include "fsl_trng.h"
 #elif FSL_FEATURE_SOC_RNG_COUNT
@@ -90,6 +93,13 @@ static caam_handle_t s_caamHandle = {.jobRing = kCAAM_JobRing0};
 #endif
 
 /******************************************************************************/
+/*************************** CAU3 *********************************************/
+/******************************************************************************/
+#if defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)
+static cau3_handle_t s_cau3Handle = {.taskDone = MBEDTLS_CAU3_COMPLETION_SIGNAL, .keySlot = kCAU3_KeySlot0};
+#endif
+
+/******************************************************************************/
 /******************** CRYPTO_InitHardware **************************************/
 /******************************************************************************/
 void CRYPTO_InitHardware(void)
@@ -107,6 +117,13 @@ void CRYPTO_InitHardware(void)
     caamConfig.jobRingInterface[0] = &s_jrif0;
     caamConfig.jobRingInterface[1] = &s_jrif1;
     CAAM_Init(CAAM, &caamConfig);
+#endif
+#if FSL_FEATURE_SOC_CAU3_COUNT
+    /* Initialize CAU3 */
+    CAU3_Init(CAU3);
+
+    /* Get CAU3 ownership for this Host CPU */
+    CAU3_LockSemaphore(CAU3);
 #endif
     { /* Init RNG module.*/
 #if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
@@ -130,7 +147,7 @@ void CRYPTO_InitHardware(void)
 
 #if defined(MBEDTLS_DES_C)
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
 
 #include "mbedtls/des.h"
 
@@ -142,6 +159,7 @@ const unsigned char parityLookup[128] = {1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 
                                          0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0};
 #endif
 
+#if defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
 /*
  * DES key schedule (56-bit, encryption)
  */
@@ -192,6 +210,7 @@ int mbedtls_des_setkey_dec(mbedtls_des_context *ctx, const unsigned char key[MBE
 
     return (0);
 }
+#endif /* MBEDTLS_FREESCALE_MMCAU_DES || MBEDTLS_FREESCALE_LTC_DES || MBEDTLS_FREESCALE_CAAM_DES */
 
 /*
  * Triple-DES key schedule (112-bit, encryption)
@@ -201,7 +220,7 @@ int mbedtls_des3_set2key_enc(mbedtls_des3_context *ctx, const unsigned char key[
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 2; i++)
     {
         sk_b[i] = key[i];
@@ -234,7 +253,7 @@ int mbedtls_des3_set2key_dec(mbedtls_des3_context *ctx, const unsigned char key[
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 2; i++)
     {
         sk_b[i] = key[i];
@@ -267,7 +286,7 @@ int mbedtls_des3_set3key_enc(mbedtls_des3_context *ctx, const unsigned char key[
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
         sk_b[i] = key[i];
@@ -292,7 +311,7 @@ int mbedtls_des3_set3key_dec(mbedtls_des3_context *ctx, const unsigned char key[
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
 
-#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
         sk_b[i] = key[i];
@@ -308,6 +327,7 @@ int mbedtls_des3_set3key_dec(mbedtls_des3_context *ctx, const unsigned char key[
     return (0);
 }
 
+#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
 /*
  * DES-ECB block encryption/decryption
  */
@@ -344,6 +364,7 @@ int mbedtls_des_crypt_ecb(mbedtls_des_context *ctx, const unsigned char input[8]
 #endif
     return (0);
 }
+#endif /* MBEDTLS_FREESCALE_LTC_DES || MBEDTLS_FREESCALE_MMCAU_DES || MBEDTLS_FREESCALE_CAAM_DES */
 
 /*
  * 3DES-ECB block encryption/decryption
@@ -381,6 +402,17 @@ int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx, const unsigned char input[
     else
     {
         CAAM_DES3_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key, key + 8, key + 16);
+    }
+#elif defined(MBEDTLS_FREESCALE_CAU3_DES)
+    CAU3_TDES_SetKey(CAU3, &s_cau3Handle, key, 24);
+
+    if (ctx->mode == MBEDTLS_DES_ENCRYPT)
+    {
+        CAU3_TDES_Encrypt(CAU3, &s_cau3Handle, input, output);
+    }
+    else
+    {
+        CAU3_TDES_Decrypt(CAU3, &s_cau3Handle, input, output);
     }
 #endif
     return (0);
@@ -641,13 +673,8 @@ void mbedtls_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char input[16]
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     MMCAU_AES_EncryptEcb(input, key, ctx->nr, output);
 #elif defined(MBEDTLS_FREESCALE_CAU3_AES)
-    cauKeyContext cau_ctx;
-
-    cau_ctx.keySched = ctx->rk;
-    cau_ctx.keySize = ctx->nr;
-    memcpy(&cau_ctx.key, key, cau_ctx.keySize);
-    CAU_LoadKeyContext((uint32_t *)&cau_ctx, 0, MBEDTLS_CAU3_COMPLETION_SIGNAL);
-    CAU3_WRAP_AES_EncryptEcb(input, 0, output, MBEDTLS_CAU3_COMPLETION_SIGNAL);
+    CAU3_AES_SetKey(CAU3, &s_cau3Handle, key, ctx->nr);
+    CAU3_AES_Encrypt(CAU3, &s_cau3Handle, input, output);
 #elif defined(MBEDTLS_FREESCALE_LPC_AES)
     AES_SetKey(AES_INSTANCE, key, ctx->nr);
     AES_EncryptEcb(AES_INSTANCE, input, output, 16);
@@ -669,13 +696,8 @@ void mbedtls_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char input[16]
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     MMCAU_AES_DecryptEcb(input, key, ctx->nr, output);
 #elif defined(MBEDTLS_FREESCALE_CAU3_AES)
-    cauKeyContext cau_ctx;
-
-    cau_ctx.keySched = ctx->rk;
-    cau_ctx.keySize = ctx->nr;
-    memcpy(&cau_ctx.key, key, cau_ctx.keySize);
-    CAU_LoadKeyContext((uint32_t *)&cau_ctx, 0, MBEDTLS_CAU3_COMPLETION_SIGNAL);
-    CAU3_WRAP_AES_DecryptEcb(input, 0, output, MBEDTLS_CAU3_COMPLETION_SIGNAL);
+    CAU3_AES_SetKey(CAU3, &s_cau3Handle, key, ctx->nr);
+    CAU3_AES_Decrypt(CAU3, &s_cau3Handle, input, output);
 #elif defined(MBEDTLS_FREESCALE_LPC_AES)
     AES_SetKey(AES_INSTANCE, key, ctx->nr);
     AES_DecryptEcb(AES_INSTANCE, input, output, 16);
@@ -1320,14 +1342,17 @@ static void ltc_reverse_array(uint8_t *src, size_t src_len)
 #define LTC_PKHA_ModMul CAU3_PKHA_ModMul
 #define LTC_PKHA_ModRed CAU3_PKHA_ModRed
 #define LTC_PKHA_ModExp CAU3_PKHA_ModExp
-#define LTC_PKHA_GCD CAU3_PKHA_GCD
+#define LTC_PKHA_GCD CAU3_PKHA_ModGcd
 #define LTC_PKHA_ModInv CAU3_PKHA_ModInv
 #define LTC_PKHA_PrimalityTest CAU3_PKHA_PrimalityTest
-#define LTC_INSTANCE ((CAU3_PKHA_Type *)CAU3_BASE)
+#define LTC_INSTANCE ((CAU3_Type *)CAU3_BASE)
 
 #define kLTC_PKHA_IntegerArith kCAU3_PKHA_IntegerArith
 #define kLTC_PKHA_NormalValue kCAU3_PKHA_NormalValue
 #define kLTC_PKHA_TimingEqualized kCAU3_PKHA_TimingEqualized
+
+#define cau3_reverse_array ltc_reverse_array
+#define cau3_get_from_mbedtls_mpi ltc_get_from_mbedtls_mpi
 #endif
 
 #if defined(MBEDTLS_FREESCALE_LTC_PKHA)
@@ -2373,6 +2398,7 @@ int mbedtls_mpi_is_prime(const mbedtls_mpi *X, int (*f_rng)(void *, unsigned cha
 
 #define LTC_MAX_ECC (512)
 #define CAAM_MAX_ECC (528)
+#define CAU3_MAX_ECC (512)
 
 typedef enum
 {
@@ -2417,7 +2443,7 @@ cleanup:
     return (ret);
 }
 
-#if defined(MBEDTLS_FREESCALE_LTC_PKHA)
+#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA)
 static int ltc_get_from_mbedtls_mpi(uint8_t *dst, const mbedtls_mpi *a, size_t sz)
 {
     return get_and_extend_mbedtls_mpi(dst, a, sz, kLittleEndian);
@@ -2522,7 +2548,6 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
                  void *p_rng)
 {
     int ret;
-    bool is_inf;
     size_t size;
     size_t size_bin;
 
@@ -2585,6 +2610,90 @@ cleanup:
     }
     return (ret);
 }
+
+#elif defined(MBEDTLS_FREESCALE_CAU3_PKHA)
+int ecp_mul_comb(mbedtls_ecp_group *grp,
+                 mbedtls_ecp_point *R,
+                 const mbedtls_mpi *m,
+                 const mbedtls_ecp_point *P,
+                 int (*f_rng)(void *, unsigned char *, size_t),
+                 void *p_rng)
+{
+    int ret;
+    status_t status;
+    size_t size;
+    size_t size_bin;
+
+    cau3_pkha_ecc_point_t A;
+    cau3_pkha_ecc_point_t result;
+
+    /* Allocate 7 elements with size of (CAU3_MAX_ECC / 8) plus ptrE with size of FREESCALE_PKHA_INT_MAX_BYTES */
+    uint8_t *ptrAX = mbedtls_calloc((7 * (CAU3_MAX_ECC / 8)) + FREESCALE_PKHA_INT_MAX_BYTES, 1);
+    uint8_t *ptrAY = ptrAX + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrRX = ptrAY + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrRY = ptrRX + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrN = ptrRY + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrParamA = ptrN + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrParamB = ptrParamA + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrE = ptrParamB + (CAU3_MAX_ECC / 8);
+    if (NULL == ptrAX)
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
+    }
+
+    A.X = ptrAX;
+    A.Y = ptrAY;
+    result.X = ptrRX;
+    result.Y = ptrRY;
+    size = mbedtls_mpi_size(&grp->P);
+    if (mbedtls_mpi_size(&P->X) > (CAU3_MAX_ECC / 8) || (mbedtls_mpi_get_bit(&grp->N, 0) != 1))
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
+
+    /* Convert multi precision integers to arrays */
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(A.X, &P->X, size));
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(A.Y, &P->Y, size));
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(ptrParamA, &grp->A, size));
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(ptrParamB, &grp->B, size));
+
+    /* scalar multiplier integer of any size */
+    size_bin = mbedtls_mpi_size(m);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(m, ptrE, size_bin));
+    cau3_reverse_array(ptrE, size_bin);
+
+    /* modulus */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, ptrN, size));
+    cau3_reverse_array(ptrN, size);
+
+    /* Multiply */
+    status = CAU3_PKHA_ECC_PointMul(CAU3, &A, ptrE, size_bin, ptrN, NULL, ptrParamA, ptrParamB, size,
+                          kCAU3_PKHA_TimingEqualized, kCAU3_PKHA_IntegerArith, &result);
+    
+    if(status != kStatus_Success)
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
+    
+    /* Convert result */
+    cau3_reverse_array(ptrRX, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->X, ptrRX, size));
+    cau3_reverse_array(ptrRY, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->Y, ptrRY, size));
+    /* if the integer multiplier is negative, the computation happens with abs() value
+     * and the result (x,y) is changed to (x, -y)
+     */
+    R->Y.s = m->s;
+    mbedtls_mpi_read_string(&R->Z, 10, "1");
+
+cleanup:
+    if (ptrAX)
+    {
+        mbedtls_free(ptrAX);
+    }
+    return (ret);
+}
+
 #endif /* MBEDTLS_FREESCALE_LTC_PKHA */
 #endif /* MBEDTLS_ECP_MUL_COMB_ALT */
 
@@ -2742,6 +2851,79 @@ cleanup:
     }
     return (ret);
 }
+
+#elif defined(MBEDTLS_FREESCALE_CAU3_PKHA)
+int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q)
+{
+    int ret;
+    status_t status;
+    size_t size;
+    cau3_pkha_ecc_point_t A;
+    cau3_pkha_ecc_point_t B;
+    cau3_pkha_ecc_point_t result;
+
+    uint8_t *ptrAX = mbedtls_calloc(9, (CAU3_MAX_ECC / 8));
+    uint8_t *ptrAY = ptrAX + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrBX = ptrAY + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrBY = ptrBX + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrRX = ptrBY + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrRY = ptrRX + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrN = ptrRY + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrParamA = ptrN + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrParamB = ptrParamA + (CAU3_MAX_ECC / 8);
+    if (NULL == ptrAX)
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
+    }
+
+    if (ecp_get_type(grp) != ECP_TYPE_SHORT_WEIERSTRASS)
+        CLEAN_RETURN(MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE);
+
+    A.X = ptrAX;
+    A.Y = ptrAY;
+    B.X = ptrBX;
+    B.Y = ptrBY;
+    result.X = ptrRX;
+    result.Y = ptrRY;
+    size = mbedtls_mpi_size(&grp->P);
+    if (mbedtls_mpi_size(&P->X) > (CAU3_MAX_ECC / 8) || (mbedtls_mpi_get_bit(&grp->P, 0) != 1))
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
+
+    /* Convert multi precision integers to arrays */
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(A.X, &P->X, size));
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(A.Y, &P->Y, size));
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(B.X, &Q->X, size));
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(B.Y, &Q->Y, size));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, ptrN, size));
+    cau3_reverse_array(ptrN, size);
+    /* Multiply */
+    status = CAU3_PKHA_ECC_PointAdd(CAU3, &A, &B, ptrN, NULL, ptrParamA, ptrParamB, size, kCAU3_PKHA_IntegerArith,
+                          &result);
+    
+    if(status != kStatus_Success)
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
+    
+    /* Convert result */
+    cau3_reverse_array(ptrRX, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->X, ptrRX, size));
+    cau3_reverse_array(ptrRY, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->Y, ptrRY, size));
+    R->X.s = P->X.s;
+    R->Y.s = P->Y.s;
+    mbedtls_mpi_read_string(&R->Z, 10, "1");
+
+cleanup:
+    if (ptrAX)
+    {
+        mbedtls_free(ptrAX);
+    }
+    return (ret);
+}
+
 #endif /* MBEDTLS_FREESCALE_LTC_PKHA */
 
 #endif /* MBEDTLS_ECP_ADD_ALT */
@@ -2958,6 +3140,64 @@ void mbedtls_sha1_finish(mbedtls_sha1_context *ctx, unsigned char output[20])
     CAAM_HASH_Finish(ctx, output, 0);
 }
 
+#elif defined(MBEDTLS_FREESCALE_CAU3_SHA1)
+#include "mbedtls/sha1.h"
+
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize(void *v, size_t n)
+{
+    volatile unsigned char *p = v;
+    while (n--)
+        *p++ = 0;
+}
+
+void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
+{
+    memset(ctx, 0, sizeof(mbedtls_sha1_context));
+}
+
+void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
+{
+    if (ctx == NULL)
+        return;
+
+    mbedtls_zeroize(ctx, sizeof(mbedtls_sha1_context));
+}
+
+void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
+{
+    memcpy(dst, src, sizeof(mbedtls_sha1_context));
+}
+
+/*
+ * SHA-1 context setup
+ */
+void mbedtls_sha1_starts(mbedtls_sha1_context *ctx)
+{
+    CAU3_HASH_Init(CAU3, ctx, kCAU3_Sha1);
+}
+
+void mbedtls_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
+{
+    CAU3_HASH_Update(CAU3, ctx, data, 64);
+}
+
+/*
+ * SHA-1 process buffer
+ */
+void mbedtls_sha1_update(mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen)
+{
+    CAU3_HASH_Update(CAU3, ctx, input, ilen);
+}
+
+/*
+ * SHA-1 final digest
+ */
+void mbedtls_sha1_finish(mbedtls_sha1_context *ctx, unsigned char output[20])
+{
+    CAU3_HASH_Finish(CAU3, ctx, output, 0);
+}
+
 #endif /* MBEDTLS_FREESCALE_LPC_SHA1 */
 #endif /* MBEDTLS_SHA1_C */
 
@@ -3045,9 +3285,62 @@ void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char dat
 
 #include "mbedtls/sha256.h"
 
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize_sha256(void *v, size_t n)
+{
+    volatile unsigned char *p = v;
+    while (n--)
+        *p++ = 0;
+}
+
+void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
+{
+    memset(ctx, 0, sizeof(mbedtls_sha256_context));
+}
+
+void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
+{
+    if (ctx == NULL)
+        return;
+
+    mbedtls_zeroize_sha256(ctx, sizeof(mbedtls_sha256_context));
+}
+
+void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
+{
+    memcpy(dst, src, sizeof(*dst));
+}
+
+/*
+ * SHA-256 context setup
+ */
+void mbedtls_sha256_starts(mbedtls_sha256_context *ctx, int is224)
+{
+    if (!is224) /* SHA-224 not supported */
+    {
+        CAU3_HASH_Init(CAU3, ctx, kCAU3_Sha256);
+    }
+}
+
 void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
 {
-    CAU3_WRAP_SHA256_Update(data, 1, ctx->state, MBEDTLS_CAU3_COMPLETION_SIGNAL);
+    CAU3_HASH_Update(CAU3, ctx, data, 64);
+}
+
+/*
+ * SHA-256 process buffer
+ */
+void mbedtls_sha256_update(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
+{
+    CAU3_HASH_Update(CAU3, ctx, input, ilen);
+}
+
+/*
+ * SHA-256 final digest
+ */
+void mbedtls_sha256_finish(mbedtls_sha256_context *ctx, unsigned char output[32])
+{
+    CAU3_HASH_Finish(CAU3, ctx, output, 0);
 }
 
 #elif defined(MBEDTLS_FREESCALE_LPC_SHA256)

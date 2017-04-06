@@ -1,5 +1,5 @@
 /**
- * \file des.h
+ * \file des_alt.h
  *
  * \brief DES block cipher
  *
@@ -20,8 +20,8 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
-#ifndef MBEDTLS_DES_H
-#define MBEDTLS_DES_H
+#ifndef MBEDTLS_DES_ALT_H
+#define MBEDTLS_DES_ALT_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
@@ -39,10 +39,11 @@
 
 #define MBEDTLS_DES_KEY_SIZE    8
 
-#if !defined(MBEDTLS_DES_ALT)
-// Regular implementation
-//
 
+#if defined(MBEDTLS_DES_ALT)
+// Alternate implementation
+//
+   
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -52,6 +53,9 @@ extern "C" {
  */
 typedef struct
 {
+#if defined (MBEDTLS_DES_SETKEY_ENC_ALT) || defined (MBEDTLS_DES_SETKEY_DEC_ALT)
+    int mode;                   /*!<  encrypt/decrypt   */
+#endif
     uint32_t sk[32];            /*!<  DES subkeys       */
 }
 mbedtls_des_context;
@@ -61,6 +65,9 @@ mbedtls_des_context;
  */
 typedef struct
 {
+#if defined (MBEDTLS_DES3_SETKEY_ENC_ALT) || defined (MBEDTLS_DES3_SETKEY_DEC_ALT)
+    int mode;                   /*!<  encrypt/decrypt   */
+#endif
     uint32_t sk[96];            /*!<  3DES subkeys      */
 }
 mbedtls_des3_context;
@@ -287,20 +294,5 @@ void mbedtls_des_setkey( uint32_t SK[32],
 #else  /* MBEDTLS_DES_ALT */
 #include "des_alt.h"
 #endif /* MBEDTLS_DES_ALT */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * \brief          Checkup routine
- *
- * \return         0 if successful, or 1 if the test failed
- */
-int mbedtls_des_self_test( int verbose );
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* des.h */

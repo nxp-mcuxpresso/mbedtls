@@ -4,6 +4,15 @@
 @section mbedtls mbedTLS for KSDK
   Current version of mbedTLS for KSDK is based on mbedTLS 2.4.2 released 2017-03-08
  
+ - 2.4.2_rev1
+    - New Features:
+      - Add support for CAU3 driver.
+      - Added new files:
+      - \middleware\mbedtls\port\ksdk\des_alt.c - contains regular software implementation of DES algorithm with added MBEDTLS_DES3_SETKEY_DEC_ALT and MBEDTLS_DES3_SETKEY_ENC_ALT config parameters.
+      - \middleware\mbedtls\port\ksdk\des_alt.h - contains modified mbedtls_des_context and mbedtls_des3_context structures.
+      - Added MBEDTLS_DES3_SETKEY_DEC_ALT configuration parameter enabling reloading of mbedtls_des3_set2key_dec() and mbedtls_des3_set3key_dec().
+      - Added MBEDTLS_DES3_SETKEY_ENC_ALT configuration parameter enabling reloading of mbedtls_des3_set2key_enc() and mbedtls_des3_set3key_enc(). 
+
  - 2.4.2
     - New Features:
       - Ported mbedTLS 2.4.2 to KSDK 2.0.0.

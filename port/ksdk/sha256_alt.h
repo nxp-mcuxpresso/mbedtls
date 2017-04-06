@@ -51,7 +51,14 @@ extern "C" {
  */
 #define mbedtls_sha256_context caam_hash_ctx_t
 
-#endif /* MBEDTLS_FREESCALE_LPC_SHA256 */
+#elif defined(MBEDTLS_FREESCALE_CAU3_SHA256)
+
+/**
+ * \brief          SHA-256 context structure
+ */
+#define mbedtls_sha256_context cau3_hash_ctx_t  
+
+#endif /* MBEDTLS_FREESCALE_LTC_SHA256 */
 
 /**
  * \brief          Initialize SHA-256 context

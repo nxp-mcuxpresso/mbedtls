@@ -1352,6 +1352,7 @@ static void ltc_reverse_array(uint8_t *src, size_t src_len)
 #define kLTC_PKHA_TimingEqualized kCAU3_PKHA_TimingEqualized
 
 #define cau3_reverse_array ltc_reverse_array
+#define cau3_get_from_mbedtls_mpi ltc_get_from_mbedtls_mpi
 #endif
 
 #if defined(MBEDTLS_FREESCALE_LTC_PKHA)
@@ -2619,6 +2620,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
                  void *p_rng)
 {
     int ret;
+    status_t status;
     size_t size;
     size_t size_bin;
 
@@ -2650,10 +2652,10 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     }
 
     /* Convert multi precision integers to arrays */
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.X, &P->X, size));
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.Y, &P->Y, size));
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(ptrParamA, &grp->A, size));
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(ptrParamB, &grp->B, size));
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(A.X, &P->X, size));
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(A.Y, &P->Y, size));
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(ptrParamA, &grp->A, size));
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(ptrParamB, &grp->B, size));
 
     /* scalar multiplier integer of any size */
     size_bin = mbedtls_mpi_size(m);
@@ -2665,8 +2667,14 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     cau3_reverse_array(ptrN, size);
 
     /* Multiply */
-    CAU3_PKHA_ECC_PointMul(CAU3, &A, ptrE, size_bin, ptrN, NULL, ptrParamA, ptrParamB, size,
+    status = CAU3_PKHA_ECC_PointMul(CAU3, &A, ptrE, size_bin, ptrN, NULL, ptrParamA, ptrParamB, size,
                           kCAU3_PKHA_TimingEqualized, kCAU3_PKHA_IntegerArith, &result);
+    
+    if(status != kStatus_Success)
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
+    
     /* Convert result */
     cau3_reverse_array(ptrRX, size);
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->X, ptrRX, size));
@@ -2848,6 +2856,7 @@ cleanup:
 int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q)
 {
     int ret;
+    status_t status;
     size_t size;
     cau3_pkha_ecc_point_t A;
     cau3_pkha_ecc_point_t B;
@@ -2883,15 +2892,21 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
     }
 
     /* Convert multi precision integers to arrays */
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.X, &P->X, size));
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(A.Y, &P->Y, size));
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(B.X, &Q->X, size));
-    MBEDTLS_MPI_CHK(ltc_get_from_mbedtls_mpi(B.Y, &Q->Y, size));
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(A.X, &P->X, size));
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(A.Y, &P->Y, size));
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(B.X, &Q->X, size));
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(B.Y, &Q->Y, size));
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, ptrN, size));
     cau3_reverse_array(ptrN, size);
     /* Multiply */
-    CAU3_PKHA_ECC_PointAdd(CAU3, &A, &B, ptrN, NULL, ptrParamA, ptrParamB, size, kCAU3_PKHA_IntegerArith,
+    status = CAU3_PKHA_ECC_PointAdd(CAU3, &A, &B, ptrN, NULL, ptrParamA, ptrParamB, size, kCAU3_PKHA_IntegerArith,
                           &result);
+    
+    if(status != kStatus_Success)
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
+    
     /* Convert result */
     cau3_reverse_array(ptrRX, size);
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->X, ptrRX, size));

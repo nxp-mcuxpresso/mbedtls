@@ -55,8 +55,10 @@ typedef struct
 {
 #if defined (MBEDTLS_DES_SETKEY_ENC_ALT) || defined (MBEDTLS_DES_SETKEY_DEC_ALT)
     int mode;                   /*!<  encrypt/decrypt   */
-#endif
+    uint32_t sk[MBEDTLS_DES_KEY_SIZE/sizeof(uint32_t)]; /*!< DES key */
+#else
     uint32_t sk[32];            /*!<  DES subkeys       */
+#endif
 }
 mbedtls_des_context;
 
@@ -67,8 +69,10 @@ typedef struct
 {
 #if defined (MBEDTLS_DES3_SETKEY_ENC_ALT) || defined (MBEDTLS_DES3_SETKEY_DEC_ALT)
     int mode;                   /*!<  encrypt/decrypt   */
-#endif
+    uint32_t sk[3*MBEDTLS_DES_KEY_SIZE/sizeof(uint32_t)];            /*!<  3DES keys  */
+#else
     uint32_t sk[96];            /*!<  3DES subkeys      */
+#endif
 }
 mbedtls_des3_context;
 
@@ -291,8 +295,6 @@ void mbedtls_des_setkey( uint32_t SK[32],
 }
 #endif
 
-#else  /* MBEDTLS_DES_ALT */
-#include "des_alt.h"
 #endif /* MBEDTLS_DES_ALT */
 
-#endif /* des.h */
+#endif /* des_alt.h */

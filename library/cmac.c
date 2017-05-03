@@ -387,6 +387,7 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx )
     return( 0 );
 }
 
+#if !defined(MBEDTLS_CIPHER_CMAC_ALT)
 int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
                          const unsigned char *key, size_t keylen,
                          const unsigned char *input, size_t ilen,
@@ -418,6 +419,7 @@ exit:
 
     return( ret );
 }
+#endif /* MBEDTLS_CIPHER_CMAC_ALT */
 
 #if defined(MBEDTLS_AES_C)
 /*
@@ -788,7 +790,7 @@ static int cmac_test_subkeys( int verbose,
         if( ( ret = mbedtls_cipher_setup( &ctx, cipher_info ) ) != 0 )
         {
             if( verbose != 0 )
-                mbedtls_printf( "test execution failed\n" );
+                mbedtls_printf( "test execution failed\r\n" );
 
             goto cleanup;
         }
@@ -797,7 +799,7 @@ static int cmac_test_subkeys( int verbose,
                                        MBEDTLS_ENCRYPT ) ) != 0 )
         {
             if( verbose != 0 )
-                mbedtls_printf( "test execution failed\n" );
+                mbedtls_printf( "test execution failed\r\n" );
 
             goto cleanup;
         }
@@ -806,7 +808,7 @@ static int cmac_test_subkeys( int verbose,
         if( ret != 0 )
         {
            if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
+                mbedtls_printf( "failed\r\n" );
 
             goto cleanup;
         }
@@ -815,13 +817,13 @@ static int cmac_test_subkeys( int verbose,
             ( ret = memcmp( K2, &subkeys[block_size], block_size ) ) != 0 )
         {
             if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
+                mbedtls_printf( "failed\r\n" );
 
             goto cleanup;
         }
 
         if( verbose != 0 )
-            mbedtls_printf( "passed\n" );
+            mbedtls_printf( "passed\r\n" );
 
         mbedtls_cipher_free( &ctx );
     }
@@ -867,19 +869,19 @@ static int cmac_test_wth_cipher( int verbose,
                                          message_lengths[i], output ) ) != 0 )
         {
             if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
+                mbedtls_printf( "failed\r\n" );
             goto exit;
         }
 
         if( ( ret = memcmp( output, &expected_result[i * block_size], block_size ) ) != 0 )
         {
             if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
+                mbedtls_printf( "failed\r\n" );
             goto exit;
         }
 
         if( verbose != 0 )
-            mbedtls_printf( "passed\n" );
+            mbedtls_printf( "passed\r\n" );
     }
 
 exit:
@@ -902,13 +904,13 @@ static int test_aes128_cmac_prf( int verbose )
         {
 
             if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
+                mbedtls_printf( "failed\r\n" );
 
             return( ret );
         }
         else if( verbose != 0 )
         {
-            mbedtls_printf( "passed\n" );
+            mbedtls_printf( "passed\r\n" );
         }
     }
     return( ret );
@@ -946,7 +948,7 @@ int mbedtls_cmac_self_test( int verbose )
     {
         return( ret );
     }
-
+#if defined(MBEDTLS_CIPHER_CMAC_ALT) && !defined(MBEDTLS_AES_ALT_NO_192)
     /* AES-192 */
     if( ( ret = cmac_test_subkeys( verbose,
                                    "AES 192",
@@ -973,7 +975,9 @@ int mbedtls_cmac_self_test( int verbose )
     {
         return( ret );
     }
+#endif /* MBEDTLS_CIPHER_CMAC_ALT && !MBEDTLS_AES_ALT_NO_192 */
 
+#if defined(MBEDTLS_CIPHER_CMAC_ALT) && defined(MBEDTLS_CIPHER_CMAC_AES_256_ENABLED)
     /* AES-256 */
     if( ( ret = cmac_test_subkeys( verbose,
                                    "AES 256",
@@ -1000,9 +1004,11 @@ int mbedtls_cmac_self_test( int verbose )
     {
         return( ret );
     }
+#endif /* MBEDTLS_CIPHER_CMAC_ALT && MBEDTLS_CIPHER_CMAC_AES_256_ENABLED */
 #endif /* MBEDTLS_AES_C */
 
 #if defined(MBEDTLS_DES_C)
+#if defined(MBEDTLS_CIPHER_CMAC_ALT) && defined(MBEDTLS_CIPHER_CMAC_TDES_ENABLED)
     /* 3DES 2 key */
     if( ( ret = cmac_test_subkeys( verbose,
                                    "3DES 2 key",
@@ -1056,6 +1062,7 @@ int mbedtls_cmac_self_test( int verbose )
     {
         return( ret );
     }
+#endif /* MBEDTLS_CIPHER_CMAC_ALT && MBEDTLS_CIPHER_CMAC_TDES_ENABLED */
 #endif /* MBEDTLS_DES_C */
 
 #if defined(MBEDTLS_AES_C)
@@ -1064,7 +1071,7 @@ int mbedtls_cmac_self_test( int verbose )
 #endif /* MBEDTLS_AES_C */
 
     if( verbose != 0 )
-        mbedtls_printf( "\n" );
+        mbedtls_printf( "\r\n" );
 
     return( 0 );
 }

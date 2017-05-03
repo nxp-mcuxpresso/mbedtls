@@ -71,14 +71,14 @@ static caam_handle_t s_caamHandle = {.jobRing = kCAAM_JobRing0};
 #if defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)
 static cau3_handle_t s_cau3Handle = {.taskDone = MBEDTLS_CAU3_COMPLETION_SIGNAL, .keySlot = kCAU3_KeySlot0};
 
-static const void* s_mbedtlsCtx[4] = {0};
+static const void *s_mbedtlsCtx[4] = {0};
 
-static void cau3_attach_ctx_to_key_slot(const void* ctx, cau3_key_slot_t keySlot)
+static void cau3_attach_ctx_to_key_slot(const void *ctx, cau3_key_slot_t keySlot)
 {
     s_mbedtlsCtx[keySlot] = ctx;
 }
 
-static void cau3_detach_ctx_from_key_slot(const void* ctx)
+static void cau3_detach_ctx_from_key_slot(const void *ctx)
 {
     for (int i = 0; i < 4; i++)
     {
@@ -90,7 +90,7 @@ static void cau3_detach_ctx_from_key_slot(const void* ctx)
     }
 }
 
-static bool cau3_aes_is_expanded(const void* ctx)
+static bool cau3_aes_is_expanded(const void *ctx)
 {
     bool ret = false;
     for (int i = 0; i < 4; i++)
@@ -614,10 +614,10 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
     defined(MBEDTLS_FREESCALE_CAAM_AES)
     const unsigned char *key_tmp = key;
     memcpy(RK, key_tmp, keybits / 8);
-    
+
 #if defined(MBEDTLS_FREESCALE_CAU3_AES)
     cau3_detach_ctx_from_key_slot(ctx);
-#endif /* MBEDTLS_FREESCALE_CAU3_AES */    
+#endif /* MBEDTLS_FREESCALE_CAU3_AES */
 
     switch (keybits)
     {
@@ -945,6 +945,89 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
 }
 #endif
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
+
+#if defined(MBEDTLS_CIPHER_CMAC_ALT)
+
+#include "mbedtls/cipher.h"
+#include "mbedtls/cmac.h"
+
+#if defined(MBEDTLS_FREESCALE_CAU3_CIPHER_CMAC)
+int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
+                        const unsigned char *key,
+                        size_t keylen,
+                        const unsigned char *input,
+                        size_t ilen,
+                        unsigned char *output)
+{
+    mbedtls_cipher_context_t ctx;
+    int ret;
+
+    if (cipher_info == NULL || key == NULL || input == NULL || output == NULL)
+        return (MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA);
+
+    mbedtls_cipher_init(&ctx);
+
+    if ((ret = mbedtls_cipher_setup(&ctx, cipher_info)) != 0)
+        goto exit;
+
+    ret = mbedtls_cipher_cmac_starts(&ctx, key, keylen);
+    if (ret != 0)
+        goto exit;
+
+    /* AES-CMAC-128 is directly supported by CAU3 firmware */
+    if (cipher_info->type == MBEDTLS_CIPHER_AES_128_ECB)
+    {
+        status_t status;
+        uint8_t mac[16];
+
+        status = CAU3_AES_SetKey(CAU3, &s_cau3Handle, key, keylen / 8u);
+        if (status != kStatus_Success)
+        {
+            ret = MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+            goto exit;
+        }
+        status = CAU3_AES_Cmac(CAU3, &s_cau3Handle, input, ilen, mac);
+        if (status != kStatus_Success)
+        {
+            ret = MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+            goto exit;
+        }
+        memcpy(output, mac, 16);
+    }
+#if defined(MBEDTLS_CIPHER_CMAC_TDES_ENABLED) || defined(MBEDTLS_CIPHER_CMAC_AES_256_ENABLED)
+    else if (cipher_info->type == MBEDTLS_CIPHER_AES_192_ECB)
+    {
+        /* CAU3 initial firmware does not support AES 192 */
+        ret = MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+        goto exit;
+    }
+    else
+    {
+        /* AES-CMAC-256 and TDES-CMAC.
+         * If both MBEDTLS_DES_C and MBEDTLS_CIPHER_CMAC_WANTS_AES_256 are undefined,
+         * this does not compile
+         */
+        ret = mbedtls_cipher_cmac_update(&ctx, input, ilen);
+        if (ret != 0)
+            goto exit;
+
+        ret = mbedtls_cipher_cmac_finish(&ctx, output);
+    }
+#else
+    else
+    {
+        ret = MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+        goto exit;
+    }
+#endif /* MBEDTLS_CIPHER_CMAC_TDES_ENABLED || MBEDTLS_CIPHER_CMAC_AES_256_ENABLED */
+
+exit:
+    mbedtls_cipher_free(&ctx);
+
+    return (ret);
+}
+#endif /* MBEDTLS_FREESCALE_CAU3_CIPHER_CMAC */
+#endif /* MBEDTLS_CIPHER_CMAC_ALT */
 
 #if defined(MBEDTLS_CCM_C)
 

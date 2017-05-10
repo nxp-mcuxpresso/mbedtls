@@ -37,18 +37,18 @@
 
 #include "fsl_common.h"
 
-#if FSL_FEATURE_SOC_LTC_COUNT
+#if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
 #include "fsl_ltc.h"
 #endif
-#if FSL_FEATURE_SOC_CAAM_COUNT
+#if defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0)
 #include "fsl_caam.h"
 #endif
-#if FSL_FEATURE_SOC_CAU3_COUNT
+#if defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)
 #include "fsl_cau3.h"
 #endif
-#if FSL_FEATURE_SOC_TRNG_COUNT
+#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
 #include "fsl_trng.h"
-#elif FSL_FEATURE_SOC_RNG_COUNT
+#elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
 #include "fsl_rnga.h"
 #endif
 
@@ -116,14 +116,20 @@ static void mbedtls_zeroize(void *v, size_t n)
 /******************************************************************************/
 /******************** CRYPTO_InitHardware **************************************/
 /******************************************************************************/
+/*!
+ * @brief Application init for various Crypto blocks.
+ *
+ * This function is provided to be called by MCUXpresso SDK applications.
+ * It calls basic init for Crypto Hw acceleration and Hw entropy modules.
+ */
 void CRYPTO_InitHardware(void)
 {
-#if FSL_FEATURE_SOC_LTC_COUNT
+#if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
     /* Initialize LTC driver.
      * This enables clocking and resets the module to a known state. */
     LTC_Init(LTC0);
 #endif
-#if FSL_FEATURE_SOC_CAAM_COUNT
+#if defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0) && defined(CRYPTO_USE_DRIVER_CAAM)
     /* Initialize CAAM driver. */
     caam_config_t caamConfig;
 
@@ -132,7 +138,7 @@ void CRYPTO_InitHardware(void)
     caamConfig.jobRingInterface[1] = &s_jrif1;
     CAAM_Init(CAAM, &caamConfig);
 #endif
-#if FSL_FEATURE_SOC_CAU3_COUNT
+#if defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)
     /* Initialize CAU3 */
     CAU3_Init(CAU3);
 

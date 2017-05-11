@@ -4,6 +4,7 @@
     <component name="middleware.mbedtls.support" requires="middleware.mmcau.support"/>
     <component name="middleware.mbedtls.support" requires="platform.drivers.ltc"/>
     <component name="middleware.mbedtls.support" requires="platform.drivers.aes"/>
+    <component name="middleware.mbedtls.support" requires="platform.drivers.cau3"/>
    
     <component name="middleware.mbedtls_include" requires="middleware.mbedtls.support">
       <source path="./include/mbedtls" target_path="mbedtls/include/mbedtls">

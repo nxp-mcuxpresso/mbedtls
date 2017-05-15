@@ -952,7 +952,7 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
 #endif
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
-#if defined(MBEDTLS_CIPHER_CMAC_ALT)
+#if defined(MBEDTLS_CIPHER_CMAC_ALT) && defined(MBEDTLS_CMAC_C)
 
 #include "mbedtls/cipher.h"
 #include "mbedtls/cmac.h"
@@ -1033,7 +1033,7 @@ exit:
     return (ret);
 }
 #endif /* MBEDTLS_FREESCALE_CAU3_CIPHER_CMAC */
-#endif /* MBEDTLS_CIPHER_CMAC_ALT */
+#endif /* MBEDTLS_CIPHER_CMAC_ALT && MBEDTLS_CMAC_C */
 
 #if defined(MBEDTLS_CCM_C)
 

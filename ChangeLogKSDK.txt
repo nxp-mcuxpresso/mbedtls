@@ -25,6 +25,11 @@
       - Add support for CAAM driver. 
       - In LTC specific wrapper, allocate temporary integers from heap in one large block.
  
+ - 2.3.0_rev1
+    - New Features:
+      - Add support for CAAM driver. 
+      - In LTC specific wrapper, allocate temporary integers from heap in one large block.
+ 
  - 2.3.0
     - New Features:
       - Ported mbedTLS 2.3.0 to KSDK 2.0.0.

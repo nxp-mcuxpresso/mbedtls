@@ -2623,7 +2623,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
      * and the result (x,y) is changed to (x, -y)
      */
     R->Y.s = m->s;
-    mbedtls_mpi_lset(&R->Z, 1);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&R->Z, 1));
 
 cleanup:
     if (ptrAX)
@@ -2695,7 +2695,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
      * and the result (x,y) is changed to (x, -y)
      */
     R->Y.s = m->s;
-    mbedtls_mpi_lset(&R->Z, 1);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&R->Z, 1));
 
 cleanup:
     if (ptrAX)
@@ -2778,7 +2778,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
      * and the result (x,y) is changed to (x, -y)
      */
     R->Y.s = m->s;
-    mbedtls_mpi_lset(&R->Z, 1);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&R->Z, 1));
 
 cleanup:
     if (ptrAX)
@@ -2873,7 +2873,7 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->Y, ptrRY, size));
     R->X.s = P->X.s;
     R->Y.s = P->Y.s;
-    mbedtls_mpi_lset(&R->Z, 1);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&R->Z, 1));
 
 cleanup:
     if (ptrAX)
@@ -2936,7 +2936,7 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->Y, ptrRY, size));
     R->X.s = P->X.s;
     R->Y.s = P->Y.s;
-    mbedtls_mpi_lset(&R->Z, 1);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&R->Z, 1));
 
 cleanup:
     if (ptrAX)
@@ -3008,7 +3008,7 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->Y, ptrRY, size));
     R->X.s = P->X.s;
     R->Y.s = P->Y.s;
-    mbedtls_mpi_lset(&R->Z, 1);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&R->Z, 1));
 
 cleanup:
     if (ptrAX)
@@ -3084,7 +3084,7 @@ int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /* Convert result */
     cau3_reverse_array(ptrRX, size);
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->X, ptrRX, size));
-    mbedtls_mpi_lset(&R->Z, 1);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&R->Z, 1));
 
 cleanup:
     if (ptrAX)

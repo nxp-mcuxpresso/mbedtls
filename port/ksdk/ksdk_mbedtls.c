@@ -3029,13 +3029,16 @@ cleanup:
 static const uint8_t A24[] = {0x42, 0xdb, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                               0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
+static const uint8_t N[] = {0xed, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f};
+
 static const uint8_t R2modN[] = {0xa4, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-                        const mbedtls_mpi *m, const mbedtls_ecp_point *P,
-                        int (*f_rng)(void *, unsigned char *, size_t),
-                        void *p_rng )
+                 const mbedtls_mpi *m, const mbedtls_ecp_point *P,
+                 int (*f_rng)(void *, unsigned char *, size_t),
+                 void *p_rng )
 {
     int ret;
     status_t status;
@@ -3045,11 +3048,10 @@ int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     cau3_pkha_ecc_point_t A;
     cau3_pkha_ecc_point_t result;
 
-    /* Allocate 3 elements with size of (CAU3_MAX_ECC / 8) plus ptrE with size of FREESCALE_PKHA_INT_MAX_BYTES */
-    uint8_t *ptrAX = mbedtls_calloc((3 * (CAU3_MAX_ECC / 8)) + FREESCALE_PKHA_INT_MAX_BYTES, 1);
+    /* Allocate 2 elements with size of (CAU3_MAX_ECC / 8) plus ptrE with size of FREESCALE_PKHA_INT_MAX_BYTES */
+    uint8_t *ptrAX = mbedtls_calloc((2 * (CAU3_MAX_ECC / 8)) + FREESCALE_PKHA_INT_MAX_BYTES, 1);
     uint8_t *ptrRX = ptrAX + (CAU3_MAX_ECC / 8);
-    uint8_t *ptrN = ptrRX + (CAU3_MAX_ECC / 8);
-    uint8_t *ptrE = ptrN + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrE = ptrRX + (CAU3_MAX_ECC / 8);
     if (NULL == ptrAX)
     {
         CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
@@ -3071,12 +3073,8 @@ int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(m, ptrE, size_bin));
     cau3_reverse_array(ptrE, size_bin);
 
-    /* modulus */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, ptrN, size));
-    cau3_reverse_array(ptrN, size);
-
     /* Multiply */
-    status = CAU3_PKHA_ECM_PointMul(CAU3, ptrE, size_bin, A.X , A24, ptrN, R2modN, size, kCAU3_PKHA_TimingEqualized, result.X);
+    status = CAU3_PKHA_ECM_PointMul(CAU3, ptrE, size_bin, A.X , A24, N, R2modN, size, kCAU3_PKHA_TimingEqualized, result.X);
 
     if (status != kStatus_Success)
     {
@@ -3086,7 +3084,7 @@ int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /* Convert result */
     cau3_reverse_array(ptrRX, size);
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->X, ptrRX, size));
-    mbedtls_mpi_read_string(&R->Z, 10, "1");
+    mbedtls_mpi_lset(&R->Z, 1);
 
 cleanup:
     if (ptrAX)

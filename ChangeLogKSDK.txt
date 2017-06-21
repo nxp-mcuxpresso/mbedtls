@@ -4,6 +4,11 @@
 @section mbedtls mbedTLS for KSDK
   Current version of mbedTLS for KSDK is based on mbedTLS 2.4.2 released 2017-03-08
  
+ - 2.4.2_rev2
+    - New Features:
+      - Add Curve25519 support for CAU3.
+      - Added MBEDTLS_ECP_MUL_MXZ_ALT configuration parameter enabling reloading of ecp_mul_mxz().
+
  - 2.4.2_rev1
     - New Features:
       - Add support for CAU3 driver.

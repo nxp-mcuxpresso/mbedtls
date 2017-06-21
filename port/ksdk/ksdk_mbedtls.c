@@ -3022,6 +3022,83 @@ cleanup:
 
 #endif /* MBEDTLS_ECP_ADD_ALT */
 
+#if defined(MBEDTLS_ECP_MUL_MXZ_ALT)
+#if defined(MBEDTLS_FREESCALE_CAU3_PKHA)
+
+/* curve25519 params - in little endian for CAU3 */
+static const uint8_t A24[] = {0x42, 0xdb, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+static const uint8_t R2modN[] = {0xa4, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+                        const mbedtls_mpi *m, const mbedtls_ecp_point *P,
+                        int (*f_rng)(void *, unsigned char *, size_t),
+                        void *p_rng )
+{
+    int ret;
+    status_t status;
+    size_t size;
+    size_t size_bin;
+
+    cau3_pkha_ecc_point_t A;
+    cau3_pkha_ecc_point_t result;
+
+    /* Allocate 3 elements with size of (CAU3_MAX_ECC / 8) plus ptrE with size of FREESCALE_PKHA_INT_MAX_BYTES */
+    uint8_t *ptrAX = mbedtls_calloc((3 * (CAU3_MAX_ECC / 8)) + FREESCALE_PKHA_INT_MAX_BYTES, 1);
+    uint8_t *ptrRX = ptrAX + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrN = ptrRX + (CAU3_MAX_ECC / 8);
+    uint8_t *ptrE = ptrN + (CAU3_MAX_ECC / 8);
+    if (NULL == ptrAX)
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
+    }
+
+    A.X = ptrAX;
+    result.X = ptrRX;
+    size = mbedtls_mpi_size(&grp->P);
+    if (mbedtls_mpi_size(&P->X) > (CAAM_MAX_ECC / 8))
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
+
+    /* Convert multi precision integers to arrays */
+    MBEDTLS_MPI_CHK(cau3_get_from_mbedtls_mpi(A.X, &P->X, size));
+
+    /* scalar multiplier integer of any size */
+    size_bin = mbedtls_mpi_size(m);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(m, ptrE, size_bin));
+    cau3_reverse_array(ptrE, size_bin);
+
+    /* modulus */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, ptrN, size));
+    cau3_reverse_array(ptrN, size);
+
+    /* Multiply */
+    status = CAU3_PKHA_ECM_PointMul(CAU3, ptrE, size_bin, A.X , A24, ptrN, R2modN, size, kCAU3_PKHA_TimingEqualized, result.X);
+
+    if (status != kStatus_Success)
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
+
+    /* Convert result */
+    cau3_reverse_array(ptrRX, size);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->X, ptrRX, size));
+    mbedtls_mpi_read_string(&R->Z, 10, "1");
+
+cleanup:
+    if (ptrAX)
+    {
+        mbedtls_free(ptrAX);
+    }
+    return (ret);
+}
+
+#endif /* MBEDTLS_FREESCALE_CAU3_PKHA */
+#endif /* MBEDTLS_ECP_MUL_MXZ_ALT */
+
 #endif /* MBEDTLS_ECP_C */
 
 #endif /* MBEDTLS_FREESCALE_LTC_PKHA */

@@ -1574,6 +1574,7 @@ cleanup:
  * Multiplication with Montgomery ladder in x/z coordinates,
  * for curves in Montgomery form
  */
+#if !defined(MBEDTLS_ECP_MUL_MXZ_ALT)
 static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                         const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                         int (*f_rng)(void *, unsigned char *, size_t),
@@ -1630,6 +1631,12 @@ cleanup:
     return( ret );
 }
 
+#else
+int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+                 const mbedtls_mpi *m, const mbedtls_ecp_point *P,
+                 int (*f_rng)(void *, unsigned char *, size_t),
+                 void *p_rng );
+#endif /* MBEDTLS_ECP_MUL_MXZ_ALT */
 #endif /* ECP_MONTGOMERY */
 
 /*

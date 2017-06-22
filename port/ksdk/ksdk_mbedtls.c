@@ -105,6 +105,7 @@ static bool cau3_aes_is_expanded(const void *ctx)
 }
 #endif
 
+#if defined(MBEDTLS_SHA1_ALT) || defined(MBEDTLS_SHA256_ALT)
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize(void *v, size_t n)
 {
@@ -112,6 +113,7 @@ static void mbedtls_zeroize(void *v, size_t n)
     while (n--)
         *p++ = 0;
 }
+#endif /* MBEDTLS_SHA1_ALT || MBEDTLS_SHA256_ALT */
 
 /******************************************************************************/
 /******************** CRYPTO_InitHardware **************************************/

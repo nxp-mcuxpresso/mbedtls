@@ -105,7 +105,6 @@ static bool cau3_aes_is_expanded(const void *ctx)
 }
 #endif
 
-#if defined(MBEDTLS_SHA1_ALT) || defined(MBEDTLS_SHA256_ALT)
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize(void *v, size_t n)
 {
@@ -113,7 +112,6 @@ static void mbedtls_zeroize(void *v, size_t n)
     while (n--)
         *p++ = 0;
 }
-#endif /* MBEDTLS_SHA1_ALT || MBEDTLS_SHA256_ALT */
 
 /******************************************************************************/
 /******************** CRYPTO_InitHardware **************************************/
@@ -668,7 +666,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
 /*
  * AES-ECB block encryption
  */
-void mbedtls_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16])
+int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16] )
 {
     uint8_t *key;
 
@@ -690,12 +688,14 @@ void mbedtls_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char input[16]
 #elif defined(MBEDTLS_FREESCALE_CAAM_AES)
     CAAM_AES_EncryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 16, key, ctx->nr);
 #endif
+
+    return( 0 );
 }
 
 /*
  * AES-ECB block decryption
  */
-void mbedtls_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16])
+int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16] )
 {
     uint8_t *key;
 
@@ -717,6 +717,8 @@ void mbedtls_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char input[16]
 #elif defined(MBEDTLS_FREESCALE_CAAM_AES)
     CAAM_AES_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 16, key, ctx->nr);
 #endif
+
+    return( 0 );
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)

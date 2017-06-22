@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <metadata>
   <components>
-    <component name="middleware.mbedtls" requires="middleware.mbedtls.support" type="middleware" change_log="./ChangeLogKSDK.txt" description="mbedTLS library" version="2.4.2" ui_name="mbedtls" ui_description="mbedTLS SSL/TLS library" ui_category="Middleware" ui_release_specific="True">
+    <component name="middleware.mbedtls" requires="middleware.mbedtls.support" type="middleware" change_log="./ChangeLogKSDK.txt" description="mbedTLS library" version="2.5.1" ui_name="mbedtls" ui_description="mbedTLS SSL/TLS library" ui_category="Middleware" ui_release_specific="True">
       <source path="./configs/" target_path="mbedTLS/mbedTLS_files">
         <files mask="*.*"/>
       </source>
@@ -38,6 +38,7 @@
         <files mask="ecdsa.h"/>
         <files mask="ecjpake.h"/>
         <files mask="ecp.h"/>
+        <files mask="ecp_internal.h"/>
         <files mask="entropy.h"/>
         <files mask="entropy_poll.h"/>
         <files mask="error.h"/>
@@ -258,8 +259,9 @@
       </source>
     </component>
     <component name="middleware.mbedtls.support" requires="middleware.mmcau.support"/>
-    <component name="middleware.mbedtls.support" requires="platform.drivers.ltc"/>
     <component name="middleware.mbedtls.support" requires="platform.drivers.aes"/>
+    <component name="middleware.mbedtls.support" requires="platform.drivers.ltc"/>
     <component name="middleware.mbedtls.support" requires="platform.drivers.cau3"/>
+    <component name="middleware.mbedtls.support" requires="platform.drivers.sha"/>
   </components>
 </metadata>

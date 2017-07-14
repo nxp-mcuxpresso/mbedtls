@@ -11,7 +11,7 @@
       <source path="./doxygen/" target_path="mbedTLS/mbedTLS_files">
         <files mask="*.*"/>
       </source>
-      <source path="./include/mbedtls/" target_path="mbedTLS/mbedTLS_include">
+      <source path="./include/mbedtls/" target_path="mbedtls/include/mbedtls">
         <files mask="aes.h"/>
         <files mask="aesni.h"/>
         <files mask="arc4.h"/>
@@ -90,7 +90,7 @@
         <files mask="*.txt"/>
         <files mask="Makefile"/>
       </source>
-      <source path="./library/" target_path="mbedTLS/mbedTLS_source">
+      <source path="./library/" target_path="mbedtls/library">
         <files mask="aes.c"/>
         <files mask="aesni.c"/>
         <files mask="arc4.c"/>
@@ -163,7 +163,7 @@
         <files mask="x509write_csr.c"/>
         <files mask="xtea.c"/>
       </source>
-      <source path="./port/ksdk/" target_path="mbedTLS/mbedTLS_port">
+      <source path="./port/ksdk/" target_path="mbedtls/port/ksdk">
         <files mask="des_alt.c"/>
         <files mask="des_alt.h"/>
         <files mask="ksdk_mbedtls.c"/>
@@ -263,5 +263,6 @@
     <component name="middleware.mbedtls.support" requires="platform.drivers.ltc"/>
     <component name="middleware.mbedtls.support" requires="platform.drivers.cau3"/>
     <component name="middleware.mbedtls.support" requires="platform.drivers.sha"/>
+    <component name="middleware.mbedtls.support" requires="platform.drivers.dcp"/>
   </components>
 </metadata>

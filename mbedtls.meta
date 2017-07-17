@@ -2,16 +2,16 @@
 <metadata>
   <components>
     <component name="middleware.mbedtls" requires="middleware.mbedtls.support" type="middleware" change_log="./ChangeLogKSDK.txt" description="mbedTLS library" version="2.5.1" ui_name="mbedtls" ui_description="mbedTLS SSL/TLS library" ui_category="Middleware" ui_release_specific="True">
-      <source path="./configs/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./configs/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./doxygen/input/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./doxygen/input/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./doxygen/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./doxygen/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./include/mbedtls/" target_path="mbedtls/include/mbedtls">
+      <source path="./include/mbedtls/" target_path="mbedTLS/include/mbedtls">
         <files mask="aes.h"/>
         <files mask="aesni.h"/>
         <files mask="arc4.h"/>
@@ -83,14 +83,10 @@
         <files mask="x509_csr.h"/>
         <files mask="xtea.h"/>
       </source>
-      <source path="./include/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./include/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.txt"/>
       </source>
-      <source path="./library/" target_path="mbedTLS/mbedTLS_files">
-        <files mask="*.txt"/>
-        <files mask="Makefile"/>
-      </source>
-      <source path="./library/" target_path="mbedtls/library">
+      <source path="./library/" target_path="mbedTLS/library">
         <files mask="aes.c"/>
         <files mask="aesni.c"/>
         <files mask="arc4.c"/>
@@ -163,7 +159,11 @@
         <files mask="x509write_csr.c"/>
         <files mask="xtea.c"/>
       </source>
-      <source path="./port/ksdk/" target_path="mbedtls/port/ksdk">
+      <source path="./library/" target_path="mbedTLS/mbedTLS_files" exclude="true">
+        <files mask="*.txt"/>
+        <files mask="Makefile"/>
+      </source>
+      <source path="./port/ksdk/" target_path="mbedTLS/port/ksdk">
         <files mask="des_alt.c"/>
         <files mask="des_alt.h"/>
         <files mask="ksdk_mbedtls.c"/>
@@ -172,91 +172,94 @@
         <files mask="sha1_alt.h"/>
         <files mask="sha256_alt.h"/>
       </source>
-      <source path="./programs/aes/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./programs/aes/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./programs/hash/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./programs/hash/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./programs/pkey/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./programs/pkey/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./programs/random/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./programs/random/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./programs/ssl/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./programs/ssl/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./programs/test/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./programs/test/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./programs/util/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./programs/util/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./programs/x509/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./programs/x509/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./programs/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./programs/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
         <files mask="Makefile"/>
       </source>
-      <source path="./scripts/data_files/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./scripts/data_files/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./scripts/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./scripts/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./tests/data_files/dir1/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./tests/data_files/dir1/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./tests/data_files/dir2/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./tests/data_files/dir2/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./tests/data_files/dir3/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./tests/data_files/dir3/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./tests/data_files/dir4/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./tests/data_files/dir4/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./tests/data_files/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./tests/data_files/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./tests/scripts/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./tests/scripts/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./tests/suites/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./tests/suites/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./tests/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./tests/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./visualc/VS2010/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./visualc/VS2010/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./yotta/data/example-authcrypt/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./yotta/data/example-authcrypt/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./yotta/data/example-benchmark/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./yotta/data/example-benchmark/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./yotta/data/example-hashing/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./yotta/data/example-hashing/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./yotta/data/example-tls-client/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./yotta/data/example-tls-client/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./yotta/data/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./yotta/data/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
-      <source path="./yotta/" target_path="mbedTLS/mbedTLS_files">
+      <source path="./yotta/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
       <source path="./">
         <files mask="mbedtls.meta"/>
       </source>
-      <source path="./" target_path="mbedTLS/mbedTLS_files">
+      <source path="./" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>
+      <include_paths>
+        <include path="mbedTLS/include"/>
+      </include_paths>
     </component>
     <component name="middleware.mbedtls.support" requires="middleware.mmcau.support"/>
     <component name="middleware.mbedtls.support" requires="platform.drivers.aes"/>

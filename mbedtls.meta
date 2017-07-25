@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <metadata>
   <components>
-    <component name="middleware.mbedtls" requires="middleware.mbedtls.support" type="middleware" change_log="./ChangeLogKSDK.txt" description="mbedTLS library" version="2.5.1" ui_name="mbedtls" ui_description="mbedTLS SSL/TLS library" ui_category="Middleware" ui_release_specific="True">
+    <component name="middleware.mbedtls" requires="middleware.mbedtls.support" type="middleware" change_log="./ChangeLogKSDK.txt" description="mbedTLS library" version="2.5.1_rev1" ui_name="mbedtls" ui_description="mbedTLS SSL/TLS library" ui_category="Middleware" ui_release_specific="True">
       <source path="./configs/" target_path="mbedTLS/mbedTLS_files" exclude="true">
         <files mask="*.*"/>
       </source>

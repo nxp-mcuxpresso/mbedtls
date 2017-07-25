@@ -46,6 +46,9 @@
 #if defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)
 #include "fsl_cau3.h"
 #endif
+#if defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0)
+#include "fsl_dcp.h"
+#endif
 #if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
 #include "fsl_trng.h"
 #elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
@@ -105,6 +108,13 @@ static bool cau3_aes_is_expanded(const void *ctx)
 }
 #endif
 
+/******************************************************************************/
+/**************************** DCP *********************************************/
+/******************************************************************************/
+#if defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0)
+static dcp_handle_t s_dcpHandle = {.channel = kDCP_Channel0, .keySlot = kDCP_KeySlot0};
+#endif
+
 #if defined(MBEDTLS_SHA1_ALT) || defined(MBEDTLS_SHA256_ALT)
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize(void *v, size_t n)
@@ -147,8 +157,18 @@ void CRYPTO_InitHardware(void)
     /* Get CAU3 ownership for this Host CPU */
     CAU3_LockSemaphore(CAU3);
 #endif
+#if defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0)
+    /* Initialize DCP */
+    dcp_config_t dcpConfig;
+
+    DCP_GetDefaultConfig(&dcpConfig);
+    DCP_Init(DCP, &dcpConfig);
+#endif
     { /* Init RNG module.*/
 #if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+#if defined(TRNG)
+#define TRNG0 TRNG
+#endif
         trng_config_t trngConfig;
 
         TRNG_GetDefaultConfig(&trngConfig);
@@ -551,7 +571,7 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
 #if defined(MBEDTLS_AES_C)
 
 #if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || \
-    defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES)
+    defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
 
 #include "mbedtls/aes.h"
 
@@ -563,7 +583,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
     uint32_t *RK;
 
 #if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || \
-    defined(MBEDTLS_FREESCALE_CAAM_AES)
+    defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
     const unsigned char *key_tmp = key;
     ctx->rk = RK = ctx->buf;
     memcpy(RK, key_tmp, keybits / 8);
@@ -606,6 +626,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
 
     MMCAU_AES_SetKey(key, keybits / 8, (uint8_t *)RK);
 #endif
+
     return (0);
 }
 
@@ -619,7 +640,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
     ctx->rk = RK = ctx->buf;
 
 #if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || \
-    defined(MBEDTLS_FREESCALE_CAAM_AES)
+    defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
     const unsigned char *key_tmp = key;
     memcpy(RK, key_tmp, keybits / 8);
 
@@ -689,6 +710,9 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
     AES_EncryptEcb(AES_INSTANCE, input, output, 16);
 #elif defined(MBEDTLS_FREESCALE_CAAM_AES)
     CAAM_AES_EncryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 16, key, ctx->nr);
+#elif defined(MBEDTLS_FREESCALE_DCP_AES)
+    DCP_AES_SetKey(DCP, &s_dcpHandle, key, ctx->nr);
+    DCP_AES_EncryptEcb(DCP, &s_dcpHandle, input, output, 16);
 #endif
 
     return( 0 );
@@ -718,6 +742,9 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx, const unsigned char 
     AES_DecryptEcb(AES_INSTANCE, input, output, 16);
 #elif defined(MBEDTLS_FREESCALE_CAAM_AES)
     CAAM_AES_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 16, key, ctx->nr);
+#elif defined(MBEDTLS_FREESCALE_DCP_AES)
+    DCP_AES_SetKey(DCP, &s_dcpHandle, key, ctx->nr);
+    DCP_AES_DecryptEcb(DCP, &s_dcpHandle, input, output, 16);
 #endif
 
     return( 0 );
@@ -813,6 +840,35 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     else
     {
         CAAM_AES_EncryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, keySize);
+        memcpy(iv, output + length - 16, 16);
+    }
+
+    return (0);
+}
+#elif defined(MBEDTLS_FREESCALE_DCP_AES)
+int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
+                          int mode,
+                          size_t length,
+                          unsigned char iv[16],
+                          const unsigned char *input,
+                          unsigned char *output)
+{
+    uint8_t *key = (uint8_t *)ctx->rk;
+    uint32_t keySize = ctx->nr;
+
+    if (length % 16)
+        return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
+
+    if (mode == MBEDTLS_AES_DECRYPT)
+    {
+        uint8_t tmp[16];
+        memcpy(tmp, input + length - 16, 16);
+        DCP_AES_DecryptCbc(DCP, &s_dcpHandle, input, output, length, iv);
+        memcpy(iv, tmp, 16);
+    }
+    else
+    {
+        DCP_AES_EncryptCbc(DCP, &s_dcpHandle, input, output, length, iv);
         memcpy(iv, output + length - 16, 16);
     }
 
@@ -3342,6 +3398,56 @@ void mbedtls_sha1_finish(mbedtls_sha1_context *ctx, unsigned char output[20])
     CAU3_HASH_Finish(CAU3, ctx, output, 0);
 }
 
+#elif defined(MBEDTLS_FREESCALE_DCP_SHA1)
+#include "mbedtls/sha1.h"
+
+void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
+{
+    memset(ctx, 0, sizeof(mbedtls_sha1_context));
+}
+
+void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
+{
+    if (ctx == NULL)
+        return;
+
+    mbedtls_zeroize(ctx, sizeof(mbedtls_sha1_context));
+}
+
+void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
+{
+    memcpy(dst, src, sizeof(mbedtls_sha1_context));
+}
+
+/*
+ * SHA-1 context setup
+ */
+void mbedtls_sha1_starts(mbedtls_sha1_context *ctx)
+{
+    DCP_HASH_Init(DCP, &s_dcpHandle, ctx, kDCP_Sha1);
+}
+
+void mbedtls_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
+{
+    DCP_HASH_Update(DCP, ctx, data, 64);
+}
+
+/*
+ * SHA-1 process buffer
+ */
+void mbedtls_sha1_update(mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen)
+{
+    DCP_HASH_Update(DCP, ctx, input, ilen);
+}
+
+/*
+ * SHA-1 final digest
+ */
+void mbedtls_sha1_finish(mbedtls_sha1_context *ctx, unsigned char output[20])
+{
+    DCP_HASH_Finish(DCP, ctx, output, NULL);
+}
+
 #endif /* MBEDTLS_FREESCALE_LPC_SHA1 */
 #endif /* MBEDTLS_SHA1_C */
 
@@ -3580,6 +3686,59 @@ void mbedtls_sha256_update(mbedtls_sha256_context *ctx, const unsigned char *inp
 void mbedtls_sha256_finish(mbedtls_sha256_context *ctx, unsigned char output[32])
 {
     CAAM_HASH_Finish(ctx, output, 0);
+}
+
+#elif defined(MBEDTLS_FREESCALE_DCP_SHA256)
+#include "mbedtls/sha256.h"
+
+void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
+{
+    memset(ctx, 0, sizeof(mbedtls_sha256_context));
+}
+
+void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
+{
+    if (ctx == NULL)
+        return;
+
+    mbedtls_zeroize(ctx, sizeof(mbedtls_sha256_context));
+}
+
+void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
+{
+    memcpy(dst, src, sizeof(*dst));
+}
+
+/*
+ * SHA-256 context setup
+ */
+void mbedtls_sha256_starts(mbedtls_sha256_context *ctx, int is224)
+{
+    if (!is224)
+    {
+        DCP_HASH_Init(DCP, &s_dcpHandle, ctx, kDCP_Sha256);
+    }
+}
+
+void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
+{
+    DCP_HASH_Update(DCP, ctx, data, 64);
+}
+
+/*
+ * SHA-256 process buffer
+ */
+void mbedtls_sha256_update(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
+{
+    DCP_HASH_Update(DCP, ctx, input, ilen);
+}
+
+/*
+ * SHA-256 final digest
+ */
+void mbedtls_sha256_finish(mbedtls_sha256_context *ctx, unsigned char output[32])
+{
+    DCP_HASH_Finish(DCP, ctx, output, NULL);
 }
 #endif /* MBEDTLS_FREESCALE_LTC_SHA256 */
 #endif /* MBEDTLS_SHA256_C */

@@ -4,6 +4,10 @@
 @section mbedtls mbedTLS for KSDK
   Current version of mbedTLS for KSDK is based on mbedTLS 2.5.1 released 2017-Jun-21
  
+ - 2.5.1_rev1
+    - New Features:
+      - Add support for DCP driver.
+
  - 2.5.1
     - New Features:
       - Ported mbedTLS 2.5.1 to KSDK
@@ -29,11 +33,6 @@
       - Added new file:
       - \middleware\mbedtls\port\ksdk\ksdk_mbedtls.h - contains declaration of CRYPTO_InitHardware() function and should be included in applications.
 
- - 2.3.0_rev1
-    - New Features:
-      - Add support for CAAM driver. 
-      - In LTC specific wrapper, allocate temporary integers from heap in one large block.
- 
  - 2.3.0_rev1
     - New Features:
       - Add support for CAAM driver. 

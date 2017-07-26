@@ -73,15 +73,27 @@ static caam_handle_t s_caamHandle = {.jobRing = kCAAM_JobRing0};
 /******************************************************************************/
 #if defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)
 static cau3_handle_t s_cau3Handle = {.taskDone = MBEDTLS_CAU3_COMPLETION_SIGNAL, .keySlot = kCAU3_KeySlot0};
+#endif
 
+/******************************************************************************/
+/**************************** DCP *********************************************/
+/******************************************************************************/
+#if defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0)
+static dcp_handle_t s_dcpHandle = {.channel = kDCP_Channel0, .keySlot = kDCP_KeySlot0};
+#endif
+
+/******************************************************************************/
+/************************* Key slot management ********************************/
+/******************************************************************************/
+#if (defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)) || (defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0))
 static const void *s_mbedtlsCtx[4] = {0};
 
-static void cau3_attach_ctx_to_key_slot(const void *ctx, cau3_key_slot_t keySlot)
+static void crypto_attach_ctx_to_key_slot(const void *ctx, uint8_t keySlot)
 {
     s_mbedtlsCtx[keySlot] = ctx;
 }
 
-static void cau3_detach_ctx_from_key_slot(const void *ctx)
+static void crypto_detach_ctx_from_key_slot(const void *ctx)
 {
     for (int i = 0; i < 4; i++)
     {
@@ -93,7 +105,7 @@ static void cau3_detach_ctx_from_key_slot(const void *ctx)
     }
 }
 
-static bool cau3_aes_is_expanded(const void *ctx)
+static bool crypto_key_is_loaded(const void *ctx)
 {
     bool ret = false;
     for (int i = 0; i < 4; i++)
@@ -106,13 +118,6 @@ static bool cau3_aes_is_expanded(const void *ctx)
     }
     return ret;
 }
-#endif
-
-/******************************************************************************/
-/**************************** DCP *********************************************/
-/******************************************************************************/
-#if defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0)
-static dcp_handle_t s_dcpHandle = {.channel = kDCP_Channel0, .keySlot = kDCP_KeySlot0};
 #endif
 
 #if defined(MBEDTLS_SHA1_ALT) || defined(MBEDTLS_SHA256_ALT)
@@ -588,9 +593,9 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
     ctx->rk = RK = ctx->buf;
     memcpy(RK, key_tmp, keybits / 8);
 
-#if defined(MBEDTLS_FREESCALE_CAU3_AES)
-    cau3_detach_ctx_from_key_slot(ctx);
-#endif /* MBEDTLS_FREESCALE_CAU3_AES */
+#if defined(MBEDTLS_FREESCALE_CAU3_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
+    crypto_detach_ctx_from_key_slot(ctx);
+#endif /* MBEDTLS_FREESCALE_CAU3_AES || MBEDTLS_FREESCALE_DCP_AES */
 
     switch (keybits)
     { /* Set keysize in bytes.*/
@@ -644,9 +649,9 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
     const unsigned char *key_tmp = key;
     memcpy(RK, key_tmp, keybits / 8);
 
-#if defined(MBEDTLS_FREESCALE_CAU3_AES)
-    cau3_detach_ctx_from_key_slot(ctx);
-#endif /* MBEDTLS_FREESCALE_CAU3_AES */
+#if defined(MBEDTLS_FREESCALE_CAU3_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
+    crypto_detach_ctx_from_key_slot(ctx);
+#endif /* MBEDTLS_FREESCALE_CAU3_AES || MBEDTLS_FREESCALE_DCP_AES */
 
     switch (keybits)
     {
@@ -699,10 +704,10 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     MMCAU_AES_EncryptEcb(input, key, ctx->nr, output);
 #elif defined(MBEDTLS_FREESCALE_CAU3_AES)
-    if (!cau3_aes_is_expanded(ctx))
+    if (!crypto_key_is_loaded(ctx))
     {
         CAU3_AES_SetKey(CAU3, &s_cau3Handle, key, ctx->nr);
-        cau3_attach_ctx_to_key_slot(ctx, s_cau3Handle.keySlot);
+        crypto_attach_ctx_to_key_slot(ctx, s_cau3Handle.keySlot);
     }
     CAU3_AES_Encrypt(CAU3, &s_cau3Handle, input, output);
 #elif defined(MBEDTLS_FREESCALE_LPC_AES)
@@ -711,7 +716,11 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
 #elif defined(MBEDTLS_FREESCALE_CAAM_AES)
     CAAM_AES_EncryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 16, key, ctx->nr);
 #elif defined(MBEDTLS_FREESCALE_DCP_AES)
-    DCP_AES_SetKey(DCP, &s_dcpHandle, key, ctx->nr);
+    if (!crypto_key_is_loaded(ctx))
+    {
+        DCP_AES_SetKey(DCP, &s_dcpHandle, key, ctx->nr);
+        crypto_attach_ctx_to_key_slot(ctx, s_dcpHandle.keySlot);
+    }
     DCP_AES_EncryptEcb(DCP, &s_dcpHandle, input, output, 16);
 #endif
 
@@ -731,10 +740,10 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx, const unsigned char 
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     MMCAU_AES_DecryptEcb(input, key, ctx->nr, output);
 #elif defined(MBEDTLS_FREESCALE_CAU3_AES)
-    if (!cau3_aes_is_expanded(ctx))
+    if (!crypto_key_is_loaded(ctx))
     {
         CAU3_AES_SetKey(CAU3, &s_cau3Handle, key, ctx->nr);
-        cau3_attach_ctx_to_key_slot(ctx, s_cau3Handle.keySlot);
+        crypto_attach_ctx_to_key_slot(ctx, s_cau3Handle.keySlot);
     }
     CAU3_AES_Decrypt(CAU3, &s_cau3Handle, input, output);
 #elif defined(MBEDTLS_FREESCALE_LPC_AES)
@@ -743,7 +752,11 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx, const unsigned char 
 #elif defined(MBEDTLS_FREESCALE_CAAM_AES)
     CAAM_AES_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 16, key, ctx->nr);
 #elif defined(MBEDTLS_FREESCALE_DCP_AES)
-    DCP_AES_SetKey(DCP, &s_dcpHandle, key, ctx->nr);
+    if (!crypto_key_is_loaded(ctx))
+    {
+        DCP_AES_SetKey(DCP, &s_dcpHandle, key, ctx->nr);
+        crypto_attach_ctx_to_key_slot(ctx, s_dcpHandle.keySlot);
+    }
     DCP_AES_DecryptEcb(DCP, &s_dcpHandle, input, output, 16);
 #endif
 
@@ -853,9 +866,6 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
                           const unsigned char *input,
                           unsigned char *output)
 {
-    uint8_t *key = (uint8_t *)ctx->rk;
-    uint32_t keySize = ctx->nr;
-
     if (length % 16)
         return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
 

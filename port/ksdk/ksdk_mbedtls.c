@@ -261,6 +261,9 @@ int mbedtls_des3_set2key_enc(mbedtls_des3_context *ctx, const unsigned char key[
 #if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
     memcpy(ctx->sk, key, MBEDTLS_DES_KEY_SIZE * 2);
     memcpy(&ctx->sk[4], key, MBEDTLS_DES_KEY_SIZE); /* K3 = K1 */
+#if defined(MBEDTLS_FREESCALE_CAU3_DES)
+    crypto_detach_ctx_from_key_slot(ctx);
+#endif
 #elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
@@ -288,6 +291,9 @@ int mbedtls_des3_set2key_dec(mbedtls_des3_context *ctx, const unsigned char key[
 #if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
     memcpy(ctx->sk, key, MBEDTLS_DES_KEY_SIZE * 2);
     memcpy(&ctx->sk[4], key, MBEDTLS_DES_KEY_SIZE); /* K3 = K1 */
+#if defined(MBEDTLS_FREESCALE_CAU3_DES)
+    crypto_detach_ctx_from_key_slot(ctx);
+#endif
 #elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
@@ -314,6 +320,9 @@ int mbedtls_des3_set3key_enc(mbedtls_des3_context *ctx, const unsigned char key[
 {
 #if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
     memcpy(ctx->sk, key, MBEDTLS_DES_KEY_SIZE * 3);
+#if defined(MBEDTLS_FREESCALE_CAU3_DES)
+    crypto_detach_ctx_from_key_slot(ctx);
+#endif
 #elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
@@ -336,6 +345,9 @@ int mbedtls_des3_set3key_dec(mbedtls_des3_context *ctx, const unsigned char key[
 {
 #if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
     memcpy(ctx->sk, key, MBEDTLS_DES_KEY_SIZE * 3);
+#if defined(MBEDTLS_FREESCALE_CAU3_DES)
+    crypto_detach_ctx_from_key_slot(ctx);
+#endif
 #elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
     int i;
     unsigned char *sk_b = (unsigned char *)ctx->sk;
@@ -427,7 +439,11 @@ int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx, const unsigned char input[
         CAAM_DES3_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key, key + 8, key + 16);
     }
 #elif defined(MBEDTLS_FREESCALE_CAU3_DES)
-    CAU3_TDES_SetKey(CAU3, &s_cau3Handle, key, 24);
+    if (!crypto_key_is_loaded(ctx))
+    {
+        CAU3_TDES_SetKey(CAU3, &s_cau3Handle, key, 24);
+        crypto_attach_ctx_to_key_slot(ctx, s_cau3Handle.keySlot);
+    }
 
     if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {

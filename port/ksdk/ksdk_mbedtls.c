@@ -3843,7 +3843,7 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 /******************************************************************************/
 /*************************** FreeRTOS ********************************************/
 /******************************************************************************/
-#if USE_RTOS && defined(FSL_RTOS_FREE_RTOS)
+#if USE_RTOS && defined(FSL_RTOS_FREE_RTOS) && defined(MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT)
 #include "FreeRTOS.h"
 #include "task.h"
 #include <stdlib.h>
@@ -3873,4 +3873,4 @@ void *pvPortCalloc(size_t num, size_t size)
 
     return pvReturn;
 }
-#endif /* USE_RTOS && defined(FSL_RTOS_FREE_RTOS)*/
+#endif /* USE_RTOS && defined(FSL_RTOS_FREE_RTOS) && defined(MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT) */

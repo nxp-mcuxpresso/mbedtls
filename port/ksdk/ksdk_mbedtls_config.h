@@ -153,6 +153,18 @@
 
 #endif
 
+/**
+ * \def MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT
+ *
+ * Enable implementation for FreeRTOS's pvPortCalloc() in ksdk_mbedtls.c module.
+ * You can comment this macro if you provide your own alternate implementation. 
+ * 
+ */
+#if USE_RTOS && defined(FSL_RTOS_FREE_RTOS)
+#define MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT
+#endif
+
+
 /* Define ALT MMCAU & LTC functions. Do not change it. */
 #if defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
 #define MBEDTLS_DES_ALT

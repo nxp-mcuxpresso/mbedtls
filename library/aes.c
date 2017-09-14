@@ -88,6 +88,7 @@ static int aes_padlock_ace = -1;
 #endif
 
 #if defined(MBEDTLS_AES_ROM_TABLES)
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 /*
  * Forward S-box
  */
@@ -352,6 +353,7 @@ static const uint32_t RCON[10] =
     0x0000001B, 0x00000036
 };
 
+#endif /* MBEDTLS_AES_SETKEY_ENC_ALT */
 #else /* MBEDTLS_AES_ROM_TABLES */
 
 #if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)

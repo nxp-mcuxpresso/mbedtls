@@ -4,6 +4,11 @@
 @section mbedtls mbedTLS for KSDK
   Current version of mbedTLS for KSDK is based on mbedTLS 2.6.0 released 2017-Aug-10
  
+ - 2.6.0_rev1
+    - Bug fixes:
+      - ksdk_mbedtls.c bignum functions now read sign of input mbedtls_mpi at beginning of functions to properly support in place computations
+        (when output bignum is the same as one of input bignums). Affected functions: mbedtls_mpi_mul_mpi(), mbedtls_mpi_mod_mpi(), ecp_mul_comb().
+ 
  - 2.6.0
     - New Features:
       - Ported mbedTLS 2.6.0 to KSDK

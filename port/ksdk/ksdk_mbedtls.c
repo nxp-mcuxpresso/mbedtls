@@ -85,7 +85,8 @@ static dcp_handle_t s_dcpHandle = {.channel = kDCP_Channel0, .keySlot = kDCP_Key
 /******************************************************************************/
 /************************* Key slot management ********************************/
 /******************************************************************************/
-#if (defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)) || (defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0))
+#if (defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)) || \
+    (defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0))
 static const void *s_mbedtlsCtx[4] = {0};
 
 static void crypto_attach_ctx_to_key_slot(const void *ctx, uint8_t keySlot)
@@ -592,7 +593,8 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
 #if defined(MBEDTLS_AES_C)
 
 #if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || \
-    defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
+    defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) ||  \
+    defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
 
 #include "mbedtls/aes.h"
 
@@ -710,7 +712,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
 /*
  * AES-ECB block encryption
  */
-int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16] )
+int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16])
 {
     uint8_t *key;
 
@@ -740,13 +742,13 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
     DCP_AES_EncryptEcb(DCP, &s_dcpHandle, input, output, 16);
 #endif
 
-    return( 0 );
+    return (0);
 }
 
 /*
  * AES-ECB block decryption
  */
-int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16] )
+int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16])
 {
     uint8_t *key;
 
@@ -776,7 +778,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx, const unsigned char 
     DCP_AES_DecryptEcb(DCP, &s_dcpHandle, input, output, 16);
 #endif
 
-    return( 0 );
+    return (0);
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -1813,6 +1815,7 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
         int ret;
         pkha_size_t sizeC;
+        int sign = A->s * B->s;
 
         uint8_t *N = mbedtls_calloc(4, FREESCALE_PKHA_INT_MAX_BYTES);
         uint8_t *ptrA = N + FREESCALE_PKHA_INT_MAX_BYTES;
@@ -1845,7 +1848,7 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 
         ltc_reverse_array(ptrC, sizeC);
         mbedtls_mpi_read_binary(X, ptrC, sizeC);
-        X->s = A->s * B->s;
+        X->s = sign;
     cleanup:
         if (N)
         {
@@ -1879,6 +1882,7 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
         int ret;
         pkha_size_t sizeC;
+        int sign = A->s * B->s;
 
         uint8_t *N = mbedtls_calloc(4, FREESCALE_PKHA_INT_MAX_BYTES);
         uint8_t *ptrA = N + FREESCALE_PKHA_INT_MAX_BYTES;
@@ -1907,7 +1911,7 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
             CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
 
         mbedtls_mpi_read_binary(X, ptrC, sizeC);
-        X->s = A->s * B->s;
+        X->s = sign;
     cleanup:
         if (N)
         {
@@ -1945,6 +1949,7 @@ int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi 
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
         int ret;
         pkha_size_t sizeC;
+        int sign = A->s;
         uint8_t *ptrA = mbedtls_calloc(3, FREESCALE_PKHA_INT_MAX_BYTES);
         uint8_t *ptrB = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
         uint8_t *ptrC = ptrB + FREESCALE_PKHA_INT_MAX_BYTES;
@@ -1966,7 +1971,7 @@ int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi 
 
         ltc_reverse_array(ptrC, sizeC);
         mbedtls_mpi_read_binary(R, ptrC, sizeC);
-        R->s = A->s;
+        R->s = sign;
 
         while (mbedtls_mpi_cmp_int(R, 0) < 0)
             mbedtls_mpi_add_mpi(R, R, B); /* MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( R, R, B ) ); */
@@ -2000,6 +2005,7 @@ int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi 
 #endif /* FREESCALE_PKHA_LONG_OPERANDS_ENABLE */
         int ret;
         pkha_size_t sizeC;
+        int sign = A->s;
         uint8_t *ptrA = mbedtls_calloc(3, FREESCALE_PKHA_INT_MAX_BYTES);
         uint8_t *ptrB = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
         uint8_t *ptrC = ptrB + FREESCALE_PKHA_INT_MAX_BYTES;
@@ -2018,7 +2024,7 @@ int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi 
             CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
 
         mbedtls_mpi_read_binary(R, ptrC, sizeC);
-        R->s = A->s;
+        R->s = sign;
 
         while (mbedtls_mpi_cmp_int(R, 0) < 0)
             mbedtls_mpi_add_mpi(R, R, B); /* MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( R, R, B ) ); */
@@ -2656,6 +2662,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     bool is_inf;
     size_t size;
     size_t size_bin;
+    int sign = m->s;
 
     ltc_pkha_ecc_point_t A;
     ltc_pkha_ecc_point_t result;
@@ -2710,7 +2717,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     /* if the integer multiplier is negative, the computation happens with abs() value
      * and the result (x,y) is changed to (x, -y)
      */
-    R->Y.s = m->s;
+    R->Y.s = sign;
     MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&R->Z, 1));
 
 cleanup:
@@ -2732,6 +2739,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     int ret;
     size_t size;
     size_t size_bin;
+    int sign = m->s;
 
     caam_pkha_ecc_point_t A;
     caam_pkha_ecc_point_t result;
@@ -2782,7 +2790,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     /* if the integer multiplier is negative, the computation happens with abs() value
      * and the result (x,y) is changed to (x, -y)
      */
-    R->Y.s = m->s;
+    R->Y.s = sign;
     MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&R->Z, 1));
 
 cleanup:
@@ -2805,6 +2813,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     status_t status;
     size_t size;
     size_t size_bin;
+    int sign = m->s;
 
     cau3_pkha_ecc_point_t A;
     cau3_pkha_ecc_point_t result;
@@ -2865,7 +2874,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     /* if the integer multiplier is negative, the computation happens with abs() value
      * and the result (x,y) is changed to (x, -y)
      */
-    R->Y.s = m->s;
+    R->Y.s = sign;
     MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&R->Z, 1));
 
 cleanup:
@@ -3114,19 +3123,24 @@ cleanup:
 #if defined(MBEDTLS_FREESCALE_CAU3_PKHA)
 
 /* curve25519 params - in little endian for CAU3 */
-static const uint8_t s_curve25519_A24[] = {0x42, 0xdb, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+static const uint8_t s_curve25519_A24[] = {0x42, 0xdb, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-static const uint8_t s_curve25519_N[] = {0xed, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f};
+static const uint8_t s_curve25519_N[] = {0xed, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f};
 
-static const uint8_t s_curve25519_R2modN[] = {0xa4, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+static const uint8_t s_curve25519_R2modN[] = {0xa4, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-                 const mbedtls_mpi *m, const mbedtls_ecp_point *P,
-                 int (*f_rng)(void *, unsigned char *, size_t),
-                 void *p_rng )
+int ecp_mul_mxz(mbedtls_ecp_group *grp,
+                mbedtls_ecp_point *R,
+                const mbedtls_mpi *m,
+                const mbedtls_ecp_point *P,
+                int (*f_rng)(void *, unsigned char *, size_t),
+                void *p_rng)
 {
     int ret;
     status_t status;
@@ -3162,8 +3176,8 @@ int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     cau3_reverse_array(ptrE, size_bin);
 
     /* Multiply */
-    status = CAU3_PKHA_ECM_PointMul(CAU3, ptrE, size_bin, A.X , s_curve25519_A24, s_curve25519_N,
-                                    s_curve25519_R2modN, size, kCAU3_PKHA_TimingEqualized, result.X);
+    status = CAU3_PKHA_ECM_PointMul(CAU3, ptrE, size_bin, A.X, s_curve25519_A24, s_curve25519_N, s_curve25519_R2modN,
+                                    size, kCAU3_PKHA_TimingEqualized, result.X);
 
     if (status != kStatus_Success)
     {

@@ -25,7 +25,7 @@
  - 2.4.2_rev2
     - New features:
       - Added Curve25519 support for CAU3.
-      - Addeded MBEDTLS_ECP_MUL_MXZ_ALT configuration parameter enabling overloading of ecp_mul_mxz().
+      - Added MBEDTLS_ECP_MUL_MXZ_ALT configuration parameter enabling overloading of ecp_mul_mxz().
 
  - 2.4.2_rev1
     - New features:

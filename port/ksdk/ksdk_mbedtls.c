@@ -90,7 +90,7 @@ static dcp_handle_t s_dcpHandle = {.channel = kDCP_Channel0, .keySlot = kDCP_Key
 /************************* Key slot management ********************************/
 /******************************************************************************/
 #if (defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)) || \
-    (defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0))
+    (defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0) && (defined(MBEDTLS_FREESCALE_DCP_AES)))
 static const void *s_mbedtlsCtx[4] = {0};
 
 static void crypto_attach_ctx_to_key_slot(const void *ctx, uint8_t keySlot)

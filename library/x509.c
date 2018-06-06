@@ -496,9 +496,10 @@ static int x509_parse_int( unsigned char **p, size_t n, int *res )
     return( 0 );
 }
 
-static int x509_date_is_valid(const mbedtls_x509_time *t)
+static int x509_date_is_valid(const mbedtls_x509_time *t )
 {
     int ret = MBEDTLS_ERR_X509_INVALID_DATE;
+    int month_len;
 
     CHECK_RANGE( 0, 9999, t->year );
     CHECK_RANGE( 0, 23,   t->hour );
@@ -508,17 +509,22 @@ static int x509_date_is_valid(const mbedtls_x509_time *t)
     switch( t->mon )
     {
         case 1: case 3: case 5: case 7: case 8: case 10: case 12:
-            CHECK_RANGE( 1, 31, t->day );
+            month_len = 31;
             break;
         case 4: case 6: case 9: case 11:
-            CHECK_RANGE( 1, 30, t->day );
+            month_len = 30;
             break;
         case 2:
-            CHECK_RANGE( 1, 28 + (t->year % 4 == 0), t->day );
+            if( ( !( t->year % 4 ) && t->year % 100 ) ||
+                !( t->year % 400 ) )
+                month_len = 29;
+            else
+                month_len = 28;
             break;
         default:
             return( ret );
     }
+    CHECK_RANGE( 1, month_len, t->day );
 
     return( 0 );
 }
@@ -1051,7 +1057,7 @@ int mbedtls_x509_self_test( int verbose )
     if( ret != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed\r\n" );
+            mbedtls_printf( "failed\n\r" );
 
         return( ret );
     }
@@ -1063,25 +1069,25 @@ int mbedtls_x509_self_test( int verbose )
     if( ret != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed\r\n" );
+            mbedtls_printf( "failed\n\r" );
 
         return( ret );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\r\n  X.509 signature verify: ");
+        mbedtls_printf( "passed\n\r  X.509 signature verify: ");
 
     ret = mbedtls_x509_crt_verify( &clicert, &cacert, NULL, NULL, &flags, NULL, NULL );
     if( ret != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "failed\r\n" );
+            mbedtls_printf( "failed\n\r" );
 
         return( ret );
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\r\n\r\n");
+        mbedtls_printf( "passed\n\n\r");
 
     mbedtls_x509_crt_free( &cacert  );
     mbedtls_x509_crt_free( &clicert );

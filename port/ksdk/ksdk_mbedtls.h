@@ -39,6 +39,7 @@
 extern "C" {
 #endif
 
+int fsl_mbedtls_printf(const char *fmt_s, ...);
 void CRYPTO_InitHardware(void);
 
 #ifdef __cplusplus

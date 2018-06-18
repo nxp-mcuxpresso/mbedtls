@@ -90,7 +90,7 @@ static dcp_handle_t s_dcpHandle = {.channel = kDCP_Channel0, .keySlot = kDCP_Key
 /************************* Key slot management ********************************/
 /******************************************************************************/
 #if (defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)) || \
-    (defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0))
+    (defined(MBEDTLS_FREESCALE_DCP_AES))
 static const void *s_mbedtlsCtx[4] = {0};
 
 static void crypto_attach_ctx_to_key_slot(const void *ctx, uint8_t keySlot)
@@ -3622,6 +3622,31 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 }
 
 #endif /* MBEDTLS_FREESCALE_LPC_SHA1 */
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+void mbedtls_sha1_starts( mbedtls_sha1_context *ctx )
+{
+    mbedtls_sha1_starts_ret( ctx );
+}
+
+void mbedtls_sha1_update( mbedtls_sha1_context *ctx,
+                          const unsigned char *input,
+                          size_t ilen )
+{
+    mbedtls_sha1_update_ret( ctx, input, ilen );
+}
+
+void mbedtls_sha1_finish( mbedtls_sha1_context *ctx,
+                          unsigned char output[20] )
+{
+    mbedtls_sha1_finish_ret( ctx, output );
+}
+
+void mbedtls_sha1_process( mbedtls_sha1_context *ctx,
+                           const unsigned char data[64] )
+{
+    mbedtls_internal_sha1_process( ctx, data );
+}
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_SHA1_C */
 
 /******************************************************************************/
@@ -4041,6 +4066,32 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
     return 0;
 }
 #endif /* MBEDTLS_FREESCALE_LTC_SHA256 */
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+void mbedtls_sha256_starts( mbedtls_sha256_context *ctx,
+                            int is224 )
+{
+    mbedtls_sha256_starts_ret( ctx, is224 );
+}
+
+void mbedtls_sha256_update( mbedtls_sha256_context *ctx,
+                            const unsigned char *input,
+                            size_t ilen )
+{
+    mbedtls_sha256_update_ret( ctx, input, ilen );
+}
+
+void mbedtls_sha256_finish( mbedtls_sha256_context *ctx,
+                            unsigned char output[32] )
+{
+    mbedtls_sha256_finish_ret( ctx, output );
+}
+
+void mbedtls_sha256_process( mbedtls_sha256_context *ctx,
+                             const unsigned char data[64] )
+{
+    mbedtls_internal_sha256_process( ctx, data );
+}
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_SHA256_C */
 
 /* Entropy poll callback for a hardware source */

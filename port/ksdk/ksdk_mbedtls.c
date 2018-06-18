@@ -3622,7 +3622,9 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 }
 
 #endif /* MBEDTLS_FREESCALE_LPC_SHA1 */
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED) && defined(MBEDTLS_SHA1_ALT)
+#include "mbedtls/sha1.h"
+
 void mbedtls_sha1_starts( mbedtls_sha1_context *ctx )
 {
     mbedtls_sha1_starts_ret( ctx );
@@ -4066,7 +4068,9 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
     return 0;
 }
 #endif /* MBEDTLS_FREESCALE_LTC_SHA256 */
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED) && defined(MBEDTLS_SHA256_ALT)
+#include "mbedtls/sha256.h"
+
 void mbedtls_sha256_starts( mbedtls_sha256_context *ctx,
                             int is224 )
 {

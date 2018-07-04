@@ -4320,26 +4320,10 @@ void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_cont
 int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
 {
     status_t ret = kStatus_Fail;
-#ifdef MBEDTLS_SHA256_KEEP_ORIG
-    // If Hardware is disabled, use SW implementation instead, else, use Hardware solution to accelerate the digest
-    // computing
-    //if (kSECURE_FALSE == skboot_hal_check_peripheral_enable(kSKBOOT_HASH))
-    if (1)
-    {
-        ret = mbedtls_sha256_starts_orig(ctx, is224);
-    }
-    else
-    {
-        CLOCK_EnableClock(kCLOCK_Sha0);
-        RESET_PeripheralReset(kHASH_RST_SHIFT_RSTn);
-        ret = HASHCRYPT_SHA_Init(HASH, (hashcrypt_hash_ctx_t *)ctx, kHASHCRYPT_Sha256);
-    }
-#else
     if (!is224) /* SHA-224 not supported */
     {
         ret = HASHCRYPT_SHA_Init(HASH, ctx, kHASHCRYPT_Sha256);
     }
-#endif
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
@@ -4350,21 +4334,7 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
 int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
 {
     status_t ret = kStatus_Fail;
-#ifdef MBEDTLS_SHA256_KEEP_ORIG
-    // If Hardware is disabled, use SW implementation instead, else, use Hardware solution to accelerate the digest
-    // computing
-    //if (kSECURE_FALSE == skboot_hal_check_peripheral_enable(kSKBOOT_HASH))
-    if (1)
-    {
-        ret = mbedtls_sha256_process_orig(ctx, data);
-    }
-    else
-    {
-        ret = HASHCRYPT_SHA_Update(HASH, (hashcrypt_hash_ctx_t *)ctx, data, 64);
-    }
-#else
     ret = HASHCRYPT_SHA_Update(HASH, ctx, data, 64);
-#endif
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
@@ -4378,21 +4348,7 @@ int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned 
 int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
 {
     status_t ret = kStatus_Fail;
-#ifdef MBEDTLS_SHA256_KEEP_ORIG
-    // If Hardware is disabled, use SW implementation instead, else, use Hardware solution to accelerate the digest
-    // computing
-    //if (kSECURE_FALSE == skboot_hal_check_peripheral_enable(kSKBOOT_HASH))
-    if (1)
-    {
-        ret = mbedtls_sha256_update_orig(ctx, input, ilen);
-    }
-    else
-    {
-        ret = HASHCRYPT_SHA_Update(HASH, (hashcrypt_hash_ctx_t *)ctx, input, ilen);
-    }
-#else
     ret = HASHCRYPT_SHA_Update(HASH, ctx, input, ilen);
-#endif
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
@@ -4406,23 +4362,8 @@ int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *
 int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[32])
 {
     status_t ret = kStatus_Fail;
-#ifdef MBEDTLS_SHA256_KEEP_ORIG
-    // If Hardware is disabled, use SW implementation instead, else, use Hardware solution to accelerate the digest
-    // computing
-    //if (kSECURE_FALSE == skboot_hal_check_peripheral_enable(kSKBOOT_HASH))
-    if (1)
-    {
-        ret = mbedtls_sha256_finish_orig(ctx, output);
-    }
-    else
-    {
-        size_t outputSize = 32;
-        ret = HASHCRYPT_SHA_Finish(HASH, (hashcrypt_hash_ctx_t *)ctx, output, &outputSize);
-    }
-#else
     size_t outputSize = 32;
     ret = HASHCRYPT_SHA_Finish(HASH, ctx, output, &outputSize);
-#endif
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;

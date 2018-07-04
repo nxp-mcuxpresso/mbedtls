@@ -618,7 +618,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
     uint32_t *RK;
 
 #if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || \
-    defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
+    defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES) || defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
     const unsigned char *key_tmp = key;
     ctx->rk = RK = ctx->buf;
     memcpy(RK, key_tmp, keybits / 8);
@@ -657,7 +657,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
             return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
     }
     /* secret bus is marked as key address == hashcrypt base */
-    if ((uint32_t)key == (uint32_t)HASH_INSTANCE)
+    if ((uint32_t)key == (uint32_t)HASH)
     {
         s_hashHandle.keyType = kHASHCRYPT_SecretKey;
     }
@@ -665,7 +665,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
     {
         s_hashHandle.keyType = kHASHCRYPT_UserKey;
     }
-    HASHCRYPT_AES_SetKey(HASH_INSTANCE, &s_hashHandle, key, ctx->nr);
+    HASHCRYPT_AES_SetKey(HASH, &s_hashHandle, key, ctx->nr);
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     ctx->rk = RK = ctx->buf;
 
@@ -700,7 +700,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
     ctx->rk = RK = ctx->buf;
 
 #if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || \
-    defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
+    defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES) || defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
     const unsigned char *key_tmp = key;
     memcpy(RK, key_tmp, keybits / 8);
 
@@ -738,7 +738,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
             return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
     }
     /* secret bus is marked as key address == hashcrypt base */
-    if ((uint32_t)key == (uint32_t)HASH_INSTANCE)
+    if ((uint32_t)key == (uint32_t)HASH)
     {
         s_hashHandle.keyType = kHASHCRYPT_SecretKey;
     }
@@ -746,7 +746,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
     {
         s_hashHandle.keyType = kHASHCRYPT_UserKey;
     }
-    HASHCRYPT_AES_SetKey(HASH_INSTANCE, &s_hashHandle, key, ctx->nr);
+    HASHCRYPT_AES_SetKey(HASH, &s_hashHandle, key, ctx->nr);
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     ctx->rk = RK = ctx->buf;
 
@@ -803,7 +803,16 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
     }
     DCP_AES_EncryptEcb(DCP, &s_dcpHandle, input, output, 16);
 #elif defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
-    HASHCRYPT_AES_EncryptEcb(HASH_INSTANCE, &s_hashHandle, input, output, 16);
+    if ((uint32_t)key == (uint32_t)HASH)
+    {
+        s_hashHandle.keyType = kHASHCRYPT_SecretKey;
+    }
+    else
+    {
+        s_hashHandle.keyType = kHASHCRYPT_UserKey;
+    }
+    HASHCRYPT_AES_SetKey(HASH, &s_hashHandle, key, ctx->nr);
+    HASHCRYPT_AES_EncryptEcb(HASH, &s_hashHandle, input, output, 16);
 #endif
 
     return (0);
@@ -841,7 +850,16 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
     }
     DCP_AES_DecryptEcb(DCP, &s_dcpHandle, input, output, 16);
 #elif defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
-    HASHCRYPT_AES_DecryptEcb(HASH_INSTANCE, &s_hashHandle, input, output, 16);
+    if ((uint32_t)key == (uint32_t)HASH)
+    {
+        s_hashHandle.keyType = kHASHCRYPT_SecretKey;
+    }
+    else
+    {
+        s_hashHandle.keyType = kHASHCRYPT_UserKey;
+    }
+    HASHCRYPT_AES_SetKey(HASH, &s_hashHandle, key, ctx->nr);
+    HASHCRYPT_AES_DecryptEcb(HASH, &s_hashHandle, input, output, 16);
 #endif
 
     return (0);
@@ -977,24 +995,32 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
                           unsigned char *output)
 {
     uint8_t *key;
-    size_t keySize;
 
     if (length % 16)
         return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
 
     key = (uint8_t *)ctx->rk;
-    keySize = (size_t)ctx->nr;
 
+    if ((uint32_t)key == (uint32_t)HASH)
+    {
+        s_hashHandle.keyType = kHASHCRYPT_SecretKey;
+    }
+    else
+    {
+        s_hashHandle.keyType = kHASHCRYPT_UserKey;
+    }
+    HASHCRYPT_AES_SetKey(HASH, &s_hashHandle, key, ctx->nr);
+    
     if (mode == MBEDTLS_AES_DECRYPT)
     {
         uint8_t tmp[16];
         memcpy(tmp, input + length - 16, 16);
-        HASHCRYPT_AES_DecryptCbc(HASH_INSTANCE, &s_hashHandle, input, output, length, iv);
+        HASHCRYPT_AES_DecryptCbc(HASH, &s_hashHandle, input, output, length, iv);
         memcpy(iv, tmp, 16);
     }
     else
     {
-        HASHCRYPT_AES_EncryptCbc(HASH_INSTANCE, &s_hashHandle, input, output, length, iv);
+        HASHCRYPT_AES_EncryptCbc(HASH, &s_hashHandle, input, output, length, iv);
         memcpy(iv, output + length - 16, 16);
     }
 
@@ -1138,7 +1164,7 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
     return (0);
 }
 #elif defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
-skboot_status_t mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
+int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
                                       size_t length,
                                       size_t *nc_off,
                                       unsigned char nonce_counter[16],
@@ -1146,17 +1172,24 @@ skboot_status_t mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
                                       const unsigned char *input,
                                       unsigned char *output)
 {
-    skboot_status_t retVal = kStatus_SKBOOT_Fail;
     uint8_t *key = NULL;
-    size_t keySize = 0;
-
     key = (uint8_t *)ctx->rk;
-    keySize = (size_t)ctx->nr;
 
-    retVal = HASHCRYPT_AES_CryptCtr(HASH_INSTANCE, &s_hashHandle, input, output, length, nonce_counter, stream_block,
+
+    if ((uint32_t)key == (uint32_t)HASH)
+    {
+        s_hashHandle.keyType = kHASHCRYPT_SecretKey;
+    }
+    else
+    {
+        s_hashHandle.keyType = kHASHCRYPT_UserKey;
+    }
+    HASHCRYPT_AES_SetKey(HASH, &s_hashHandle, key, ctx->nr);
+
+    HASHCRYPT_AES_CryptCtr(HASH, &s_hashHandle, input, output, length, nonce_counter, stream_block,
                                     nc_off);
 
-    return (retVal);
+    return (0);
 }
 #endif
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
@@ -3763,31 +3796,55 @@ void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *s
 /*
  * SHA-1 context setup
  */
-void mbedtls_sha1_starts(mbedtls_sha1_context *ctx)
+int mbedtls_sha1_starts_ret(mbedtls_sha1_context *ctx)
 {
-    HASHCRYPT_SHA_Init(HASH_INSTANCE, ctx, kHASHCRYPT_Sha1);
+    status_t ret = kStatus_Fail;
+    ret = HASHCRYPT_SHA_Init(HASH, ctx, kHASHCRYPT_Sha1);
+    if (ret != kStatus_Success)
+    {
+        return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
+    }
+    return 0; 
 }
 
-void mbedtls_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
+int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
 {
-    HASHCRYPT_SHA_Update(HASH_INSTANCE, ctx, data, 64);
+    status_t ret = kStatus_Fail;
+    ret = HASHCRYPT_SHA_Update(HASH, ctx, data, 64);
+    if (ret != kStatus_Success)
+    {
+        return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
+    }
+    return 0; 
 }
 
 /*
  * SHA-1 process buffer
  */
-void mbedtls_sha1_update(mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen)
+int mbedtls_sha1_update_ret(mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen)
 {
-    HASHCRYPT_SHA_Update(HASH_INSTANCE, ctx, input, ilen);
+    status_t ret = kStatus_Fail;
+    ret = HASHCRYPT_SHA_Update(HASH, ctx, input, ilen);
+    if (ret != kStatus_Success)
+    {
+        return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
+    }
+    return 0; 
 }
 
 /*
  * SHA-1 final digest
  */
-void mbedtls_sha1_finish(mbedtls_sha1_context *ctx, unsigned char output[20])
+int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 {
+    status_t ret = kStatus_Fail;
     size_t outputSize = 20;
-    HASHCRYPT_SHA_Finish(HASH_INSTANCE, ctx, output, &outputSize);
+    ret = HASHCRYPT_SHA_Finish(HASH, ctx, output, &outputSize);
+        if (ret != kStatus_Success)
+    {
+        return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
+    }
+    return 0;
 }
 #endif /* MBEDTLS_FREESCALE_LPC_SHA1 */
 #if !defined(MBEDTLS_DEPRECATED_REMOVED) && defined(MBEDTLS_SHA1_ALT)
@@ -4260,93 +4317,117 @@ void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_cont
 /*
  * SHA-256 context setup
  */
-void mbedtls_sha256_starts(mbedtls_sha256_context *ctx, int is224)
+int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
 {
+    status_t ret = kStatus_Fail;
 #ifdef MBEDTLS_SHA256_KEEP_ORIG
     // If Hardware is disabled, use SW implementation instead, else, use Hardware solution to accelerate the digest
     // computing
     //if (kSECURE_FALSE == skboot_hal_check_peripheral_enable(kSKBOOT_HASH))
     if (1)
     {
-        mbedtls_sha256_starts_orig(ctx, is224);
+        ret = mbedtls_sha256_starts_orig(ctx, is224);
     }
     else
     {
         CLOCK_EnableClock(kCLOCK_Sha0);
         RESET_PeripheralReset(kHASH_RST_SHIFT_RSTn);
-        HASHCRYPT_SHA_Init(HASH_INSTANCE, (hashcrypt_hash_ctx_t *)ctx, kHASHCRYPT_Sha256);
+        ret = HASHCRYPT_SHA_Init(HASH, (hashcrypt_hash_ctx_t *)ctx, kHASHCRYPT_Sha256);
     }
 #else
     if (!is224) /* SHA-224 not supported */
     {
-        HASHCRYPT_SHA_Init(HASH_INSTANCE, ctx, kHASHCRYPT_Sha256);
+        ret = HASHCRYPT_SHA_Init(HASH, ctx, kHASHCRYPT_Sha256);
     }
 #endif
+    if (ret != kStatus_Success)
+    {
+        return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
+    }
+    return 0;
 }
 
-void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
+int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
 {
+    status_t ret = kStatus_Fail;
 #ifdef MBEDTLS_SHA256_KEEP_ORIG
     // If Hardware is disabled, use SW implementation instead, else, use Hardware solution to accelerate the digest
     // computing
     //if (kSECURE_FALSE == skboot_hal_check_peripheral_enable(kSKBOOT_HASH))
     if (1)
     {
-        mbedtls_sha256_process_orig(ctx, data);
+        ret = mbedtls_sha256_process_orig(ctx, data);
     }
     else
     {
-        HASHCRYPT_SHA_Update(HASH_INSTANCE, (hashcrypt_hash_ctx_t *)ctx, data, 64);
+        ret = HASHCRYPT_SHA_Update(HASH, (hashcrypt_hash_ctx_t *)ctx, data, 64);
     }
 #else
-    HASHCRYPT_SHA_Update(HASH_INSTANCE, ctx, data, 64);
+    ret = HASHCRYPT_SHA_Update(HASH, ctx, data, 64);
 #endif
+    if (ret != kStatus_Success)
+    {
+        return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
+    }
+    return 0;
 }
 
 /*
  * SHA-256 process buffer
  */
-void mbedtls_sha256_update(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
+int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
 {
+    status_t ret = kStatus_Fail;
 #ifdef MBEDTLS_SHA256_KEEP_ORIG
     // If Hardware is disabled, use SW implementation instead, else, use Hardware solution to accelerate the digest
     // computing
     //if (kSECURE_FALSE == skboot_hal_check_peripheral_enable(kSKBOOT_HASH))
     if (1)
     {
-        mbedtls_sha256_update_orig(ctx, input, ilen);
+        ret = mbedtls_sha256_update_orig(ctx, input, ilen);
     }
     else
     {
-        HASHCRYPT_SHA_Update(HASH_INSTANCE, (hashcrypt_hash_ctx_t *)ctx, input, ilen);
+        ret = HASHCRYPT_SHA_Update(HASH, (hashcrypt_hash_ctx_t *)ctx, input, ilen);
     }
 #else
-    HASHCRYPT_SHA_Update(HASH_INSTANCE, ctx, input, ilen);
+    ret = HASHCRYPT_SHA_Update(HASH, ctx, input, ilen);
 #endif
+    if (ret != kStatus_Success)
+    {
+        return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
+    }
+    return 0;
 }
 
 /*
  * SHA-256 final digest
  */
-void mbedtls_sha256_finish(mbedtls_sha256_context *ctx, unsigned char output[32])
+int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[32])
 {
+    status_t ret = kStatus_Fail;
 #ifdef MBEDTLS_SHA256_KEEP_ORIG
     // If Hardware is disabled, use SW implementation instead, else, use Hardware solution to accelerate the digest
     // computing
     //if (kSECURE_FALSE == skboot_hal_check_peripheral_enable(kSKBOOT_HASH))
     if (1)
     {
-        mbedtls_sha256_finish_orig(ctx, output);
+        ret = mbedtls_sha256_finish_orig(ctx, output);
     }
     else
     {
         size_t outputSize = 32;
-        HASHCRYPT_SHA_Finish(HASH_INSTANCE, (hashcrypt_hash_ctx_t *)ctx, output, &outputSize);
+        ret = HASHCRYPT_SHA_Finish(HASH, (hashcrypt_hash_ctx_t *)ctx, output, &outputSize);
     }
 #else
     size_t outputSize = 32;
-    HASHCRYPT_SHA_Finish(HASH_INSTANCE, ctx, output, &outputSize);
+    ret = HASHCRYPT_SHA_Finish(HASH, ctx, output, &outputSize);
 #endif
+    if (ret != kStatus_Success)
+    {
+        return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
+    }
+    return 0;
 }
 #endif /* MBEDTLS_FREESCALE_LTC_SHA256 */
 #if !defined(MBEDTLS_DEPRECATED_REMOVED) && defined(MBEDTLS_SHA256_ALT)

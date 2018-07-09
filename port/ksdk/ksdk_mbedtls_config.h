@@ -76,7 +76,7 @@
 #if defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)
 #include "fsl_cau3.h"
 
-#define MBEDTLS_CAU3_COMPLETION_SIGNAL kCAU3_TaskDoneEvent
+#define MBEDTLS_CAU3_COMPLETION_SIGNAL kCAU3_TaskDonePoll
 
 #define MBEDTLS_FREESCALE_CAU3_AES    /* Enable use of CAU3 AES.*/
 #define MBEDTLS_FREESCALE_CAU3_DES    /* Enable use of CAU3 DES.*/

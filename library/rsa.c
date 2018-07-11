@@ -674,6 +674,7 @@ int mbedtls_rsa_check_pub_priv( const mbedtls_rsa_context *pub,
     return( 0 );
 }
 
+#if !defined(MBEDTLS_RSA_PUBLIC_ALT)
 /*
  * Do an RSA public key operation
  */
@@ -720,6 +721,8 @@ cleanup:
 
     return( 0 );
 }
+
+#endif /* MBEDTLS_RSA_PUBLIC_ALT */
 
 /*
  * Generate or update blinding values, see section 10 of:

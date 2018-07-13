@@ -181,6 +181,10 @@ void CRYPTO_InitHardware(void)
     DCP_GetDefaultConfig(&dcpConfig);
     DCP_Init(DCP, &dcpConfig);
 #endif
+#if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
+    /* Initialize CASPER */
+    CASPER_Init(CASPER);
+#endif
     { /* Init RNG module.*/
 #if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
 #if defined(TRNG)
@@ -3355,6 +3359,67 @@ cleanup:
 #endif /* MBEDTLS_ECP_C */
 
 #endif /* MBEDTLS_FREESCALE_LTC_PKHA */
+
+#if defined(MBEDTLS_RSA_PUBLIC_ALT)
+#if defined(MBEDTLS_FREESCALE_CASPER_PKHA)
+
+#include "mbedtls/bignum.h"
+#include "mbedtls/rsa.h"
+
+/*
+ * Do an RSA public key operation
+ */
+static inline __attribute__((always_inline)) int mbedtls_mpi_exp_mod_shim(mbedtls_mpi *X,
+                                                                          const mbedtls_mpi *A,
+                                                                          const mbedtls_mpi *E,
+                                                                          const mbedtls_mpi *N /*, mbedtls_mpi *_RR */)
+{
+    return CASPER_ModExp(CASPER, (const uint8_t *)A->p, (const uint8_t *)N->p, N->n, E->p[0], (uint8_t *)A->p);
+}
+
+int mbedtls_rsa_public(mbedtls_rsa_context *ctx, const unsigned char *input, unsigned char *output)
+{
+    int ret;
+    size_t olen;
+    mbedtls_mpi T;
+
+    mbedtls_mpi_init(&T);
+
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&ctx->mutex)) != 0)
+        return (ret);
+#endif
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&T, input, ctx->len));
+
+    if (mbedtls_mpi_cmp_mpi(&T, &ctx->N) >= 0)
+    {
+        ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+
+    olen = ctx->len;
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod_shim(&T, &T, &ctx->E, &ctx->N /*, &ctx->RN */));
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&T, output, olen));
+
+cleanup:
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&ctx->mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
+
+    mbedtls_mpi_free(&T);
+
+    if (ret != 0)
+        return (MBEDTLS_ERR_RSA_PUBLIC_FAILED + ret);
+
+    return (0);
+}
+
+#endif /* MBEDTLS_FREESCALE_CASPER_PKHA */
+#endif /* MBEDTLS_RSA_PUBLIC_ALT */
 
 /******************************************************************************/
 /*************************** MD5 **********************************************/

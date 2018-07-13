@@ -164,6 +164,15 @@
 
 #endif
 
+/* Enable CASPER use in library if there is CASPER on chip. */
+#if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
+#include "fsl_casper.h"
+
+#define CASPER_INSTANCE CASPER        /* CASPER base register.*/
+#define MBEDTLS_FREESCALE_CASPER_PKHA /* Enable use of CASPER PKHA.*/
+
+#endif
+
 /**
  * \def MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT
  *
@@ -238,6 +247,9 @@
 #endif
 #if defined(MBEDTLS_FREESCALE_CAU3_PKHA)
 #define MBEDTLS_ECP_MUL_MXZ_ALT
+#endif
+#if defined(MBEDTLS_FREESCALE_CASPER_PKHA)
+#define MBEDTLS_RSA_PUBLIC_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_SHA1) || defined(MBEDTLS_FREESCALE_LPC_SHA1) || \
     defined(MBEDTLS_FREESCALE_CAAM_SHA1) || defined(MBEDTLS_FREESCALE_CAU3_SHA1) || defined(MBEDTLS_FREESCALE_DCP_SHA1) || \

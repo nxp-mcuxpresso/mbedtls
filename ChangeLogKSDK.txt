@@ -4,6 +4,10 @@
 @section mbedtls mbedTLS for MCUXpresso SDK
   The current version of mbedTLS is based on mbedTLS 2.9.0 released 2018-May-01.
 
+ - 2.9.0_rev1
+    - New features:
+      - Added support for CASPER driver.
+
  - 2.9.0
     - New features:
       - Ported mbedTLS 2.9.0 to KSDK.

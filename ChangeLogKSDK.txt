@@ -7,6 +7,7 @@
  - 2.9.0_rev1
     - New features:
       - Added support for CASPER driver.
+      - Added support for Hashcrypt driver.
 
  - 2.9.0
     - New features:

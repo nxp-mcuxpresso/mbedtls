@@ -120,9 +120,9 @@
 #if defined(FSL_FEATURE_SOC_HASH_COUNT) && (FSL_FEATURE_SOC_HASH_COUNT > 0)
 #include "fsl_hashcrypt.h"
 
-#define MBEDTLS_FREESCALE_HASHCRYPT_AES    /* Enable use of DCP AES.*/
-#define MBEDTLS_FREESCALE_HASHCRYPT_SHA1   /* Enable use of DCP SHA1.*/
-#define MBEDTLS_FREESCALE_HASHCRYPT_SHA256 /* Enable use of DCP SHA256.*/
+#define MBEDTLS_FREESCALE_HASHCRYPT_AES    /* Enable use of HASHCRYPT AES.*/
+#define MBEDTLS_FREESCALE_HASHCRYPT_SHA1   /* Enable use of HASHCRYPT SHA1.*/
+#define MBEDTLS_FREESCALE_HASHCRYPT_SHA256 /* Enable use of HASHCRYPT SHA256.*/
 
 #endif
 

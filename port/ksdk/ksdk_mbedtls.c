@@ -811,7 +811,6 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
     {
         s_hashHandle.keyType = kHASHCRYPT_UserKey;
     }
-    HASHCRYPT_AES_SetKey(HASH, &s_hashHandle, key, ctx->nr);
     HASHCRYPT_AES_EncryptEcb(HASH, &s_hashHandle, input, output, 16);
 #endif
 
@@ -858,7 +857,6 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
     {
         s_hashHandle.keyType = kHASHCRYPT_UserKey;
     }
-    HASHCRYPT_AES_SetKey(HASH, &s_hashHandle, key, ctx->nr);
     HASHCRYPT_AES_DecryptEcb(HASH, &s_hashHandle, input, output, 16);
 #endif
 
@@ -1009,8 +1007,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     {
         s_hashHandle.keyType = kHASHCRYPT_UserKey;
     }
-    HASHCRYPT_AES_SetKey(HASH, &s_hashHandle, key, ctx->nr);
-    
+
     if (mode == MBEDTLS_AES_DECRYPT)
     {
         uint8_t tmp[16];
@@ -1184,7 +1181,6 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
     {
         s_hashHandle.keyType = kHASHCRYPT_UserKey;
     }
-    HASHCRYPT_AES_SetKey(HASH, &s_hashHandle, key, ctx->nr);
 
     HASHCRYPT_AES_CryptCtr(HASH, &s_hashHandle, input, output, length, nonce_counter, stream_block,
                                     nc_off);
@@ -3840,7 +3836,7 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
     status_t ret = kStatus_Fail;
     size_t outputSize = 20;
     ret = HASHCRYPT_SHA_Finish(HASH, ctx, output, &outputSize);
-        if (ret != kStatus_Success)
+    if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
     }
@@ -3920,7 +3916,7 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
     
     if (ret != kStatus_Success)
     {
-        return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
+        return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
     }
     return 0;
 }
@@ -3931,7 +3927,7 @@ int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned 
     ret = LTC_HASH_Update(ctx, data, 64);
     if (ret != kStatus_Success)
     {
-        return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
+        return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
     }
     return 0;
 }
@@ -3945,7 +3941,7 @@ int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *
     ret = LTC_HASH_Update(ctx, input, ilen);
     if (ret != kStatus_Success)
     {
-        return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
+        return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
     }
     return 0;
 }
@@ -3959,7 +3955,7 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
     ret = LTC_HASH_Finish(ctx, output, 0);
     if (ret != kStatus_Success)
     {
-        return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
+        return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
     }
     return 0;
 }

@@ -185,6 +185,10 @@ void CRYPTO_InitHardware(void)
     /* Initialize CASPER */
     CASPER_Init(CASPER);
 #endif
+#if defined(FSL_FEATURE_SOC_HASH_COUNT) && (FSL_FEATURE_SOC_HASH_COUNT > 0)
+    /* Initialize CASPER */
+    HASHCRYPT_Init(HASH);
+#endif
     { /* Init RNG module.*/
 #if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
 #if defined(TRNG)

@@ -120,6 +120,7 @@
 #if defined(FSL_FEATURE_SOC_HASH_COUNT) && (FSL_FEATURE_SOC_HASH_COUNT > 0)
 #include "fsl_hashcrypt.h"
 
+#define MBEDTLS_AES_ALT                    /* Enable use of alternative implementation of AES */S
 #define MBEDTLS_FREESCALE_HASHCRYPT_AES    /* Enable use of HASHCRYPT AES.*/
 #define MBEDTLS_FREESCALE_HASHCRYPT_SHA1   /* Enable use of HASHCRYPT SHA1.*/
 #define MBEDTLS_FREESCALE_HASHCRYPT_SHA256 /* Enable use of HASHCRYPT SHA256.*/

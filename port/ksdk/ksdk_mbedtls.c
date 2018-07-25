@@ -90,13 +90,6 @@ static dcp_handle_t s_dcpHandle = {.channel = kDCP_Channel0, .keySlot = kDCP_Key
 #endif
 
 /******************************************************************************/
-/**************************** HASHCRYPT ***************************************/
-/******************************************************************************/
-#if defined(FSL_FEATURE_SOC_HASH_COUNT) && (FSL_FEATURE_SOC_HASH_COUNT > 0)
-static hashcrypt_handle_t s_hashHandle = { .keyType = kHASHCRYPT_UserKey };
-#endif
-
-/******************************************************************************/
 /************************* Key slot management ********************************/
 /******************************************************************************/
 #if (defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)) || \
@@ -609,12 +602,11 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
 /*************************** AES **********************************************/
 /******************************************************************************/
 
-#if defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_AES_C) && !defined(MBEDTLS_AES_ALT)
 
 #if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || \
     defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) ||  \
-    defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES) ||  \
-    defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
+    defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
 
 #include "mbedtls/aes.h"
 
@@ -626,7 +618,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
     uint32_t *RK;
 
 #if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || \
-    defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES) || defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
+    defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
     const unsigned char *key_tmp = key;
     ctx->rk = RK = ctx->buf;
     memcpy(RK, key_tmp, keybits / 8);
@@ -649,31 +641,6 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
         default:
             return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
     }
-#elif defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
-    switch (keybits)
-    {
-        case 128:
-            ctx->nr = 16;
-            break;
-        case 192:
-            ctx->nr = 24;
-            break;
-        case 256:
-            ctx->nr = 32;
-            break;
-        default:
-            return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
-    }
-    /* secret bus is marked as key address == hashcrypt base */
-    if ((uint32_t)key == (uint32_t)HASH)
-    {
-        s_hashHandle.keyType = kHASHCRYPT_SecretKey;
-    }
-    else
-    {
-        s_hashHandle.keyType = kHASHCRYPT_UserKey;
-    }
-    HASHCRYPT_AES_SetKey(HASH, &s_hashHandle, key, ctx->nr);
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     ctx->rk = RK = ctx->buf;
 
@@ -708,7 +675,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
     ctx->rk = RK = ctx->buf;
 
 #if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || \
-    defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES) || defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
+    defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
     const unsigned char *key_tmp = key;
     memcpy(RK, key_tmp, keybits / 8);
 
@@ -730,31 +697,6 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
         default:
             return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
     }
-#elif defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
-    switch (keybits)
-    {
-        case 128:
-            ctx->nr = 16;
-            break;
-        case 192:
-            ctx->nr = 24;
-            break;
-        case 256:
-            ctx->nr = 32;
-            break;
-        default:
-            return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
-    }
-    /* secret bus is marked as key address == hashcrypt base */
-    if ((uint32_t)key == (uint32_t)HASH)
-    {
-        s_hashHandle.keyType = kHASHCRYPT_SecretKey;
-    }
-    else
-    {
-        s_hashHandle.keyType = kHASHCRYPT_UserKey;
-    }
-    HASHCRYPT_AES_SetKey(HASH, &s_hashHandle, key, ctx->nr);
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
     ctx->rk = RK = ctx->buf;
 
@@ -810,16 +752,6 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
         crypto_attach_ctx_to_key_slot(ctx, s_dcpHandle.keySlot);
     }
     DCP_AES_EncryptEcb(DCP, &s_dcpHandle, input, output, 16);
-#elif defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
-    if ((uint32_t)key == (uint32_t)HASH)
-    {
-        s_hashHandle.keyType = kHASHCRYPT_SecretKey;
-    }
-    else
-    {
-        s_hashHandle.keyType = kHASHCRYPT_UserKey;
-    }
-    HASHCRYPT_AES_EncryptEcb(HASH, &s_hashHandle, input, output, 16);
 #endif
 
     return (0);
@@ -856,16 +788,6 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
         crypto_attach_ctx_to_key_slot(ctx, s_dcpHandle.keySlot);
     }
     DCP_AES_DecryptEcb(DCP, &s_dcpHandle, input, output, 16);
-#elif defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
-    if ((uint32_t)key == (uint32_t)HASH)
-    {
-        s_hashHandle.keyType = kHASHCRYPT_SecretKey;
-    }
-    else
-    {
-        s_hashHandle.keyType = kHASHCRYPT_UserKey;
-    }
-    HASHCRYPT_AES_DecryptEcb(HASH, &s_hashHandle, input, output, 16);
 #endif
 
     return (0);
@@ -987,45 +909,6 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     else
     {
         DCP_AES_EncryptCbc(DCP, &s_dcpHandle, input, output, length, iv);
-        memcpy(iv, output + length - 16, 16);
-    }
-
-    return (0);
-}
-#elif defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
-int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
-                          int mode,
-                          size_t length,
-                          unsigned char iv[16],
-                          const unsigned char *input,
-                          unsigned char *output)
-{
-    uint8_t *key;
-
-    if (length % 16)
-        return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
-
-    key = (uint8_t *)ctx->rk;
-
-    if ((uint32_t)key == (uint32_t)HASH)
-    {
-        s_hashHandle.keyType = kHASHCRYPT_SecretKey;
-    }
-    else
-    {
-        s_hashHandle.keyType = kHASHCRYPT_UserKey;
-    }
-
-    if (mode == MBEDTLS_AES_DECRYPT)
-    {
-        uint8_t tmp[16];
-        memcpy(tmp, input + length - 16, 16);
-        HASHCRYPT_AES_DecryptCbc(HASH, &s_hashHandle, input, output, length, iv);
-        memcpy(iv, tmp, 16);
-    }
-    else
-    {
-        HASHCRYPT_AES_EncryptCbc(HASH, &s_hashHandle, input, output, length, iv);
         memcpy(iv, output + length - 16, 16);
     }
 
@@ -1165,33 +1048,6 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
 
     CAAM_AES_CryptCtr(CAAM_INSTANCE, &s_caamHandle, input, output, length, nonce_counter, key, keySize, stream_block,
                       nc_off);
-
-    return (0);
-}
-#elif defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
-int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
-                                      size_t length,
-                                      size_t *nc_off,
-                                      unsigned char nonce_counter[16],
-                                      unsigned char stream_block[16],
-                                      const unsigned char *input,
-                                      unsigned char *output)
-{
-    uint8_t *key = NULL;
-    key = (uint8_t *)ctx->rk;
-
-
-    if ((uint32_t)key == (uint32_t)HASH)
-    {
-        s_hashHandle.keyType = kHASHCRYPT_SecretKey;
-    }
-    else
-    {
-        s_hashHandle.keyType = kHASHCRYPT_UserKey;
-    }
-
-    HASHCRYPT_AES_CryptCtr(HASH, &s_hashHandle, input, output, length, nonce_counter, stream_block,
-                                    nc_off);
 
     return (0);
 }

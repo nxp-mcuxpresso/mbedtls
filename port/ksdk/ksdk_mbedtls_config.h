@@ -116,6 +116,17 @@
 
 #endif
 
+/* Enable HASHCRYPT use in library if there is HASHCRYPT on chip. */
+#if defined(FSL_FEATURE_SOC_HASH_COUNT) && (FSL_FEATURE_SOC_HASH_COUNT > 0)
+#include "fsl_hashcrypt.h"
+
+#define MBEDTLS_AES_ALT                    /* Enable use of alternative implementation of AES */
+#define MBEDTLS_FREESCALE_HASHCRYPT_AES    /* Enable use of HASHCRYPT AES.*/
+#define MBEDTLS_FREESCALE_HASHCRYPT_SHA1   /* Enable use of HASHCRYPT SHA1.*/
+#define MBEDTLS_FREESCALE_HASHCRYPT_SHA256 /* Enable use of HASHCRYPT SHA256.*/
+
+#endif
+
 #if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA) || defined(MBEDTLS_FREESCALE_CAAM_PKHA)
 /*
  * This FREESCALE_PKHA_LONG_OPERANDS_ENABLE macro can be defined.
@@ -160,6 +171,7 @@
 
 #define CASPER_INSTANCE CASPER        /* CASPER base register.*/
 #define MBEDTLS_FREESCALE_CASPER_PKHA /* Enable use of CASPER PKHA.*/
+#define FREESCALE_PKHA_INT_MAX_BYTES (512)
 
 #endif
 

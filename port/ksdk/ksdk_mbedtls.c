@@ -3212,18 +3212,67 @@ cleanup:
 #if defined(MBEDTLS_RSA_PUBLIC_ALT)
 #if defined(MBEDTLS_FREESCALE_CASPER_PKHA)
 
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#include <stdio.h>
+#define mbedtls_calloc calloc
+#define mbedtls_free free
+#endif
+
 #include "mbedtls/bignum.h"
 #include "mbedtls/rsa.h"
 
+static void reverse_array(uint8_t *src, size_t src_len)
+{
+    int i;
+
+    for (i = 0; i < src_len / 2; i++)
+    {
+        uint8_t tmp;
+
+        tmp = src[i];
+        src[i] = src[src_len - 1 - i];
+        src[src_len - 1 - i] = tmp;
+    }
+}
 /*
  * Do an RSA public key operation
  */
-static inline __attribute__((always_inline)) int mbedtls_mpi_exp_mod_shim(mbedtls_mpi *X,
-                                                                          const mbedtls_mpi *A,
-                                                                          const mbedtls_mpi *E,
-                                                                          const mbedtls_mpi *N /*, mbedtls_mpi *_RR */)
+static int mbedtls_mpi_exp_mod_shim(mbedtls_mpi *X,
+                                    const mbedtls_mpi *A,
+                                    const mbedtls_mpi *E,
+                                    const mbedtls_mpi *N /*, mbedtls_mpi *_RR */)
 {
-    return CASPER_ModExp(CASPER, (const uint8_t *)A->p, (const uint8_t *)N->p, N->n, E->p[0], (uint8_t *)A->p);
+    int ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    size_t sizeA = mbedtls_mpi_size(A);
+    size_t sizeN = mbedtls_mpi_size(N);
+    uint8_t *ptrX = mbedtls_calloc(3, FREESCALE_PKHA_INT_MAX_BYTES);
+    uint8_t *ptrA = ptrX + FREESCALE_PKHA_INT_MAX_BYTES;
+    uint8_t *ptrN = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
+    
+    if (NULL == ptrX)
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
+    }
+      
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(A, ptrA, sizeA));
+    reverse_array(ptrA, sizeA);        
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(N, ptrN, sizeN));
+    reverse_array(ptrN, sizeN);
+    
+    CASPER_ModExp(CASPER, ptrA, ptrN, sizeN/4, E->p[0], ptrX);    
+
+    reverse_array(ptrX, sizeN);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(X, ptrX, sizeN));
+cleanup:
+    if (ptrX != NULL)
+    {
+        mbedtls_free(ptrX);
+    }
+    
+    return ret;
 }
 
 int mbedtls_rsa_public(mbedtls_rsa_context *ctx, const unsigned char *input, unsigned char *output)

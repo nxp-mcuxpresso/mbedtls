@@ -171,6 +171,7 @@
 
 #define CASPER_INSTANCE CASPER        /* CASPER base register.*/
 #define MBEDTLS_FREESCALE_CASPER_PKHA /* Enable use of CASPER PKHA.*/
+#define FREESCALE_PKHA_INT_MAX_BYTES (512)
 
 #endif
 

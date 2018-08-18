@@ -21,6 +21,11 @@
 
 set -u
 
+if cd $( dirname $0 ); then :; else
+    echo "cd $( dirname $0 ) failed" >&2
+    exit 1
+fi
+
 # default values, can be overriden by the environment
 : ${P_SRV:=../programs/ssl/ssl_server2}
 : ${P_CLI:=../programs/ssl/ssl_client2}
@@ -178,6 +183,25 @@ requires_ipv6() {
     fi
 }
 
+# Calculate the input & output maximum content lengths set in the config
+MAX_CONTENT_LEN=$( ../scripts/config.pl get MBEDTLS_SSL_MAX_CONTENT_LEN || echo "16384")
+MAX_IN_LEN=$( ../scripts/config.pl get MBEDTLS_SSL_IN_CONTENT_LEN || echo "$MAX_CONTENT_LEN")
+MAX_OUT_LEN=$( ../scripts/config.pl get MBEDTLS_SSL_OUT_CONTENT_LEN || echo "$MAX_CONTENT_LEN")
+
+if [ "$MAX_IN_LEN" -lt "$MAX_CONTENT_LEN" ]; then
+    MAX_CONTENT_LEN="$MAX_IN_LEN"
+fi
+if [ "$MAX_OUT_LEN" -lt "$MAX_CONTENT_LEN" ]; then
+    MAX_CONTENT_LEN="$MAX_OUT_LEN"
+fi
+
+# skip the next test if the SSL output buffer is less than 16KB
+requires_full_size_output_buffer() {
+    if [ "$MAX_OUT_LEN" -ne 16384 ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
 # skip the next test if valgrind is in use
 not_with_valgrind() {
     if [ "$MEMCHECK" -gt 0 ]; then
@@ -308,7 +332,7 @@ if type lsof >/dev/null 2>/dev/null; then
         done
     }
 else
-    echo "Warning: lsof not available, wait_server_start = sleep $START_DELAY"
+    echo "Warning: lsof not available, wait_server_start = sleep"
     wait_server_start() {
         sleep "$START_DELAY"
     }
@@ -626,11 +650,6 @@ cleanup() {
 # MAIN
 #
 
-if cd $( dirname $0 ); then :; else
-    echo "cd $( dirname $0 ) failed" >&2
-    exit 1
-fi
-
 get_options "$@"
 
 # sanity checks, avoid an avalanche of errors
@@ -723,7 +742,7 @@ run_test    "Default" \
             "$P_CLI" \
             0 \
             -s "Protocol is TLSv1.2" \
-            -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
+            -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256" \
             -s "client hello v3, signature_algorithm ext: 6" \
             -s "ECDHE curve: secp521r1" \
             -S "error" \
@@ -734,20 +753,14 @@ run_test    "Default, DTLS" \
             "$P_CLI dtls=1" \
             0 \
             -s "Protocol is DTLSv1.2" \
-            -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384"
+            -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256"
 
 # Test current time in ServerHello
 requires_config_enabled MBEDTLS_HAVE_TIME
-run_test    "Default, ServerHello contains gmt_unix_time" \
+run_test    "ServerHello contains gmt_unix_time" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3" \
             0 \
-            -s "Protocol is TLSv1.2" \
-            -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
-            -s "client hello v3, signature_algorithm ext: 6" \
-            -s "ECDHE curve: secp521r1" \
-            -S "error" \
-            -C "error" \
             -f "check_server_hello_time" \
             -F "check_server_hello_time"
 
@@ -1157,6 +1170,38 @@ run_test    "Fallback SCSV: enabled, max version, openssl client" \
             -s "received FALLBACK_SCSV" \
             -S "inapropriate fallback"
 
+# Test sending and receiving empty application data records
+
+run_test    "Encrypt then MAC: empty application data record" \
+            "$P_SRV auth_mode=none debug_level=4 etm=1" \
+            "$P_CLI auth_mode=none etm=1 request_size=0 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -S "0000:  0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f" \
+            -s "dumping 'input payload after decrypt' (0 bytes)" \
+            -c "0 bytes written in 1 fragments"
+
+run_test    "Default, no Encrypt then MAC: empty application data record" \
+            "$P_SRV auth_mode=none debug_level=4 etm=0" \
+            "$P_CLI auth_mode=none etm=0 request_size=0" \
+            0 \
+            -s "dumping 'input payload after decrypt' (0 bytes)" \
+            -c "0 bytes written in 1 fragments"
+
+run_test    "Encrypt then MAC, DTLS: empty application data record" \
+            "$P_SRV auth_mode=none debug_level=4 etm=1 dtls=1" \
+            "$P_CLI auth_mode=none etm=1 request_size=0 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA dtls=1" \
+            0 \
+            -S "0000:  0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f" \
+            -s "dumping 'input payload after decrypt' (0 bytes)" \
+            -c "0 bytes written in 1 fragments"
+
+run_test    "Default, no Encrypt then MAC, DTLS: empty application data record" \
+            "$P_SRV auth_mode=none debug_level=4 etm=0 dtls=1" \
+            "$P_CLI auth_mode=none etm=0 request_size=0 dtls=1" \
+            0 \
+            -s "dumping 'input payload after decrypt' (0 bytes)" \
+            -c "0 bytes written in 1 fragments"
+
 ## ClientHello generated with
 ## "openssl s_client -CAfile tests/data_files/test-ca.crt -tls1_1 -connect localhost:4433 -cipher ..."
 ## then manually twiddling the ciphersuite list.
@@ -1416,19 +1461,13 @@ run_test    "Session resume using cache: openssl server" \
 
 # Tests for Max Fragment Length extension
 
-MAX_CONTENT_LEN_EXPECT='16384'
-MAX_CONTENT_LEN_CONFIG=$( ../scripts/config.pl get MBEDTLS_SSL_MAX_CONTENT_LEN)
-
-if [ -n "$MAX_CONTENT_LEN_CONFIG" ] && [ "$MAX_CONTENT_LEN_CONFIG" -ne "$MAX_CONTENT_LEN_EXPECT" ]; then
-    printf "The ${CONFIG_H} file contains a value for the configuration of\n"
-    printf "MBEDTLS_SSL_MAX_CONTENT_LEN that is different from the script’s\n"
-    printf "test value of ${MAX_CONTENT_LEN_EXPECT}. \n"
-    printf "\n"
-    printf "The tests assume this value and if it changes, the tests in this\n"
-    printf "script should also be adjusted.\n"
-    printf "\n"
-
+if [ "$MAX_CONTENT_LEN" -lt "4096" ]; then
+    printf "${CONFIG_H} defines MBEDTLS_SSL_MAX_CONTENT_LEN to be less than 4096. Fragment length tests will fail.\n"
     exit 1
+fi
+
+if [ $MAX_CONTENT_LEN -ne 16384 ]; then
+    printf "Using non-default maximum content length $MAX_CONTENT_LEN\n"
 fi
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
@@ -1436,8 +1475,8 @@ run_test    "Max fragment length: enabled, default" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3" \
             0 \
-            -c "Maximum fragment length is 16384" \
-            -s "Maximum fragment length is 16384" \
+            -c "Maximum fragment length is $MAX_CONTENT_LEN" \
+            -s "Maximum fragment length is $MAX_CONTENT_LEN" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
@@ -1446,46 +1485,50 @@ run_test    "Max fragment length: enabled, default" \
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: enabled, default, larger message" \
             "$P_SRV debug_level=3" \
-            "$P_CLI debug_level=3 request_size=16385" \
+            "$P_CLI debug_level=3 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             0 \
-            -c "Maximum fragment length is 16384" \
-            -s "Maximum fragment length is 16384" \
+            -c "Maximum fragment length is $MAX_CONTENT_LEN" \
+            -s "Maximum fragment length is $MAX_CONTENT_LEN" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
             -C "found max_fragment_length extension" \
-            -c "16385 bytes written in 2 fragments" \
-            -s "16384 bytes read" \
+            -c "$(( $MAX_CONTENT_LEN + 1)) bytes written in 2 fragments" \
+            -s "$MAX_CONTENT_LEN bytes read" \
             -s "1 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length, DTLS: enabled, default, larger message" \
             "$P_SRV debug_level=3 dtls=1" \
-            "$P_CLI debug_level=3 dtls=1 request_size=16385" \
+            "$P_CLI debug_level=3 dtls=1 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             1 \
-            -c "Maximum fragment length is 16384" \
-            -s "Maximum fragment length is 16384" \
+            -c "Maximum fragment length is $MAX_CONTENT_LEN" \
+            -s "Maximum fragment length is $MAX_CONTENT_LEN" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
             -C "found max_fragment_length extension" \
             -c "fragment larger than.*maximum "
 
+# Run some tests with MBEDTLS_SSL_MAX_FRAGMENT_LENGTH disabled
+# (session fragment length will be 16384 regardless of mbedtls
+# content length configuration.)
+
 requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: disabled, larger message" \
             "$P_SRV debug_level=3" \
-            "$P_CLI debug_level=3 request_size=16385" \
+            "$P_CLI debug_level=3 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             0 \
             -C "Maximum fragment length is 16384" \
             -S "Maximum fragment length is 16384" \
-            -c "16385 bytes written in 2 fragments" \
-            -s "16384 bytes read" \
+            -c "$(( $MAX_CONTENT_LEN + 1)) bytes written in 2 fragments" \
+            -s "$MAX_CONTENT_LEN bytes read" \
             -s "1 bytes read"
 
 requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length DTLS: disabled, larger message" \
             "$P_SRV debug_level=3 dtls=1" \
-            "$P_CLI debug_level=3 dtls=1 request_size=16385" \
+            "$P_CLI debug_level=3 dtls=1 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             1 \
             -C "Maximum fragment length is 16384" \
             -S "Maximum fragment length is 16384" \
@@ -1508,7 +1551,7 @@ run_test    "Max fragment length: used by server" \
             "$P_SRV debug_level=3 max_frag_len=4096" \
             "$P_CLI debug_level=3" \
             0 \
-            -c "Maximum fragment length is 16384" \
+            -c "Maximum fragment length is $MAX_CONTENT_LEN" \
             -s "Maximum fragment length is 4096" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
@@ -2376,6 +2419,7 @@ if [ -n "$MAX_IM_CA_CONFIG" ] && [ "$MAX_IM_CA_CONFIG" -ne "$MAX_IM_CA" ]; then
     exit 1
 fi
 
+requires_full_size_output_buffer
 run_test    "Authentication: server max_int chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c09.pem \
                     key_file=data_files/dir-maxpath/09.key" \
@@ -2383,6 +2427,7 @@ run_test    "Authentication: server max_int chain, client default" \
             0 \
             -C "X509 - A fatal error occured"
 
+requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -2390,6 +2435,7 @@ run_test    "Authentication: server max_int+1 chain, client default" \
             1 \
             -c "X509 - A fatal error occured"
 
+requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client optional" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -2398,6 +2444,7 @@ run_test    "Authentication: server max_int+1 chain, client optional" \
             1 \
             -c "X509 - A fatal error occured"
 
+requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client none" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -2406,6 +2453,7 @@ run_test    "Authentication: server max_int+1 chain, client none" \
             0 \
             -C "X509 - A fatal error occured"
 
+requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server default" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
@@ -2413,6 +2461,7 @@ run_test    "Authentication: client max_int+1 chain, server default" \
             0 \
             -S "X509 - A fatal error occured"
 
+requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server optional" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=optional" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
@@ -2420,6 +2469,7 @@ run_test    "Authentication: client max_int+1 chain, server optional" \
             1 \
             -s "X509 - A fatal error occured"
 
+requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server required" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
@@ -2427,6 +2477,7 @@ run_test    "Authentication: client max_int+1 chain, server required" \
             1 \
             -s "X509 - A fatal error occured"
 
+requires_full_size_output_buffer
 run_test    "Authentication: client max_int chain, server required" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c09.pem \
@@ -2640,6 +2691,142 @@ run_test    "SNI: CA override with CRL" \
              ca_file=data_files/test-ca.crt \
              sni=localhost,data_files/server2.crt,data_files/server2.key,data_files/test-ca2.crt,data_files/crl-ec-sha256.pem,required" \
             "$P_CLI debug_level=3 server_name=localhost \
+             crt_file=data_files/server6.crt key_file=data_files/server6.key" \
+            1 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate" \
+            -C "skip write certificate verify" \
+            -S "skip parse certificate verify" \
+            -s "x509_verify_cert() returned" \
+            -S "! The certificate is not correctly signed by the trusted CA" \
+            -s "The certificate has been revoked (is on a CRL)"
+
+# Tests for SNI and DTLS
+
+run_test    "SNI: DTLS, no SNI callback" \
+            "$P_SRV debug_level=3 dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+            "$P_CLI server_name=localhost dtls=1" \
+            0 \
+            -S "parse ServerName extension" \
+            -c "issuer name *: C=NL, O=PolarSSL, CN=Polarssl Test EC CA" \
+            -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
+
+run_test    "SNI: DTLS, matching cert 1" \
+            "$P_SRV debug_level=3 dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+            "$P_CLI server_name=localhost dtls=1" \
+            0 \
+            -s "parse ServerName extension" \
+            -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
+            -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
+
+run_test    "SNI: DTLS, matching cert 2" \
+            "$P_SRV debug_level=3 dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+            "$P_CLI server_name=polarssl.example dtls=1" \
+            0 \
+            -s "parse ServerName extension" \
+            -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
+            -c "subject name *: C=NL, O=PolarSSL, CN=polarssl.example"
+
+run_test    "SNI: DTLS, no matching cert" \
+            "$P_SRV debug_level=3 dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+            "$P_CLI server_name=nonesuch.example dtls=1" \
+            1 \
+            -s "parse ServerName extension" \
+            -s "ssl_sni_wrapper() returned" \
+            -s "mbedtls_ssl_handshake returned" \
+            -c "mbedtls_ssl_handshake returned" \
+            -c "SSL - A fatal alert message was received from our peer"
+
+run_test    "SNI: DTLS, client auth no override: optional" \
+            "$P_SRV debug_level=3 auth_mode=optional dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-" \
+            "$P_CLI debug_level=3 server_name=localhost dtls=1" \
+            0 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate" \
+            -C "skip write certificate verify" \
+            -S "skip parse certificate verify"
+
+run_test    "SNI: DTLS, client auth override: none -> optional" \
+            "$P_SRV debug_level=3 auth_mode=none dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,optional" \
+            "$P_CLI debug_level=3 server_name=localhost dtls=1" \
+            0 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate" \
+            -C "skip write certificate verify" \
+            -S "skip parse certificate verify"
+
+run_test    "SNI: DTLS, client auth override: optional -> none" \
+            "$P_SRV debug_level=3 auth_mode=optional dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,none" \
+            "$P_CLI debug_level=3 server_name=localhost dtls=1" \
+            0 \
+            -s "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got no certificate request" \
+            -c "skip write certificate" \
+            -c "skip write certificate verify" \
+            -s "skip parse certificate verify"
+
+run_test    "SNI: DTLS, CA no override" \
+            "$P_SRV debug_level=3 auth_mode=optional dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             ca_file=data_files/test-ca.crt \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,required" \
+            "$P_CLI debug_level=3 server_name=localhost dtls=1 \
+             crt_file=data_files/server6.crt key_file=data_files/server6.key" \
+            1 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate" \
+            -C "skip write certificate verify" \
+            -S "skip parse certificate verify" \
+            -s "x509_verify_cert() returned" \
+            -s "! The certificate is not correctly signed by the trusted CA" \
+            -S "The certificate has been revoked (is on a CRL)"
+
+run_test    "SNI: DTLS, CA override" \
+            "$P_SRV debug_level=3 auth_mode=optional dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             ca_file=data_files/test-ca.crt \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,data_files/test-ca2.crt,-,required" \
+            "$P_CLI debug_level=3 server_name=localhost dtls=1 \
+             crt_file=data_files/server6.crt key_file=data_files/server6.key" \
+            0 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate" \
+            -C "skip write certificate verify" \
+            -S "skip parse certificate verify" \
+            -S "x509_verify_cert() returned" \
+            -S "! The certificate is not correctly signed by the trusted CA" \
+            -S "The certificate has been revoked (is on a CRL)"
+
+run_test    "SNI: DTLS, CA override with CRL" \
+            "$P_SRV debug_level=3 auth_mode=optional \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key dtls=1 \
+             ca_file=data_files/test-ca.crt \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,data_files/test-ca2.crt,data_files/crl-ec-sha256.pem,required" \
+            "$P_CLI debug_level=3 server_name=localhost dtls=1 \
              crt_file=data_files/server6.crt key_file=data_files/server6.key" \
             1 \
             -S "skip write certificate request" \
@@ -3834,14 +4021,19 @@ run_test    "SSLv3 with extensions, server side" \
 
 # Test for large packets
 
+# How many fragments do we expect to write $1 bytes?
+fragments_for_write() {
+    echo "$(( ( $1 + $MAX_OUT_LEN - 1 ) / $MAX_OUT_LEN ))"
+}
+
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Large packet SSLv3 BlockCipher" \
             "$P_SRV min_version=ssl3" \
             "$P_CLI request_size=16384 force_version=ssl3 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Large packet SSLv3 StreamCipher" \
@@ -3849,23 +4041,23 @@ run_test    "Large packet SSLv3 StreamCipher" \
             "$P_CLI request_size=16384 force_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.0 BlockCipher" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.0 BlockCipher, without EtM" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1 etm=0 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.0 BlockCipher, truncated MAC" \
@@ -3873,8 +4065,8 @@ run_test    "Large packet TLS 1.0 BlockCipher, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.0 BlockCipher, without EtM, truncated MAC" \
@@ -3882,21 +4074,21 @@ run_test    "Large packet TLS 1.0 BlockCipher, without EtM, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1 etm=0 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.0 StreamCipher" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.0 StreamCipher, without EtM" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA etm=0" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.0 StreamCipher, truncated MAC" \
@@ -3904,7 +4096,7 @@ run_test    "Large packet TLS 1.0 StreamCipher, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.0 StreamCipher, without EtM, truncated MAC" \
@@ -3912,23 +4104,23 @@ run_test    "Large packet TLS 1.0 StreamCipher, without EtM, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1 etm=0" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.1 BlockCipher" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.1 BlockCipher, without EtM" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_1 etm=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.1 BlockCipher, truncated MAC" \
@@ -3936,7 +4128,7 @@ run_test    "Large packet TLS 1.1 BlockCipher, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.1 BlockCipher, without EtM, truncated MAC" \
@@ -3944,23 +4136,23 @@ run_test    "Large packet TLS 1.1 BlockCipher, without EtM, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.1 StreamCipher" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.1 StreamCipher, without EtM" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA etm=0" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.1 StreamCipher, truncated MAC" \
@@ -3968,7 +4160,7 @@ run_test    "Large packet TLS 1.1 StreamCipher, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.1 StreamCipher, without EtM, truncated MAC" \
@@ -3976,31 +4168,31 @@ run_test    "Large packet TLS 1.1 StreamCipher, without EtM, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1 etm=0" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.2 BlockCipher" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.2 BlockCipher, without EtM" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 etm=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.2 BlockCipher larger MAC" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.2 BlockCipher, truncated MAC" \
@@ -4008,7 +4200,7 @@ run_test    "Large packet TLS 1.2 BlockCipher, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.2 BlockCipher, without EtM, truncated MAC" \
@@ -4016,23 +4208,23 @@ run_test    "Large packet TLS 1.2 BlockCipher, without EtM, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.2 StreamCipher" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.2 StreamCipher, without EtM" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA etm=0" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.2 StreamCipher, truncated MAC" \
@@ -4040,7 +4232,7 @@ run_test    "Large packet TLS 1.2 StreamCipher, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.2 StreamCipher, without EtM, truncated MAC" \
@@ -4048,24 +4240,372 @@ run_test    "Large packet TLS 1.2 StreamCipher, without EtM, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1 etm=0" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.2 AEAD" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
+
+# Tests of asynchronous private key support in SSL
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, delay=0" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=0 async_private_delay2=0" \
+            "$P_CLI" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): sign done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, delay=1" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1" \
+            "$P_CLI" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): call 0 more times." \
+            -s "Async resume (slot [0-9]): sign done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, delay=2" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=2 async_private_delay2=2" \
+            "$P_CLI" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -U "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): call 1 more times." \
+            -s "Async resume (slot [0-9]): call 0 more times." \
+            -s "Async resume (slot [0-9]): sign done, status=0"
+
+# Test that the async callback correctly signs the 36-byte hash of TLS 1.0/1.1
+# with RSA PKCS#1v1.5 as used in TLS 1.0/1.1.
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+run_test    "SSL async private: sign, RSA, TLS 1.1" \
+            "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt \
+             async_operations=s async_private_delay1=0 async_private_delay2=0" \
+            "$P_CLI force_version=tls1_1" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): sign done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, SNI" \
+            "$P_SRV debug_level=3 \
+             async_operations=s async_private_delay1=0 async_private_delay2=0 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+            "$P_CLI server_name=polarssl.example" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): sign done, status=0" \
+            -s "parse ServerName extension" \
+            -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
+            -c "subject name *: C=NL, O=PolarSSL, CN=polarssl.example"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt, delay=0" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=0 async_private_delay2=0" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -s "Async decrypt callback: using key slot " \
+            -s "Async resume (slot [0-9]): decrypt done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt, delay=1" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -s "Async decrypt callback: using key slot " \
+            -s "Async resume (slot [0-9]): call 0 more times." \
+            -s "Async resume (slot [0-9]): decrypt done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt RSA-PSK, delay=0" \
+            "$P_SRV psk=abc123 \
+             async_operations=d async_private_delay1=0 async_private_delay2=0" \
+            "$P_CLI psk=abc123 \
+             force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async decrypt callback: using key slot " \
+            -s "Async resume (slot [0-9]): decrypt done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt RSA-PSK, delay=1" \
+            "$P_SRV psk=abc123 \
+             async_operations=d async_private_delay1=1 async_private_delay2=1" \
+            "$P_CLI psk=abc123 \
+             force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async decrypt callback: using key slot " \
+            -s "Async resume (slot [0-9]): call 0 more times." \
+            -s "Async resume (slot [0-9]): decrypt done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign callback not present" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1" \
+            "$P_CLI; [ \$? -eq 1 ] &&
+             $P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -S "Async sign callback" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "The own private key or pre-shared key is not set, but needed" \
+            -s "Async resume (slot [0-9]): decrypt done, status=0" \
+            -s "Successful connection"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt callback not present" \
+            "$P_SRV debug_level=1 \
+             async_operations=s async_private_delay1=1 async_private_delay2=1" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA;
+             [ \$? -eq 1 ] && $P_CLI" \
+            0 \
+            -S "Async decrypt callback" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "got no RSA private key" \
+            -s "Async resume (slot [0-9]): sign done, status=0" \
+            -s "Successful connection"
+
+# key1: ECDSA, key2: RSA; use key1 from slot 0
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: slot 0 used with key1" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async sign callback: using key slot 0," \
+            -s "Async resume (slot 0): call 0 more times." \
+            -s "Async resume (slot 0): sign done, status=0"
+
+# key1: ECDSA, key2: RSA; use key2 from slot 0
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: slot 0 used with key2" \
+            "$P_SRV \
+             async_operations=s async_private_delay2=1 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async sign callback: using key slot 0," \
+            -s "Async resume (slot 0): call 0 more times." \
+            -s "Async resume (slot 0): sign done, status=0"
+
+# key1: ECDSA, key2: RSA; use key2 from slot 1
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: slot 1 used with key2" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async sign callback: using key slot 1," \
+            -s "Async resume (slot 1): call 0 more times." \
+            -s "Async resume (slot 1): sign done, status=0"
+
+# key1: ECDSA, key2: RSA; use key2 directly
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: fall back to transparent key" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt " \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async sign callback: no key matches this certificate."
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, error in start" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=1" \
+            "$P_CLI" \
+            1 \
+            -s "Async sign callback: injected error" \
+            -S "Async resume" \
+            -S "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, cancel after start" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=2" \
+            "$P_CLI" \
+            1 \
+            -s "Async sign callback: using key slot " \
+            -S "Async resume" \
+            -s "Async cancel"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, error in resume" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=3" \
+            "$P_CLI" \
+            1 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume callback: sign done but injected error" \
+            -S "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt, error in start" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=1" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            1 \
+            -s "Async decrypt callback: injected error" \
+            -S "Async resume" \
+            -S "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt, cancel after start" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=2" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            1 \
+            -s "Async decrypt callback: using key slot " \
+            -S "Async resume" \
+            -s "Async cancel"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt, error in resume" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=3" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            1 \
+            -s "Async decrypt callback: using key slot " \
+            -s "Async resume callback: decrypt done but injected error" \
+            -S "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: cancel after start then operate correctly" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=-2" \
+            "$P_CLI; [ \$? -eq 1 ] && $P_CLI" \
+            0 \
+            -s "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "Async resume" \
+            -s "Successful connection"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: error in resume then operate correctly" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=-3" \
+            "$P_CLI; [ \$? -eq 1 ] && $P_CLI" \
+            0 \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "Async resume" \
+            -s "Successful connection"
+
+# key1: ECDSA, key2: RSA; use key1 through async, then key2 directly
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: cancel after start then fall back to transparent key" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_error=-2 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256;
+             [ \$? -eq 1 ] &&
+             $P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async sign callback: using key slot 0" \
+            -S "Async resume" \
+            -s "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "Async sign callback: no key matches this certificate." \
+            -s "Successful connection"
+
+# key1: ECDSA, key2: RSA; use key1 through async, then key2 directly
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, error in resume then fall back to transparent key" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_error=-3 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256;
+             [ \$? -eq 1 ] &&
+             $P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async resume" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "Async sign callback: no key matches this certificate." \
+            -s "Successful connection"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "SSL async private: renegotiation: client-initiated; sign" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             exchanges=2 renegotiation=1" \
+            "$P_CLI exchanges=2 renegotiation=1 renegotiate=1" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): sign done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "SSL async private: renegotiation: server-initiated; sign" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI exchanges=2 renegotiation=1" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): sign done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "SSL async private: renegotiation: client-initiated; decrypt" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1 \
+             exchanges=2 renegotiation=1" \
+            "$P_CLI exchanges=2 renegotiation=1 renegotiate=1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -s "Async decrypt callback: using key slot " \
+            -s "Async resume (slot [0-9]): decrypt done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "SSL async private: renegotiation: server-initiated; decrypt" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1 \
+             exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI exchanges=2 renegotiation=1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -s "Async decrypt callback: using key slot " \
+            -s "Async resume (slot [0-9]): decrypt done, status=0"
 
 # Tests for DTLS HelloVerifyRequest
 

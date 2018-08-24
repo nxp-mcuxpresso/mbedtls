@@ -589,10 +589,24 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
 int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, unsigned int keybits)
 {
     uint32_t *RK;
+    
+#ifdef MBEDTLS_AES_ALT_NO192
+    if (keybits == 192u)
+    {
+        return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
+    }
+#endif
+
+#ifdef MBEDTLS_AES_ALT_NO256
+    if (keybits == 256u)
+    {
+        return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
+    }
+#endif
 
 #if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || \
     defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
-    const unsigned char *key_tmp = key;
+    const unsigned char *key_tmp = key;    
     ctx->rk = RK = ctx->buf;
     memcpy(RK, key_tmp, keybits / 8);
 
@@ -644,6 +658,20 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
 int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, unsigned int keybits)
 {
     uint32_t *RK;
+    
+#ifdef MBEDTLS_AES_ALT_NO192
+    if (keybits == 192u)
+    {
+        return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
+    }
+#endif
+
+#ifdef MBEDTLS_AES_ALT_NO256
+    if (keybits == 256u)
+    {
+        return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
+    }
+#endif
 
     ctx->rk = RK = ctx->buf;
 

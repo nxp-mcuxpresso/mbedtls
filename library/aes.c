@@ -84,7 +84,6 @@ static int aes_padlock_ace = -1;
 #endif
 
 #if defined(MBEDTLS_AES_ROM_TABLES)
-#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 /*
  * Forward S-box
  */
@@ -357,10 +356,7 @@ static const uint32_t RCON[10] =
     0x0000001B, 0x00000036
 };
 
-#endif /* MBEDTLS_AES_SETKEY_ENC_ALT */
 #else /* MBEDTLS_AES_ROM_TABLES */
-
-#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 
 /*
  * Forward S-box & tables
@@ -479,7 +475,7 @@ static void aes_gen_tables( void )
 }
 
 #undef ROTL8
-#endif /*!MBEDTLS_AES_SETKEY_ENC_ALT*/
+
 #endif /* MBEDTLS_AES_ROM_TABLES */
 
 #if defined(MBEDTLS_AES_FEWER_TABLES)
@@ -1011,7 +1007,6 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
 /*
  * AES-CBC buffer encryption/decryption
  */
-#if !defined(MBEDTLS_AES_CRYPT_CBC_ALT)
 int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
                     int mode,
                     size_t length,
@@ -1072,7 +1067,6 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
 
     return( 0 );
 }
-#endif /* !MBEDTLS_AES_CRYPT_CBC_ALT */
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
@@ -1238,7 +1232,6 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
 /*
  * AES-CFB128 buffer encryption/decryption
  */
-#if !defined(MBEDTLS_AES_CRYPT_CFB_ALT)
 int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
                        int mode,
                        size_t length,
@@ -1313,7 +1306,6 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
 
     return( 0 );
 }
-#endif /* !MBEDTLS_AES_CRYPT_CFB_ALT */
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_OFB)
@@ -1354,7 +1346,6 @@ exit:
 /*
  * AES-CTR buffer encryption/decryption
  */
-#if !defined(MBEDTLS_AES_CRYPT_CTR_ALT)
 int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
                        size_t length,
                        size_t *nc_off,
@@ -1388,7 +1379,6 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
 
     return( 0 );
 }
-#endif /* !MBEDTLS_AES_CRYPT_CTR_ALT */
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
 #endif /* !MBEDTLS_AES_ALT */

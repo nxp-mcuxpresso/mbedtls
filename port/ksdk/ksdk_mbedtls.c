@@ -575,7 +575,7 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
 /*************************** AES **********************************************/
 /******************************************************************************/
 
-#if defined(MBEDTLS_AES_C) && !defined(MBEDTLS_AES_ALT)
+#if defined(MBEDTLS_AES_C)
 
 #if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || \
     defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) ||  \
@@ -3747,7 +3747,7 @@ int mbedtls_sha1_starts_ret(mbedtls_sha1_context *ctx)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
     }
-    return 0; 
+    return 0;
 }
 
 int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
@@ -3758,7 +3758,7 @@ int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
     }
-    return 0; 
+    return 0;
 }
 
 /*
@@ -3772,7 +3772,7 @@ int mbedtls_sha1_update_ret(mbedtls_sha1_context *ctx, const unsigned char *inpu
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
     }
-    return 0; 
+    return 0;
 }
 
 /*

@@ -2425,7 +2425,7 @@ run_test    "Authentication: server max_int chain, client default" \
                     key_file=data_files/dir-maxpath/09.key" \
             "$P_CLI server_name=CA09 ca_file=data_files/dir-maxpath/00.crt" \
             0 \
-            -C "X509 - A fatal error occured"
+            -C "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client default" \
@@ -2433,7 +2433,7 @@ run_test    "Authentication: server max_int+1 chain, client default" \
                     key_file=data_files/dir-maxpath/10.key" \
             "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt" \
             1 \
-            -c "X509 - A fatal error occured"
+            -c "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client optional" \
@@ -2442,7 +2442,7 @@ run_test    "Authentication: server max_int+1 chain, client optional" \
             "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
                     auth_mode=optional" \
             1 \
-            -c "X509 - A fatal error occured"
+            -c "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client none" \
@@ -2451,7 +2451,7 @@ run_test    "Authentication: server max_int+1 chain, client none" \
             "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
                     auth_mode=none" \
             0 \
-            -C "X509 - A fatal error occured"
+            -C "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server default" \
@@ -2459,7 +2459,7 @@ run_test    "Authentication: client max_int+1 chain, server default" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
             0 \
-            -S "X509 - A fatal error occured"
+            -S "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server optional" \
@@ -2467,7 +2467,7 @@ run_test    "Authentication: client max_int+1 chain, server optional" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
             1 \
-            -s "X509 - A fatal error occured"
+            -s "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server required" \
@@ -2475,7 +2475,7 @@ run_test    "Authentication: client max_int+1 chain, server required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
             1 \
-            -s "X509 - A fatal error occured"
+            -s "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int chain, server required" \
@@ -2483,7 +2483,7 @@ run_test    "Authentication: client max_int chain, server required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c09.pem \
                     key_file=data_files/dir-maxpath/09.key" \
             0 \
-            -S "X509 - A fatal error occured"
+            -S "X509 - A fatal error occurred"
 
 # Tests for CA list in CertificateRequest messages
 

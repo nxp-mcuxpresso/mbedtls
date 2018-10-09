@@ -4,6 +4,10 @@
 @section mbedtls mbedTLS for MCUXpresso SDK
   The current version of mbedTLS is based on mbedTLS 2.12.0 released 2018-July-25.
 
+ - 2.12.0_rev1
+   - New features:
+     - Added support for NIST P-256 elliptic curve with CASPER driver.
+  
  - 2.12.0
     - New features:
       - Ported mbedTLS 2.12.0 to KSDK.

@@ -27,7 +27,7 @@
 #if defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0)
 #include "fsl_dcp.h"
 #endif
-#if defined(FSL_FEATURE_SOC_HASH_COUNT) && (FSL_FEATURE_SOC_HASH_COUNT > 0)
+#if defined(FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0)
 #include "fsl_hashcrypt.h"
 #endif
 #if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
@@ -164,7 +164,6 @@ void CRYPTO_InitHardware(void)
 
         TRNG_GetDefaultConfig(&trngConfig);
         /* Set sample mode of the TRNG ring oscillator to Von Neumann, for better random data.*/
-        trngConfig.sampleMode = kTRNG_SampleModeVonNeumann;
         /* Initialize TRNG */
         TRNG_Init(TRNG0, &trngConfig);
 #elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
@@ -590,14 +589,14 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
 {
     uint32_t *RK;
     
-#ifdef MBEDTLS_AES_ALT_NO_192
+#ifdef MBEDTLS_AES_ALT_NO192
     if (keybits == 192u)
     {
         return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
     }
 #endif
 
-#ifdef MBEDTLS_AES_ALT_NO_256
+#ifdef MBEDTLS_AES_ALT_NO256
     if (keybits == 256u)
     {
         return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
@@ -659,14 +658,14 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
 {
     uint32_t *RK;
     
-#ifdef MBEDTLS_AES_ALT_NO_192
+#ifdef MBEDTLS_AES_ALT_NO192
     if (keybits == 192u)
     {
         return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
     }
 #endif
 
-#ifdef MBEDTLS_AES_ALT_NO_256
+#ifdef MBEDTLS_AES_ALT_NO256
     if (keybits == 256u)
     {
         return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);

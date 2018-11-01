@@ -897,8 +897,17 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
                           const unsigned char *input,
                           unsigned char *output)
 {
+    uint8_t *key;
+
     if (length % 16)
         return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
+
+    key = (uint8_t *)ctx->rk;
+    if (!crypto_key_is_loaded(ctx))
+    {
+        DCP_AES_SetKey(DCP, &s_dcpHandle, key, ctx->nr);
+        crypto_attach_ctx_to_key_slot(ctx, s_dcpHandle.keySlot);
+    }
 
     if (mode == MBEDTLS_AES_DECRYPT)
     {

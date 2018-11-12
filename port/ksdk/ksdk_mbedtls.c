@@ -589,14 +589,14 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
 {
     uint32_t *RK;
     
-#ifdef MBEDTLS_AES_ALT_NO192
+#ifdef MBEDTLS_AES_ALT_NO_192
     if (keybits == 192u)
     {
         return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
     }
 #endif
 
-#ifdef MBEDTLS_AES_ALT_NO256
+#ifdef MBEDTLS_AES_ALT_NO_256
     if (keybits == 256u)
     {
         return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
@@ -658,14 +658,14 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
 {
     uint32_t *RK;
     
-#ifdef MBEDTLS_AES_ALT_NO192
+#ifdef MBEDTLS_AES_ALT_NO_192
     if (keybits == 192u)
     {
         return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
     }
 #endif
 
-#ifdef MBEDTLS_AES_ALT_NO256
+#ifdef MBEDTLS_AES_ALT_NO_256
     if (keybits == 256u)
     {
         return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);

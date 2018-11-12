@@ -589,14 +589,14 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
 {
     uint32_t *RK;
     
-#ifdef MBEDTLS_AES_ALT_NO192
+#ifdef MBEDTLS_AES_ALT_NO_192
     if (keybits == 192u)
     {
         return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
     }
 #endif
 
-#ifdef MBEDTLS_AES_ALT_NO256
+#ifdef MBEDTLS_AES_ALT_NO_256
     if (keybits == 256u)
     {
         return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
@@ -658,14 +658,14 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
 {
     uint32_t *RK;
     
-#ifdef MBEDTLS_AES_ALT_NO192
+#ifdef MBEDTLS_AES_ALT_NO_192
     if (keybits == 192u)
     {
         return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
     }
 #endif
 
-#ifdef MBEDTLS_AES_ALT_NO256
+#ifdef MBEDTLS_AES_ALT_NO_256
     if (keybits == 256u)
     {
         return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
@@ -896,8 +896,17 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
                           const unsigned char *input,
                           unsigned char *output)
 {
+    uint8_t *key;
+
     if (length % 16)
         return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
+
+    key = (uint8_t *)ctx->rk;
+    if (!crypto_key_is_loaded(ctx))
+    {
+        DCP_AES_SetKey(DCP, &s_dcpHandle, key, ctx->nr);
+        crypto_attach_ctx_to_key_slot(ctx, s_dcpHandle.keySlot);
+    }
 
     if (mode == MBEDTLS_AES_DECRYPT)
     {

@@ -121,8 +121,11 @@
 #include "fsl_hashcrypt.h"
 
 #define MBEDTLS_FREESCALE_HASHCRYPT_AES    /* Enable use of HASHCRYPT AES.*/
-#define MBEDTLS_FREESCALE_HASHCRYPT_SHA1   /* Enable use of HASHCRYPT SHA1.*/
-#define MBEDTLS_FREESCALE_HASHCRYPT_SHA256 /* Enable use of HASHCRYPT SHA256.*/
+/* Hashcrypt is not able to calculate SHA in parallel with AES.
+ * HW acceleration of SHA is disabled by default in MbedTLS integration.
+ */
+//#define MBEDTLS_FREESCALE_HASHCRYPT_SHA1   /* Enable use of HASHCRYPT SHA1.*/
+//#define MBEDTLS_FREESCALE_HASHCRYPT_SHA256 /* Enable use of HASHCRYPT SHA256.*/
 #endif
 
 #if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA) || defined(MBEDTLS_FREESCALE_CAAM_PKHA)
@@ -262,11 +265,17 @@
 #if defined(MBEDTLS_FREESCALE_LTC_SHA1) || defined(MBEDTLS_FREESCALE_LPC_SHA1) || \
     defined(MBEDTLS_FREESCALE_CAAM_SHA1) || defined(MBEDTLS_FREESCALE_CAU3_SHA1) || defined(MBEDTLS_FREESCALE_DCP_SHA1) || \
     defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA1)
+#if defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA1) && defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
+#warning "Hashcrypt is not able to calculate SHA in parallel with AES."
+#endif //defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA1) && defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
 #define MBEDTLS_SHA1_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_SHA256) || defined(MBEDTLS_FREESCALE_LPC_SHA256) || \
     defined(MBEDTLS_FREESCALE_CAAM_SHA256) || defined(MBEDTLS_FREESCALE_CAU3_SHA256) || defined(MBEDTLS_FREESCALE_DCP_SHA256) || \
     defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA256)
+#if defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA256) && defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
+#warning "Hashcrypt is not able to calculate SHA in parallel with AES."
+#endif //defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA256) && defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
 #define MBEDTLS_SHA256_ALT
 /*
  * LPC SHA module does not support SHA-224.

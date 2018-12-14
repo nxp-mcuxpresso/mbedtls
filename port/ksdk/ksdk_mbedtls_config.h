@@ -160,10 +160,14 @@
 #if defined(FSL_FEATURE_SOC_SHA_COUNT) && (FSL_FEATURE_SOC_SHA_COUNT > 0)
 #include "fsl_sha.h"
 
+#if !defined(FSL_FEATURE_SOC_AES_COUNT)
+/* AES HW accelerator is not able to calculate SHA in parallel with AES.
+ * HW acceleration of SHA is disabled by default in MbedTLS integration.
+ */
 #define SHA_INSTANCE SHA0            /* AES base register.*/
 #define MBEDTLS_FREESCALE_LPC_SHA1   /* Enable use of LPC SHA.*/
 #define MBEDTLS_FREESCALE_LPC_SHA256 /* Enable use of LPC SHA256.*/
-
+#endif //!defined(FSL_FEATURE_SOC_AES_COUNT)
 #endif
 
 /* Enable CASPER use in library if there is CASPER on chip. */
@@ -265,17 +269,11 @@
 #if defined(MBEDTLS_FREESCALE_LTC_SHA1) || defined(MBEDTLS_FREESCALE_LPC_SHA1) || \
     defined(MBEDTLS_FREESCALE_CAAM_SHA1) || defined(MBEDTLS_FREESCALE_CAU3_SHA1) || defined(MBEDTLS_FREESCALE_DCP_SHA1) || \
     defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA1)
-#if defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA1) && defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
-#warning "Hashcrypt is not able to calculate SHA in parallel with AES."
-#endif //defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA1) && defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
 #define MBEDTLS_SHA1_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_SHA256) || defined(MBEDTLS_FREESCALE_LPC_SHA256) || \
     defined(MBEDTLS_FREESCALE_CAAM_SHA256) || defined(MBEDTLS_FREESCALE_CAU3_SHA256) || defined(MBEDTLS_FREESCALE_DCP_SHA256) || \
     defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA256)
-#if defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA256) && defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
-#warning "Hashcrypt is not able to calculate SHA in parallel with AES."
-#endif //defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA256) && defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
 #define MBEDTLS_SHA256_ALT
 /*
  * LPC SHA module does not support SHA-224.

@@ -158,10 +158,13 @@
 #if defined(FSL_FEATURE_SOC_SHA_COUNT) && (FSL_FEATURE_SOC_SHA_COUNT > 0)
 #include "fsl_sha.h"
 
-#define SHA_INSTANCE SHA0            /* AES base register.*/
-#define MBEDTLS_FREESCALE_LPC_SHA1   /* Enable use of LPC SHA.*/
-#define MBEDTLS_FREESCALE_LPC_SHA256 /* Enable use of LPC SHA256.*/
-
+/* SHA HW accelerator does not support to compute multiple interleaved hashes, 
+ * it doesn't support context switch.
+ * HW acceleration of SHA is disabled by default in MbedTLS integration.
+ */
+//#define SHA_INSTANCE SHA0            /* AES base register.*/
+//#define MBEDTLS_FREESCALE_LPC_SHA1   /* Enable use of LPC SHA.*/
+//#define MBEDTLS_FREESCALE_LPC_SHA256 /* Enable use of LPC SHA256.*/
 #endif
 
 /* Enable CASPER use in library if there is CASPER on chip. */

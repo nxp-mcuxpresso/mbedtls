@@ -665,7 +665,7 @@ int mbedtls_ecp_tls_read_group( mbedtls_ecp_group *grp, const unsigned char **bu
 #else
 int mbedtls_ecp_tls_read_group( mbedtls_ecp_group *grp, const unsigned char **buf, size_t len )
 {
-    ret = mbedtls_ecp_tls_read_group_o(grp, buf, len);
+    int ret = mbedtls_ecp_tls_read_group_o(grp, buf, len);
     return ret;
 }
 #endif

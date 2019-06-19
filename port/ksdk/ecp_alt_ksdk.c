@@ -43,9 +43,9 @@
 #error "CASPER hw acceleration currently supported only for SECP256R1 and SECP384R1."
 #endif
 
-#if defined(CASPER_ECC_P256)
+#if defined(CASPER_ECC_P256) && (CASPER_ECC_P256 > 0)
 #define ECC_SIZE_BITS (256)
-#elif defined(CASPER_ECC_P384)
+#elif defined(CASPER_ECC_P384) && (CASPER_ECC_P384 > 0)
 #define ECC_SIZE_BITS (384)
 #endif
 
@@ -99,10 +99,10 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     }
     mbedtls_mpi_write_binary(m, (void *)M, mbedtls_mpi_size(m));
     reverse_array((void *)M, ECC_SIZE_BYTES);
-#if defined(CASPER_ECC_P256)
+#if (ECC_SIZE_BITS == 256)
     CASPER_ECC_SECP256R1_Mul(CASPER, &p.data.w[1], &p.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))],
                              &p.data.w[1], &p.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))], (void *)M);
-#elif defined(CASPER_ECC_P384)
+#elif (ECC_SIZE_BITS == 384)
     CASPER_ECC_SECP384R1_Mul(CASPER, &p.data.w[1], &p.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))],
                              &p.data.w[1], &p.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))], (void *)M);
 #endif
@@ -155,11 +155,11 @@ int mbedtls_ecp_muladd(mbedtls_ecp_group *grp,
     }
     mbedtls_mpi_write_binary(n, (void *)N, mbedtls_mpi_size(n));
     reverse_array((void *)N, ECC_SIZE_BYTES);
-#if defined(CASPER_ECC_P256)
+#if (ECC_SIZE_BITS == 256)
     CASPER_ECC_SECP256R1_MulAdd(CASPER, &p1.data.w[1], &p1.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))],
                                 &p1.data.w[1], &p1.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))], (void *)M,
                                 &p2.data.w[1], &p2.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))], (void *)N);
-#elif defined(CASPER_ECC_P384)
+#elif (ECC_SIZE_BITS == 384)
     CASPER_ECC_SECP384R1_MulAdd(CASPER, &p1.data.w[1], &p1.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))],
                                 &p1.data.w[1], &p1.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))], (void *)M,
                                 &p2.data.w[1], &p2.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))], (void *)N);

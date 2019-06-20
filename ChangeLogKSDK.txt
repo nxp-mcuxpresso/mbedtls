@@ -3,6 +3,10 @@
  
 @section mbedtls mbedTLS for MCUXpresso SDK
   The current version of mbedTLS is based on mbedTLS 2.13.1 released 2018-09-06
+ - 2.13.1_rev4
+    - New features:
+      - Added support for NIST P-384 elliptic curve with CASPER driver.
+
  - 2.13.1_rev3
     - Bug fixes:
       - Force align AES_CCM and AES_GCM self-test keys to fix unaligned key issue when using HW acceleration.

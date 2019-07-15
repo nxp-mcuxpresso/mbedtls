@@ -26,8 +26,8 @@
  ******************************************************************************/
 
 /*******************************************************************************
-* Prototypes
-******************************************************************************/
+ * Prototypes
+ ******************************************************************************/
 
 /*******************************************************************************
  * Variables
@@ -49,14 +49,14 @@
 #define ECC_SIZE_BITS (384)
 #endif
 
-#define ECC_SIZE_BYTES (ECC_SIZE_BITS/8) /* 32 for 256 bits and 48 for 384 bits */
-      
+#define ECC_SIZE_BYTES (ECC_SIZE_BITS / 8) /* 32 for 256 bits and 48 for 384 bits */
+
 typedef struct _ecp
 {
     union
     {
-        uint8_t b[4 + ECC_SIZE_BYTES*2];
-        uint32_t w[(4 + ECC_SIZE_BYTES*2) / 4];
+        uint8_t b[4 + ECC_SIZE_BYTES * 2];
+        uint32_t w[(4 + ECC_SIZE_BYTES * 2) / 4];
     } data;
 } casper_ecp_t;
 
@@ -69,8 +69,8 @@ static void reverse_array(uint8_t *src, size_t src_len)
     {
         uint8_t tmp;
 
-        tmp = src[i];
-        src[i] = src[src_len - 1 - i];
+        tmp                  = src[i];
+        src[i]               = src[src_len - 1 - i];
         src[src_len - 1 - i] = tmp;
     }
 }
@@ -82,8 +82,9 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
                  int (*f_rng)(void *, unsigned char *, size_t),
                  void *p_rng)
 {
-    casper_ecp_t p = {0};
-    uint32_t M[ECC_SIZE_BYTES/sizeof(uint32_t)] = {0};
+    casper_ecp_t p                                = {0};
+    uint32_t M[ECC_SIZE_BYTES / sizeof(uint32_t)] = {0};
+    size_t sz_m                                   = 0;
 
     size_t olen = sizeof(casper_ecp_t);
 
@@ -92,23 +93,24 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     reverse_array(&p.data.b[4 + ECC_SIZE_BYTES], ECC_SIZE_BYTES);
     CASPER_ecc_init();
 
-    if (mbedtls_mpi_size(m) > sizeof(M))
+    sz_m = mbedtls_mpi_size(m);
+    if (sz_m > sizeof(M))
     {
         __BKPT(0);
         return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
     }
-    mbedtls_mpi_write_binary(m, (void *)M, mbedtls_mpi_size(m));
-    reverse_array((void *)M, ECC_SIZE_BYTES);
+    mbedtls_mpi_write_binary(m, (void *)M, sz_m);
+    reverse_array((void *)M, sz_m);
 #if (ECC_SIZE_BITS == 256)
-    CASPER_ECC_SECP256R1_Mul(CASPER, &p.data.w[1], &p.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))],
-                             &p.data.w[1], &p.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))], (void *)M);
+    CASPER_ECC_SECP256R1_Mul(CASPER, &p.data.w[1], &p.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))], &p.data.w[1],
+                             &p.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))], (void *)M);
 #elif (ECC_SIZE_BITS == 384)
-    CASPER_ECC_SECP384R1_Mul(CASPER, &p.data.w[1], &p.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))],
-                             &p.data.w[1], &p.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))], (void *)M);
+    CASPER_ECC_SECP384R1_Mul(CASPER, &p.data.w[1], &p.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))], &p.data.w[1],
+                             &p.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))], (void *)M);
 #endif
     reverse_array(&p.data.b[4], ECC_SIZE_BYTES);
     reverse_array(&p.data.b[4 + ECC_SIZE_BYTES], ECC_SIZE_BYTES);
-    mbedtls_ecp_point_read_binary(grp, R, &p.data.b[3], 2*ECC_SIZE_BYTES + 1);
+    mbedtls_ecp_point_read_binary(grp, R, &p.data.b[3], 2 * ECC_SIZE_BYTES + 1);
     return 0;
 }
 #endif /* MBEDTLS_ECP_MUL_COMB_ALT */
@@ -124,23 +126,35 @@ int mbedtls_ecp_muladd(mbedtls_ecp_group *grp,
     casper_ecp_t p1 = {0};
     casper_ecp_t p2 = {0};
 
-    uint32_t M[ECC_SIZE_BYTES/sizeof(uint32_t)] = {0};
-    uint32_t N[ECC_SIZE_BYTES/sizeof(uint32_t)] = {0};
+    uint32_t M[ECC_SIZE_BYTES / sizeof(uint32_t)] = {0};
+    uint32_t N[ECC_SIZE_BYTES / sizeof(uint32_t)] = {0};
 
     size_t olen1 = sizeof(casper_ecp_t);
+    size_t sz_m  = 0;
+    size_t sz_n  = 0;
+
+    /* shortcut for (m == 1) && (n == 1). this case is point addition. */
+    /* this shortcut follows original mbedtls_ecp_muladd() implementation */
+    /* and is required for ecjpake_ecp_add3(). */
+    if ((mbedtls_mpi_cmp_int(m, 1) == 0) && (mbedtls_mpi_cmp_int(n, 1) == 0))
+    {
+        return ecp_add(grp, R, P, Q);
+    }
 
     mbedtls_ecp_point_write_binary(grp, P, MBEDTLS_ECP_PF_UNCOMPRESSED, &olen1, &p1.data.b[3], sizeof(casper_ecp_t));
     reverse_array(&p1.data.b[4], ECC_SIZE_BYTES);
     reverse_array(&p1.data.b[4 + ECC_SIZE_BYTES], ECC_SIZE_BYTES);
 
     CASPER_ecc_init();
-    if (mbedtls_mpi_size(m) > sizeof(M))
+
+    sz_m = mbedtls_mpi_size(m);
+    if (sz_m > sizeof(M))
     {
         __BKPT(0);
         return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
     }
-    mbedtls_mpi_write_binary(m, (void *)M, mbedtls_mpi_size(m));
-    reverse_array((void *)M, ECC_SIZE_BYTES);
+    mbedtls_mpi_write_binary(m, (void *)M, sz_m);
+    reverse_array((void *)M, sz_m);
     /* */
     size_t olen2 = sizeof(casper_ecp_t);
 
@@ -148,13 +162,14 @@ int mbedtls_ecp_muladd(mbedtls_ecp_group *grp,
     reverse_array(&p2.data.b[4], ECC_SIZE_BYTES);
     reverse_array(&p2.data.b[4 + ECC_SIZE_BYTES], ECC_SIZE_BYTES);
 
-    if (mbedtls_mpi_size(n) > sizeof(N))
+    sz_n = mbedtls_mpi_size(n);
+    if (sz_n > sizeof(N))
     {
         __BKPT(0);
         return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
     }
-    mbedtls_mpi_write_binary(n, (void *)N, mbedtls_mpi_size(n));
-    reverse_array((void *)N, ECC_SIZE_BYTES);
+    mbedtls_mpi_write_binary(n, (void *)N, sz_n);
+    reverse_array((void *)N, sz_n);
 #if (ECC_SIZE_BITS == 256)
     CASPER_ECC_SECP256R1_MulAdd(CASPER, &p1.data.w[1], &p1.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))],
                                 &p1.data.w[1], &p1.data.w[1 + (ECC_SIZE_BYTES / sizeof(uint32_t))], (void *)M,
@@ -166,7 +181,7 @@ int mbedtls_ecp_muladd(mbedtls_ecp_group *grp,
 #endif
     reverse_array(&p1.data.b[4], ECC_SIZE_BYTES);
     reverse_array(&p1.data.b[4 + ECC_SIZE_BYTES], ECC_SIZE_BYTES);
-    mbedtls_ecp_point_read_binary(grp, R, &p1.data.b[3], 2*ECC_SIZE_BYTES + 1);
+    mbedtls_ecp_point_read_binary(grp, R, &p1.data.b[3], 2 * ECC_SIZE_BYTES + 1);
     return 0;
 }
 #endif /* MBEDTLS_ECP_MULADD_ALT */

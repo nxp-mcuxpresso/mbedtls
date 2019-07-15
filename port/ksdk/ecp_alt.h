@@ -168,6 +168,10 @@ mbedtls_ecp_group;
 
 /* \} name SECTION: Module settings */
 
+int ecp_add( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+             const mbedtls_ecp_point *P,
+             const mbedtls_ecp_point *Q );
+
 #endif /* MBEDTLS_ECP_ALT */
 
 #ifdef __cplusplus

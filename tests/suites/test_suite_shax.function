@@ -4,6 +4,17 @@
 #include "mbedtls/sha512.h"
 /* END_HEADER */
 
+/* REMOVED 
+ SHA-1 Test Vector NIST CAVS #8
+ SHA-256 Test Vector NIST CAVS #7
+ SHA-384 Test Vector NIST CAVS #8
+ SHA-512 Test Vector NIST CAVS #8
+ due to problem with data transport from client side(PC) 
+ 
+ and all test cases for SHA-224 because SHA-224 is not supported
+ 
+ */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SHA1_C */
 void mbedtls_sha1( data_t * src_str, data_t * hex_hash_string )
 {

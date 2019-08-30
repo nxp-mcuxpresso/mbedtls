@@ -57,6 +57,12 @@
 
 #if defined(MBEDTLS_ECP_ALT)
 
+/* Parameter validation macros based on platform_util.h */
+#define ECP_VALIDATE_RET( cond )    \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA )
+#define ECP_VALIDATE( cond )        \
+    MBEDTLS_INTERNAL_VALIDATE( cond )
+	
 #if defined(TGT_A71CH)
 #include <ax_mbedtls.h>
 #endif
@@ -247,6 +253,9 @@ const mbedtls_ecp_curve_info *mbedtls_ecp_curve_info_from_name( const char *name
 {
     const mbedtls_ecp_curve_info *curve_info;
 
+    if( name == NULL )
+        return( NULL );
+
     for( curve_info = mbedtls_ecp_curve_list();
          curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
          curve_info++ )
@@ -277,8 +286,7 @@ static inline ecp_curve_type ecp_get_type( const mbedtls_ecp_group *grp )
  */
 void mbedtls_ecp_point_init( mbedtls_ecp_point *pt )
 {
-    if( pt == NULL )
-        return;
+    ECP_VALIDATE( pt != NULL );
 
     mbedtls_mpi_init( &pt->X );
     mbedtls_mpi_init( &pt->Y );
@@ -301,8 +309,7 @@ void mbedtls_ecp_group_init( mbedtls_ecp_group *grp )
  */
 void mbedtls_ecp_keypair_init( mbedtls_ecp_keypair *key )
 {
-    if( key == NULL )
-        return;
+    ECP_VALIDATE( key != NULL );
 
     mbedtls_ecp_group_init( &key->grp );
     mbedtls_mpi_init( &key->d );
@@ -391,6 +398,8 @@ void mbedtls_ecp_keypair_free( mbedtls_ecp_keypair *key )
 int mbedtls_ecp_copy( mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
 {
     int ret;
+    ECP_VALIDATE_RET( P != NULL );
+    ECP_VALIDATE_RET( Q != NULL );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &P->X, &Q->X ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &P->Y, &Q->Y ) );
@@ -405,7 +414,10 @@ cleanup:
  */
 int mbedtls_ecp_group_copy( mbedtls_ecp_group *dst, const mbedtls_ecp_group *src )
 {
-    return mbedtls_ecp_group_load( dst, src->id );
+    ECP_VALIDATE_RET( dst != NULL );
+    ECP_VALIDATE_RET( src != NULL );
+
+    return( mbedtls_ecp_group_load( dst, src->id ) );
 }
 
 /*
@@ -414,6 +426,7 @@ int mbedtls_ecp_group_copy( mbedtls_ecp_group *dst, const mbedtls_ecp_group *src
 int mbedtls_ecp_set_zero( mbedtls_ecp_point *pt )
 {
     int ret;
+    ECP_VALIDATE_RET( pt != NULL );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->X , 1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Y , 1 ) );
@@ -428,15 +441,20 @@ cleanup:
  */
 int mbedtls_ecp_is_zero( mbedtls_ecp_point *pt )
 {
+    ECP_VALIDATE_RET( pt != NULL );
+
     return( mbedtls_mpi_cmp_int( &pt->Z, 0 ) == 0 );
 }
 
 /*
- * Compare two points lazyly
+ * Compare two points lazily
  */
 int mbedtls_ecp_point_cmp( const mbedtls_ecp_point *P,
                            const mbedtls_ecp_point *Q )
 {
+    ECP_VALIDATE_RET( P != NULL );
+    ECP_VALIDATE_RET( Q != NULL );
+
     if( mbedtls_mpi_cmp_mpi( &P->X, &Q->X ) == 0 &&
         mbedtls_mpi_cmp_mpi( &P->Y, &Q->Y ) == 0 &&
         mbedtls_mpi_cmp_mpi( &P->Z, &Q->Z ) == 0 )
@@ -454,6 +472,9 @@ int mbedtls_ecp_point_read_string( mbedtls_ecp_point *P, int radix,
                            const char *x, const char *y )
 {
     int ret;
+    ECP_VALIDATE_RET( P != NULL );
+    ECP_VALIDATE_RET( x != NULL );
+    ECP_VALIDATE_RET( y != NULL );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &P->X, radix, x ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &P->Y, radix, y ) );
@@ -466,16 +487,19 @@ cleanup:
 /*
  * Export a point into unsigned binary data (SEC1 2.3.3)
  */
-int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp, const mbedtls_ecp_point *P,
-                            int format, size_t *olen,
-                            unsigned char *buf, size_t buflen )
+int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
+                                    const mbedtls_ecp_point *P,
+                                    int format, size_t *olen,
+                                    unsigned char *buf, size_t buflen )
 {
     int ret = 0;
     size_t plen;
-
-    if( format != MBEDTLS_ECP_PF_UNCOMPRESSED &&
-        format != MBEDTLS_ECP_PF_COMPRESSED )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    ECP_VALIDATE_RET( grp  != NULL );
+    ECP_VALIDATE_RET( P    != NULL );
+    ECP_VALIDATE_RET( olen != NULL );
+    ECP_VALIDATE_RET( buf  != NULL );
+    ECP_VALIDATE_RET( format == MBEDTLS_ECP_PF_UNCOMPRESSED ||
+                      format == MBEDTLS_ECP_PF_COMPRESSED );
 
     /*
      * Common case: P == 0
@@ -522,11 +546,15 @@ cleanup:
 /*
  * Import a point from unsigned binary data (SEC1 2.3.4)
  */
-int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt,
-                           const unsigned char *buf, size_t ilen )
+int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp,
+                                   mbedtls_ecp_point *pt,
+                                   const unsigned char *buf, size_t ilen )
 {
     int ret;
     size_t plen;
+    ECP_VALIDATE_RET( grp != NULL );
+    ECP_VALIDATE_RET( pt  != NULL );
+    ECP_VALIDATE_RET( buf != NULL );
 
     if( ilen < 1 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -561,11 +589,16 @@ cleanup:
  *          opaque point <1..2^8-1>;
  *      } ECPoint;
  */
-int mbedtls_ecp_tls_read_point( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt,
-                        const unsigned char **buf, size_t buf_len )
+int mbedtls_ecp_tls_read_point( const mbedtls_ecp_group *grp,
+                                mbedtls_ecp_point *pt,
+                                const unsigned char **buf, size_t buf_len )
 {
     unsigned char data_len;
     const unsigned char *buf_start;
+    ECP_VALIDATE_RET( grp != NULL );
+    ECP_VALIDATE_RET( pt  != NULL );
+    ECP_VALIDATE_RET( buf != NULL );
+    ECP_VALIDATE_RET( *buf != NULL );
 
     /*
      * We must have at least two bytes (1 for length, at least one for data)
@@ -583,7 +616,7 @@ int mbedtls_ecp_tls_read_point( const mbedtls_ecp_group *grp, mbedtls_ecp_point 
     buf_start = *buf;
     *buf += data_len;
 
-    return mbedtls_ecp_point_read_binary( grp, pt, buf_start, data_len );
+    return( mbedtls_ecp_point_read_binary( grp, pt, buf_start, data_len ) );
 }
 
 /*
@@ -597,6 +630,12 @@ int mbedtls_ecp_tls_write_point( const mbedtls_ecp_group *grp, const mbedtls_ecp
                          unsigned char *buf, size_t blen )
 {
     int ret;
+    ECP_VALIDATE_RET( grp  != NULL );
+    ECP_VALIDATE_RET( pt   != NULL );
+    ECP_VALIDATE_RET( olen != NULL );
+    ECP_VALIDATE_RET( buf  != NULL );
+    ECP_VALIDATE_RET( format == MBEDTLS_ECP_PF_UNCOMPRESSED ||
+                      format == MBEDTLS_ECP_PF_COMPRESSED );
 
     /*
      * buffer length must be at least one, for our length byte
@@ -676,6 +715,9 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp, size_t *olen,
                          unsigned char *buf, size_t blen )
 {
     const mbedtls_ecp_curve_info *curve_info;
+    ECP_VALIDATE_RET( grp  != NULL );
+    ECP_VALIDATE_RET( buf  != NULL );
+    ECP_VALIDATE_RET( olen != NULL );
 
     if( ( curve_info = mbedtls_ecp_curve_info_from_grp_id( grp->id ) ) == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -754,25 +796,29 @@ cleanup:
 #define INC_MUL_COUNT
 #endif
 
-#define MOD_MUL( N )    do { MBEDTLS_MPI_CHK( ecp_modp( &N, grp ) ); INC_MUL_COUNT } \
-                        while( 0 )
+#define MOD_MUL( N )                                                    \
+    do                                                                  \
+    {                                                                   \
+        MBEDTLS_MPI_CHK( ecp_modp( &(N), grp ) );                       \
+        INC_MUL_COUNT                                                   \
+    } while( 0 )
 
 /*
  * Reduce a mbedtls_mpi mod p in-place, to use after mbedtls_mpi_sub_mpi
  * N->s < 0 is a very fast test, which fails only if N is 0
  */
-#define MOD_SUB( N )                                \
-    while( N.s < 0 && mbedtls_mpi_cmp_int( &N, 0 ) != 0 )   \
-        MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &N, &N, &grp->P ) )
+#define MOD_SUB( N )                                                    \
+    while( (N).s < 0 && mbedtls_mpi_cmp_int( &(N), 0 ) != 0 )           \
+        MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &(N), &(N), &grp->P ) )
 
 /*
  * Reduce a mbedtls_mpi mod p in-place, to use after mbedtls_mpi_add_mpi and mbedtls_mpi_mul_int.
  * We known P, N and the result are positive, so sub_abs is correct, and
  * a bit faster.
  */
-#define MOD_ADD( N )                                \
-    while( mbedtls_mpi_cmp_mpi( &N, &grp->P ) >= 0 )        \
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_abs( &N, &N, &grp->P ) )
+#define MOD_ADD( N )                                                    \
+    while( mbedtls_mpi_cmp_mpi( &(N), &grp->P ) >= 0 )                  \
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_abs( &(N), &(N), &grp->P ) )
 
 #if defined(ECP_SHORTWEIERSTRASS)
 /*
@@ -797,11 +843,10 @@ static int ecp_normalize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
         return( 0 );
 
 #if defined(MBEDTLS_ECP_NORMALIZE_JAC_ALT)
-    if ( mbedtls_internal_ecp_grp_capable( grp ) )
-    {
-        return mbedtls_internal_ecp_normalize_jac( grp, pt );
-    }
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_normalize_jac( grp, pt ) );
 #endif /* MBEDTLS_ECP_NORMALIZE_JAC_ALT */
+
     mbedtls_mpi_init( &Zi ); mbedtls_mpi_init( &ZZi );
 
     /*
@@ -980,10 +1025,8 @@ static int ecp_double_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #endif
 
 #if defined(MBEDTLS_ECP_DOUBLE_JAC_ALT)
-    if ( mbedtls_internal_ecp_grp_capable( grp ) )
-    {
-        return mbedtls_internal_ecp_double_jac( grp, R, P );
-    }
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_double_jac( grp, R, P ) );
 #endif /* MBEDTLS_ECP_DOUBLE_JAC_ALT */
 
     mbedtls_mpi_init( &M ); mbedtls_mpi_init( &S ); mbedtls_mpi_init( &T ); mbedtls_mpi_init( &U );
@@ -1048,7 +1091,7 @@ cleanup:
 
     return( ret );
 }
-#endif /*!MBEDTLS_ECP_ADD_ALT*/
+#endif /*!MBEDTLS_ECP_MUL_COMB_ALT*/
 
 /*
  * Addition: R = P + Q, mixed affine-Jacobian coordinates (GECC 3.22)
@@ -1080,10 +1123,8 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #endif
 
 #if defined(MBEDTLS_ECP_ADD_MIXED_ALT)
-    if ( mbedtls_internal_ecp_grp_capable( grp ) )
-    {
-        return mbedtls_internal_ecp_add_mixed( grp, R, P, Q );
-    }
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_add_mixed( grp, R, P, Q ) );
 #endif /* MBEDTLS_ECP_ADD_MIXED_ALT */
 
     /*
@@ -1169,10 +1210,8 @@ static int ecp_randomize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
     int count = 0;
 
 #if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT)
-    if ( mbedtls_internal_ecp_grp_capable( grp ) )
-    {
-        return mbedtls_internal_ecp_randomize_jac( grp, pt, f_rng, p_rng );
-    }
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_randomize_jac( grp, pt, f_rng, p_rng ) );
 #endif /* MBEDTLS_ECP_RANDOMIZE_JAC_ALT */
 
     p_size = ( grp->pbits + 7 ) / 8;
@@ -1229,11 +1268,38 @@ cleanup:
  * modified version that provides resistance to SPA by avoiding zero
  * digits in the representation as in [3]. We modify the method further by
  * requiring that all K_i be odd, which has the small cost that our
- * representation uses one more K_i, due to carries.
+ * representation uses one more K_i, due to carries, but saves on the size of
+ * the precomputed table.
  *
- * Also, for the sake of compactness, only the seven low-order bits of x[i]
- * are used to represent K_i, and the msb of x[i] encodes the the sign (s_i in
- * the paper): it is set if and only if if s_i == -1;
+ * Summary of the comb method and its modifications:
+ *
+ * - The goal is to compute m*P for some w*d-bit integer m.
+ *
+ * - The basic comb method splits m into the w-bit integers
+ *   x[0] .. x[d-1] where x[i] consists of the bits in m whose
+ *   index has residue i modulo d, and computes m * P as
+ *   S[x[0]] + 2 * S[x[1]] + .. + 2^(d-1) S[x[d-1]], where
+ *   S[i_{w-1} .. i_0] := i_{w-1} 2^{(w-1)d} P + ... + i_1 2^d P + i_0 P.
+ *
+ * - If it happens that, say, x[i+1]=0 (=> S[x[i+1]]=0), one can replace the sum by
+ *    .. + 2^{i-1} S[x[i-1]] - 2^i S[x[i]] + 2^{i+1} S[x[i]] + 2^{i+2} S[x[i+2]] ..,
+ *   thereby successively converting it into a form where all summands
+ *   are nonzero, at the cost of negative summands. This is the basic idea of [3].
+ *
+ * - More generally, even if x[i+1] != 0, we can first transform the sum as
+ *   .. - 2^i S[x[i]] + 2^{i+1} ( S[x[i]] + S[x[i+1]] ) + 2^{i+2} S[x[i+2]] ..,
+ *   and then replace S[x[i]] + S[x[i+1]] = S[x[i] ^ x[i+1]] + 2 S[x[i] & x[i+1]].
+ *   Performing and iterating this procedure for those x[i] that are even
+ *   (keeping track of carry), we can transform the original sum into one of the form
+ *   S[x'[0]] +- 2 S[x'[1]] +- .. +- 2^{d-1} S[x'[d-1]] + 2^d S[x'[d]]
+ *   with all x'[i] odd. It is therefore only necessary to know S at odd indices,
+ *   which is why we are only computing half of it in the first place in
+ *   ecp_precompute_comb and accessing it with index abs(i) / 2 in ecp_select_comb.
+ *
+ * - For the sake of compactness, only the seven low-order bits of x[i]
+ *   are used to represent its absolute value (K_i in the paper), and the msb
+ *   of x[i] encodes the sign (s_i in the paper): it is set if and only if
+ *   if s_i == -1;
  *
  * Calling conventions:
  * - x is an array of size d + 1
@@ -1243,8 +1309,8 @@ cleanup:
  *   (the result will be incorrect if these assumptions are not satisfied)
  */
 #if !defined(MBEDTLS_ECP_MUL_COMB_ALT)
-static void ecp_comb_fixed( unsigned char x[], size_t d,
-                            unsigned char w, const mbedtls_mpi *m )
+static void ecp_comb_recode_core( unsigned char x[], size_t d,
+                                  unsigned char w, const mbedtls_mpi *m )
 {
     size_t i, j;
     unsigned char c, cc, adjust;
@@ -1275,14 +1341,38 @@ static void ecp_comb_fixed( unsigned char x[], size_t d,
 #endif /*!MBEDTLS_ECP_MUL_COMB_ALT*/
 
 /*
- * Precompute points for the comb method
+ * Precompute points for the adapted comb method
  *
- * If i = i_{w-1} ... i_1 is the binary representation of i, then
- * T[i] = i_{w-1} 2^{(w-1)d} P + ... + i_1 2^d P + P
+ * Assumption: T must be able to hold 2^{w - 1} elements.
  *
- * T must be able to hold 2^{w - 1} elements
+ * Operation: If i = i_{w-1} ... i_1 is the binary representation of i,
+ *            sets T[i] = i_{w-1} 2^{(w-1)d} P + ... + i_1 2^d P + P.
  *
  * Cost: d(w-1) D + (2^{w-1} - 1) A + 1 N(w-1) + 1 N(2^{w-1} - 1)
+ *
+ * Note: Even comb values (those where P would be omitted from the
+ *       sum defining T[i] above) are not needed in our adaption
+ *       the comb method. See ecp_comb_recode_core().
+ *
+ * This function currently works in four steps:
+ * (1) [dbl]      Computation of intermediate T[i] for 2-power values of i
+ * (2) [norm_dbl] Normalization of coordinates of these T[i]
+ * (3) [add]      Computation of all T[i]
+ * (4) [norm_add] Normalization of all T[i]
+ *
+ * Step 1 can be interrupted but not the others; together with the final
+ * coordinate normalization they are the largest steps done at once, depending
+ * on the window size. Here are operation counts for P-256:
+ *
+ * step     (2)     (3)     (4)
+ * w = 5    142     165     208
+ * w = 4    136      77     160
+ * w = 3    130      33     136
+ * w = 2    124      11     124
+ *
+ * So if ECC operations are blocking for too long even with a low max_ops
+ * value, it's useful to set MBEDTLS_ECP_WINDOW_SIZE to a lower value in order
+ * to minimize maximum blocking time.
  */
 #if !defined(MBEDTLS_ECP_MUL_COMB_ALT)
 static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
@@ -1500,7 +1590,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /*
      * Go for comb multiplication, R = M * P
      */
-    ecp_comb_fixed( k, d, w, &M );
+    ecp_comb_recode_core( k, d, w, &M );
     MBEDTLS_MPI_CHK( ecp_mul_comb_core( grp, R, T, pre_len, k, d, f_rng, p_rng ) );
 
     /*
@@ -1558,10 +1648,8 @@ static int ecp_normalize_mxz( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P
     int ret;
 
 #if defined(MBEDTLS_ECP_NORMALIZE_MXZ_ALT)
-    if ( mbedtls_internal_ecp_grp_capable( grp ) )
-    {
-        return mbedtls_internal_ecp_normalize_mxz( grp, P );
-    }
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_normalize_mxz( grp, P ) );
 #endif /* MBEDTLS_ECP_NORMALIZE_MXZ_ALT */
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &P->Z, &P->Z, &grp->P ) );
@@ -1589,10 +1677,8 @@ static int ecp_randomize_mxz( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P
     int count = 0;
 
 #if defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT)
-    if ( mbedtls_internal_ecp_grp_capable( grp ) )
-    {
-        return mbedtls_internal_ecp_randomize_mxz( grp, P, f_rng, p_rng );
-    }
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_randomize_mxz( grp, P, f_rng, p_rng );
 #endif /* MBEDTLS_ECP_RANDOMIZE_MXZ_ALT */
 
     p_size = ( grp->pbits + 7 ) / 8;
@@ -1644,10 +1730,8 @@ static int ecp_double_add_mxz( const mbedtls_ecp_group *grp,
     mbedtls_mpi A, AA, B, BB, E, C, D, DA, CB;
 
 #if defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT)
-    if ( mbedtls_internal_ecp_grp_capable( grp ) )
-    {
-        return mbedtls_internal_ecp_double_add_mxz( grp, R, S, P, Q, d );
-    }
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_double_add_mxz( grp, R, S, P, Q, d ) );
 #endif /* MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT */
 
     mbedtls_mpi_init( &A ); mbedtls_mpi_init( &AA ); mbedtls_mpi_init( &B );
@@ -2114,6 +2198,11 @@ int mbedtls_ecp_gen_keypair( mbedtls_ecp_group *grp,
                              int (*f_rng)(void *, unsigned char *, size_t),
                              void *p_rng )
 {
+    ECP_VALIDATE_RET( grp   != NULL );
+    ECP_VALIDATE_RET( d     != NULL );
+    ECP_VALIDATE_RET( Q     != NULL );
+    ECP_VALIDATE_RET( f_rng != NULL );
+
     return( mbedtls_ecp_gen_keypair_base( grp, &grp->G, d, Q, f_rng, p_rng ) );
 }
 
@@ -2124,6 +2213,8 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret;
+    ECP_VALIDATE_RET( key   != NULL );
+    ECP_VALIDATE_RET( f_rng != NULL );
 
     if( ( ret = mbedtls_ecp_group_load( &key->grp, grp_id ) ) != 0 )
         return( ret );

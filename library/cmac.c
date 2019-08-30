@@ -1077,7 +1077,7 @@ int mbedtls_cmac_self_test( int verbose )
 #endif /* MBEDTLS_AES_C */
 
     if( verbose != 0 )
-        mbedtls_printf( "\n\r" );
+        mbedtls_printf( "\n" );
 
     return( 0 );
 }

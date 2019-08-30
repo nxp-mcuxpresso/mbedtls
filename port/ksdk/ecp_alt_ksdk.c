@@ -80,7 +80,8 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
                  const mbedtls_mpi *m,
                  const mbedtls_ecp_point *P,
                  int (*f_rng)(void *, unsigned char *, size_t),
-                 void *p_rng)
+                 void *p_rng,
+                 mbedtls_ecp_restart_ctx *rs_ctx ) /* TBD: rs_ctx is not used MBEDTLS_ECP_RESTARTABLE is not supported */
 {
     casper_ecp_t p                                = {0};
     uint32_t M[ECC_SIZE_BYTES / sizeof(uint32_t)] = {0};

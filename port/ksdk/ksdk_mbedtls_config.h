@@ -177,8 +177,8 @@
 #define MBEDTLS_FREESCALE_CASPER_PKHA /* Enable use of CASPER PKHA.*/
 #define FREESCALE_PKHA_INT_MAX_BYTES (512)
 
-//DM #define MBEDTLS_ECP_MUL_COMB_ALT /* Alternate implementation of ecp_mul_comb() */
-//DM #define MBEDTLS_ECP_MULADD_ALT /* Alternate implementation of mbedtls_ecp_muladd() */
+#define MBEDTLS_ECP_MUL_COMB_ALT /* Alternate implementation of ecp_mul_comb() */
+#define MBEDTLS_ECP_MULADD_ALT /* Alternate implementation of mbedtls_ecp_muladd() */
 #define MBEDTLS_MCUX_CASPER_ECC /* CASPER implementation */
 
 #endif
@@ -196,7 +196,7 @@
 
 
 /* Define ALT functions. */
-//DM #define MBEDTLS_ECP_ALT
+#define MBEDTLS_ECP_ALT
 
 #if defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
 #define MBEDTLS_DES_ALT

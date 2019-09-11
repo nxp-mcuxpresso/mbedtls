@@ -1309,6 +1309,7 @@ cleanup:
  *             4M + 4S          (A == -3)
  *             3M + 6S + 1a     otherwise
  */
+#if !defined(MBEDTLS_ECP_MUL_COMB_ALT) || !defined(MBEDTLS_ECP_ADD_ALT)
 static int ecp_double_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                            const mbedtls_ecp_point *P )
 {
@@ -1386,6 +1387,7 @@ cleanup:
 
     return( ret );
 }
+#endif
 
 /*
  * Addition: R = P + Q, mixed affine-Jacobian coordinates (GECC 3.22)
@@ -1405,6 +1407,7 @@ cleanup:
  *
  * Cost: 1A := 8M + 3S
  */
+#if !defined(MBEDTLS_ECP_MUL_COMB_ALT) || !defined(MBEDTLS_ECP_ADD_ALT)
 static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                           const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
 {
@@ -1484,6 +1487,7 @@ cleanup:
 
     return( ret );
 }
+#endif /* MBEDTLS_ECP_MUL_COMB_ALT */
 
 /*
  * Randomize jacobian coordinates:

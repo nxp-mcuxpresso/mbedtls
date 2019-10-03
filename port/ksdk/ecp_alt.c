@@ -75,7 +75,7 @@
  */
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
 #endif
-#if defined(MBEDTLS_ECP_C) && !(SSS_HAVE_SSS)
+#if defined(MBEDTLS_ECP_C)
 
 #include "mbedtls/ecp.h"
 #include "mbedtls/threading.h"
@@ -84,6 +84,10 @@
 #include <string.h>
 
 #if defined(MBEDTLS_ECP_ALT)
+
+#if SSS_HAVE_ALT_SSS
+#  include "sss_mbedtls.h"
+#endif
 
 /* Parameter validation macros based on platform_util.h */
 #define ECP_VALIDATE_RET( cond )    \
@@ -2759,6 +2763,7 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp,
             mbedtls_mpi_get_bit( d, 1 ) != 0 ||
             mbedtls_mpi_bitlen( d ) - 1 != grp->nbits ) /* mbedtls_mpi_bitlen is one-based! */
             return( MBEDTLS_ERR_ECP_INVALID_KEY );
+        else
 
         /* see [Curve25519] page 5 */
         if( grp->nbits == 254 && mbedtls_mpi_get_bit( d, 2 ) != 0 )
@@ -2825,6 +2830,7 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
             MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, 2, 0 ) );
         }
     }
+    else
 #endif /* ECP_MONTGOMERY */
 
 #if defined(ECP_SHORTWEIERSTRASS)

@@ -75,8 +75,7 @@
  */
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
 #endif
-
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) && !(SSS_HAVE_SSS)
 
 #include "mbedtls/ecp.h"
 #include "mbedtls/threading.h"

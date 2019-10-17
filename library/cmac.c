@@ -723,7 +723,7 @@ static const unsigned char des3_3key_expected_result[NB_CMAC_TESTS_PER_KEY][MBED
     }
 };
 
-#endif /* MBEDTLS_DES_C */
+#endif /* MBEDTLS_DES_C && MBEDTLS_CIPHER_CMAC_ALT*/
 
 #if defined(MBEDTLS_AES_C)
 /* AES AES-CMAC-PRF-128 Test Data */

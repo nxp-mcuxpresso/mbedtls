@@ -24,6 +24,12 @@
  *
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
+ /*
+ * Copyright 2019 NXP
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 #ifndef MBEDTLS_CMAC_ALT_H
 #define MBEDTLS_CMAC_ALT_H

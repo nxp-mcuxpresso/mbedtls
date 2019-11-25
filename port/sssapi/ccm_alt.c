@@ -18,7 +18,12 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
-
+/*
+ * Copyright 2019 NXP
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 /*
  * Definition of CCM:
  * http://csrc.nist.gov/publications/nistpubs/800-38C/SP800-38C_updated-July20_2007.pdf
@@ -75,28 +80,26 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
                         const unsigned char *key,
                         unsigned int keybits )
 {
-    int ret = -100;
-    if ((sss_sscp_key_object_init(&ctx->key, &g_keyStore)) != kStatus_SSS_Success)
-    {
-      PRINTF("DBG MSG: sss_sscp_key_object_init failed. \r\n");
-      ret = -1;
-    }
-    else if ((sss_sscp_key_object_allocate_handle(&ctx->key, 1u, kSSS_KeyPart_Default, kSSS_CipherType_AES,
-                                                        (keybits + 7u) / 8u, 0u)) != kStatus_SSS_Success)
-    {
-      PRINTF("DBG MSG: sss_sscp_key_object_allocate_handle failed. \r\n");
-      ret = -2;
-    }
-    else if ((sss_sscp_key_store_set_key(&g_keyStore, &ctx->key, key, (keybits + 7u) / 8u,
-                                               keybits, NULL, 0u)) != kStatus_SSS_Success)
-    {
-      PRINTF("DBG MSG: sss_sscp_key_store_set_key failed. \r\n");
-      ret = -3;
-    }
-    else {
-      ret = 0;
-    }
-    return ret;
+  int ret = -100;
+  CRYPTO_InitHardware();
+  if ((sss_sscp_key_object_init(&ctx->key, &g_keyStore)) != kStatus_SSS_Success)
+  {
+    ret = -1;
+  }
+  else if ((sss_sscp_key_object_allocate_handle(&ctx->key, 1u, kSSS_KeyPart_Default, kSSS_CipherType_AES,
+                                                      (keybits + 7u) / 8u, 0u)) != kStatus_SSS_Success)
+  {
+    ret = -2;
+  }
+  else if ((sss_sscp_key_store_set_key(&g_keyStore, &ctx->key, key, (keybits + 7u) / 8u,
+                                             keybits, NULL, 0u)) != kStatus_SSS_Success)
+  {
+    ret = -3;
+  }
+  else {
+    ret = 0;
+  }
+  return ret;
 }
 
 /*
@@ -104,13 +107,13 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
  */
 void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
 {
-    if( ctx == NULL )
-        return;
-    if (sss_sscp_key_object_free(&ctx->key) != kStatus_SSS_Success)
-    {
-      PRINTF("DBG MSG: AES sss_sscp_key_object_free failed. \r\n");
-    }
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_ccm_context ) );
+  if( ctx == NULL )
+      return;
+  CRYPTO_InitHardware();
+  if (sss_sscp_key_object_free(&ctx->key) != kStatus_SSS_Success)
+  {
+  }
+  mbedtls_platform_zeroize( ctx, sizeof( mbedtls_ccm_context ) );
 }
 
 /*
@@ -128,12 +131,10 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
                            unsigned char *tag, size_t tag_len )
 {
     int ret = -100;
-    sss_sscp_aead_t aeadCtx;
-    
-    size_t tlen = tag_len;
-    
+    sss_sscp_aead_t aeadCtx;    
+    size_t tlen = tag_len;    
     sss_mode_t sssMode;
-    
+    CRYPTO_InitHardware();    
     if (mode == CCM_ENCRYPT) {
       sssMode = kMode_SSS_Encrypt;
     }
@@ -147,19 +148,16 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     /* AEAD OPERATION INIT */
     if (sss_sscp_aead_context_init(&aeadCtx, &g_sssSession, &ctx->key, kAlgorithm_SSS_AES_CCM, sssMode) != kStatus_SSS_Success)
     {
-        PRINTF("DBG MSG: sss_sscp_aead_context_init failed. \r\n");
         ret = -1;
     }       
     /* RUN AEAD */
     else if (sss_sscp_aead_one_go(&aeadCtx, input, output, length, (uint8_t*)iv, iv_len, add, add_len, tag, &tlen) != kStatus_SSS_Success)
     {
-        PRINTF("DBG MSG: sss_sscp_aead_one_go failed. \r\n");
         ret = -2;
     }    
     /* FREE AEAD CONTEXT */
     else if (sss_sscp_aead_context_free(&aeadCtx) != kStatus_SSS_Success)
     {
-        PRINTF("DBG MSG: sss_sscp_aead_context_free failed.\r\n");
         ret = -3;
     }
     else {

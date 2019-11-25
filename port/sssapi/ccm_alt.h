@@ -45,6 +45,12 @@
  *
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
+ /*
+ * Copyright 2019 NXP
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 #ifndef MBEDTLS_CCM_ALT_H
 #define MBEDTLS_CCM_ALT_H
@@ -72,10 +78,9 @@ extern "C" {
 typedef struct mbedtls_ccm_context
 {
     sss_sscp_object_t key;
-}
-mbedtls_ccm_context;
+} mbedtls_ccm_context;
 
-int mbedtls_ccm_from_blob(mbedtls_ccm_context * ctx, uint8_t* blob, size_t blobSize);
+int mbedtls_ccm_from_blob(mbedtls_ccm_context *ctx, uint8_t *blob, size_t blobSize);
 #endif
 
 #endif /* MBEDTLS_CCM_ALT_H */

@@ -44,6 +44,7 @@
 #if defined(MBEDTLS_NXP_SENTINEL200)
 #define MBEDTLS_CCM_ALT
 #define MBEDTLS_CMAC_ALT
+#define MBEDTLS_ENTROPY_HARDWARE_ALT
 #endif
 #endif
 

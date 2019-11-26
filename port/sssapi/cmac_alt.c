@@ -358,7 +358,7 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
                         unsigned char *output)
 {
     sss_sscp_mac_t ctx;
-    size_t macSize = ilen;
+    size_t macSize = 16u;
     sss_sscp_object_t sssKey;
     int ret = -100;
     mbedtls_cipher_type_t type;

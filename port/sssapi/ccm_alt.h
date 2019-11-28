@@ -45,7 +45,7 @@
  *
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
- /*
+/*
  * Copyright 2019 NXP
  * All rights reserved.
  *

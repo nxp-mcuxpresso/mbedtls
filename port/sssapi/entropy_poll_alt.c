@@ -14,7 +14,7 @@
 
 /* Entropy poll callback for a hardware source */
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
-int mbedtls_hardware_poll( void *data, unsigned char *output, size_t len, size_t *olen )
+int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t *olen)
 {
     status_t result = kStatus_Fail;
     sss_sscp_rng_t ctx;

@@ -34,7 +34,7 @@ void CRYPTO_InitHardware(void)
 {
     if (!g_isCryptoHWInitialized)
     {
-        SNT_fwUploadFromBin();
+        SNT_loadFwLocal();
         if (sscp_mu_init(&g_sscpContext, 0u) != kStatus_SSCP_Success)
         {
         }

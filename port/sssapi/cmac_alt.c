@@ -20,13 +20,13 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
- /*
+/*
  * Copyright 2019 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
- 
+
 /*
  * References:
  *
@@ -358,60 +358,83 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
                         unsigned char *output)
 {
     sss_sscp_mac_t ctx;
+    mbedtls_cipher_context_t mbedctx;
     size_t macSize = 16u;
     sss_sscp_object_t sssKey;
     int ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     mbedtls_cipher_type_t type;
     type = cipher_info->type;
     sss_algorithm_t sssType;
+    uint8_t ramKey[32];
+    if (cipher_info == NULL || key == NULL || input == NULL || output == NULL)
+        return (MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA);
     switch (type)
     {
         case MBEDTLS_CIPHER_AES_128_ECB:
         case MBEDTLS_CIPHER_AES_192_ECB:
         case MBEDTLS_CIPHER_AES_256_ECB:
             sssType = kAlgorithm_SSS_CMAC_AES;
+            memcpy(ramKey, key, (keylen + 7u) / 8u);
+            CRYPTO_InitHardware();
+            if ((sss_sscp_key_object_init(&sssKey, &g_keyStore)) != kStatus_SSS_Success)
+            {
+                ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            }
+            else if ((sss_sscp_key_object_allocate_handle(&sssKey, 1u, kSSS_KeyPart_Default, kSSS_CipherType_AES,
+                                                          (keylen + 7u) / 8u, 0u)) != kStatus_SSS_Success)
+            {
+                ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            }
+            else if ((sss_sscp_key_store_set_key(&g_keyStore, &sssKey, ramKey, (keylen + 7u) / 8u, keylen, NULL, 0u)) !=
+                     kStatus_SSS_Success)
+            {
+                ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            }
+            /* CMAC OPERATION INIT */
+            else if (sss_sscp_mac_context_init(&ctx, &g_sssSession, &sssKey, sssType, kMode_SSS_Mac) !=
+                     kStatus_SSS_Success)
+            {
+                ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            }
+            /* RUN CMAC ONE GO */
+            else if (sss_sscp_mac_one_go(&ctx, (const uint8_t *)input, ilen, (uint8_t *)output, &macSize) !=
+                     kStatus_SSS_Success)
+            {
+                ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            }
+            else
+            {
+                ret = 0;
+            }
+            /* CLEAN UP */
+            /* KEYOBJECT FREE*/
+            sss_sscp_key_object_free(&sssKey);
+            /* CONTEXT FREE*/
+            sss_sscp_mac_context_free(&ctx);
+            break;
+        case MBEDTLS_CIPHER_DES_EDE3_ECB:
+            mbedtls_cipher_init(&mbedctx);
+            if ((ret = mbedtls_cipher_setup(&mbedctx, cipher_info)) != 0)
+            {
+            }
+            else if ((ret = mbedtls_cipher_cmac_starts(&mbedctx, key, keylen)) != 0)
+            {
+            }
+            else if ((ret = mbedtls_cipher_cmac_update(&mbedctx, input, ilen)) != 0)
+            {
+            }
+            else if ((ret = mbedtls_cipher_cmac_finish(&mbedctx, output)) != 0)
+            {
+            }
+            else
+            {
+                ret = 0;
+            }
+            mbedtls_cipher_free(&mbedctx);
             break;
         default:
             return (MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA);
-    }
-    CRYPTO_InitHardware();
-    if ((sss_sscp_key_object_init(&sssKey, &g_keyStore)) != kStatus_SSS_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    else if ((sss_sscp_key_object_allocate_handle(&sssKey, 1u, kSSS_KeyPart_Default, kSSS_CipherType_AES,
-                                                  (keylen + 7u) / 8u, 0u)) != kStatus_SSS_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    else if ((sss_sscp_key_store_set_key(&g_keyStore, &sssKey, key, (keylen + 7u) / 8u, keylen, NULL, 0u)) !=
-             kStatus_SSS_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    /* CMAC OPERATION INIT */
-    else if (sss_sscp_mac_context_init(&ctx, &g_sssSession, &sssKey, sssType, kMode_SSS_Mac) != kStatus_SSS_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    /* RUN CMAC ONE GO */
-    else if (sss_sscp_mac_one_go(&ctx, (const uint8_t *)input, ilen, (uint8_t *)output, &macSize) !=
-             kStatus_SSS_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    else
-    {
-        ret = 0;
-    }
-    /* CLEAN UP */
-    /* KEYOBJECT FREE*/
-    if (sss_sscp_key_object_free(&sssKey) != kStatus_SSS_Success)
-    {
-    }
-    /* CONTEXT FREE*/
-    if (sss_sscp_mac_context_free(&ctx) != kStatus_SSS_Success)
-    {
+            break;
     }
     return (ret);
 }

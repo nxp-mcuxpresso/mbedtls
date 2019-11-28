@@ -24,7 +24,7 @@
  *
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
- /*
+/*
  * Copyright 2019 NXP
  * All rights reserved.
  *
@@ -53,15 +53,15 @@ extern "C" {
 struct mbedtls_cmac_context_t
 {
     /** The internal state of the CMAC algorithm.  */
-    unsigned char       state[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char state[MBEDTLS_CIPHER_BLKSIZE_MAX];
 
     /** Unprocessed data - either data that was not block aligned and is still
      *  pending processing, or the final block. */
-    unsigned char       unprocessed_block[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char unprocessed_block[MBEDTLS_CIPHER_BLKSIZE_MAX];
 
     /** The length of data pending processing. */
-    size_t              unprocessed_len;
-  sss_sscp_object_t key;
+    size_t unprocessed_len;
+    sss_sscp_object_t key;
 };
 
 #ifdef __cplusplus

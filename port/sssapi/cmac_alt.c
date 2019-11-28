@@ -360,7 +360,7 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
     sss_sscp_mac_t ctx;
     size_t macSize = 16u;
     sss_sscp_object_t sssKey;
-    int ret = -100;
+    int ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     mbedtls_cipher_type_t type;
     type = cipher_info->type;
     sss_algorithm_t sssType;
@@ -377,28 +377,28 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
     CRYPTO_InitHardware();
     if ((sss_sscp_key_object_init(&sssKey, &g_keyStore)) != kStatus_SSS_Success)
     {
-        ret = -1;
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     else if ((sss_sscp_key_object_allocate_handle(&sssKey, 1u, kSSS_KeyPart_Default, kSSS_CipherType_AES,
                                                   (keylen + 7u) / 8u, 0u)) != kStatus_SSS_Success)
     {
-        ret = -2;
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     else if ((sss_sscp_key_store_set_key(&g_keyStore, &sssKey, key, (keylen + 7u) / 8u, keylen, NULL, 0u)) !=
              kStatus_SSS_Success)
     {
-        ret = -3;
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     /* CMAC OPERATION INIT */
     else if (sss_sscp_mac_context_init(&ctx, &g_sssSession, &sssKey, sssType, kMode_SSS_Mac) != kStatus_SSS_Success)
     {
-        ret = -4;
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     /* RUN CMAC ONE GO */
     else if (sss_sscp_mac_one_go(&ctx, (const uint8_t *)input, ilen, (uint8_t *)output, &macSize) !=
              kStatus_SSS_Success)
     {
-        ret = -5;
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     else
     {

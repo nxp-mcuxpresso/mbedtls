@@ -14,7 +14,7 @@
 
 #include "sssapi_mbedtls.h"
 #include "fsl_common.h"
-#include "fsl_stl.h"
+#include "fsl_snt.h"
 
 sss_sscp_key_store_t g_keyStore;
 sss_sscp_session_t g_sssSession;
@@ -34,8 +34,7 @@ void CRYPTO_InitHardware(void)
 {
     if (!g_isCryptoHWInitialized)
     {
-        // setStlFwKeysTest();
-        stlFwUploadFromBin();
+        SNT_fwUploadFromBin();
         if (sscp_mu_init(&g_sscpContext, 0u) != kStatus_SSCP_Success)
         {
         }

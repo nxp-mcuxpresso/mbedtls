@@ -91,7 +91,7 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    else if ((sss_sscp_key_store_set_key(&g_keyStore, &ctx->key, ramKey, (keybits + 7u) / 8u, keybits, NULL, 0u)) !=
+    else if ((sss_sscp_key_store_set_key(&g_keyStore, &ctx->key, ramKey, (keybits + 7u) / 8u, keybits, NULL)) !=
              kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;

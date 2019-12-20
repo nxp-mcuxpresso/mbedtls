@@ -53,6 +53,7 @@
 #endif
 
 #if defined(MBEDTLS_CMAC_C)
+#if defined(MBEDTLS_CMAC_ALT)
 
 #include "mbedtls/cmac.h"
 #include "sssapi_mbedtls.h"
@@ -385,7 +386,7 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
             {
                 ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             }
-            else if ((sss_sscp_key_store_set_key(&g_keyStore, &sssKey, ramKey, (keylen + 7u) / 8u, keylen, NULL, 0u)) !=
+            else if ((sss_sscp_key_store_set_key(&g_keyStore, &sssKey, ramKey, (keylen + 7u) / 8u, keylen, NULL)) !=
                      kStatus_SSS_Success)
             {
                 ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -484,5 +485,5 @@ exit:
     return (ret);
 }
 #endif /* MBEDTLS_AES_C */
-
+#endif /* MBEDTLS_CMAC_ALT */
 #endif /* MBEDTLS_CMAC_C */

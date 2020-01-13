@@ -75,7 +75,6 @@
  */
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
 #endif
-
 #if defined(MBEDTLS_ECP_C)
 
 #include "mbedtls/ecp.h"
@@ -86,12 +85,16 @@
 
 #if defined(MBEDTLS_ECP_ALT)
 
+#if SSS_HAVE_ALT_SSS
+#  include "sss_mbedtls.h"
+#endif
+
 /* Parameter validation macros based on platform_util.h */
 #define ECP_VALIDATE_RET( cond )    \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA )
 #define ECP_VALIDATE( cond )        \
     MBEDTLS_INTERNAL_VALIDATE( cond )
-	
+
 #if defined(TGT_A71CH)
 #include <ax_mbedtls.h>
 #endif
@@ -654,6 +657,7 @@ void mbedtls_ecp_keypair_free( mbedtls_ecp_keypair *key )
     }
     mbedtls_ecp_keypair_free_o(key);
 }
+#elif SSS_HAVE_ALT_SSS
 #else
 void mbedtls_ecp_keypair_free( mbedtls_ecp_keypair *key )
 {
@@ -955,6 +959,7 @@ int mbedtls_ecp_tls_read_group( mbedtls_ecp_group *grp, const unsigned char **bu
     grp->hlse_handle = backup_type_ax_index;
     return ret;
 }
+#elif SSS_HAVE_ALT_SSS
 #else
 int mbedtls_ecp_tls_read_group( mbedtls_ecp_group *grp, const unsigned char **buf, size_t len )
 {
@@ -1128,7 +1133,7 @@ cleanup:
  * Normalize jacobian coordinates so that Z == 0 || Z == 1  (GECC 3.2.1)
  * Cost: 1N := 1I + 3M + 1S
  */
-#if !defined(MBEDTLS_ECP_MUL_COMB_ALT) || !defined(MBEDTLS_ECP_ADD_ALT) 
+#if !defined(MBEDTLS_ECP_MUL_COMB_ALT) || !defined(MBEDTLS_ECP_ADD_ALT)
 static int ecp_normalize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt )
 {
     int ret;
@@ -2670,7 +2675,7 @@ norm:
 
 #else
     MBEDTLS_MPI_CHK(ecp_add(grp, R, &mP, R ));
-#endif	
+#endif
 
 cleanup:
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
@@ -2760,6 +2765,7 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp,
             mbedtls_mpi_get_bit( d, 1 ) != 0 ||
             mbedtls_mpi_bitlen( d ) - 1 != grp->nbits ) /* mbedtls_mpi_bitlen is one-based! */
             return( MBEDTLS_ERR_ECP_INVALID_KEY );
+        else
 
         /* see [Curve25519] page 5 */
         if( grp->nbits == 254 && mbedtls_mpi_get_bit( d, 2 ) != 0 )
@@ -2826,6 +2832,7 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
             MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, 2, 0 ) );
         }
     }
+    else
 #endif /* ECP_MONTGOMERY */
 
 #if defined(ECP_SHORTWEIERSTRASS)

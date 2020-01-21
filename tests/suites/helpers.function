@@ -4,6 +4,11 @@
 
 #include <stdlib.h>
 
+#include "erpc_client_setup.h"
+#include "erpc_transport_setup.h"
+#include "erpc_mbf_setup.h"
+#include "mbedtls_test_suite.h"
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -47,11 +52,13 @@ typedef UINT32 uint32_t;
 #endif
 
 /* Type for Hex parameters */
+/*
 typedef struct data_tag
 {
     uint8_t *   x;
     uint32_t    len;
 } data_t;
+*/
 
 /*----------------------------------------------------------------------------*/
 /* Status and error constants */

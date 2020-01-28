@@ -55,13 +55,12 @@
 
 #define MBEDTLS_CTR_DRBG_BLOCKSIZE          16 /**< The block size used by the cipher. */
 
-#ifndef MBEDTLS_CTR_DRBG_KEYSIZE
 #if defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY)
 #define MBEDTLS_CTR_DRBG_KEYSIZE            16 /**< The key size used by the cipher (compile-time choice: 128 bits). */
 #else
 #define MBEDTLS_CTR_DRBG_KEYSIZE            32 /**< The key size used by the cipher (compile-time choice: 256 bits). */
 #endif
-#endif
+
 
 #define MBEDTLS_CTR_DRBG_KEYBITS            ( MBEDTLS_CTR_DRBG_KEYSIZE * 8 ) /**< The key size for the DRBG operation, in bits. */
 #define MBEDTLS_CTR_DRBG_SEEDLEN            ( MBEDTLS_CTR_DRBG_KEYSIZE + MBEDTLS_CTR_DRBG_BLOCKSIZE ) /**< The seed length, calculated as (counter + AES key). */

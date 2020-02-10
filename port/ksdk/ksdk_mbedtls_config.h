@@ -121,11 +121,14 @@
 #include "fsl_hashcrypt.h"
 
 #define MBEDTLS_FREESCALE_HASHCRYPT_AES    /* Enable use of HASHCRYPT AES.*/
-/* Hashcrypt is not able to calculate SHA in parallel with AES.
+/* Hashcrypt without context switch is not able to calculate SHA in parallel with AES.
  * HW acceleration of SHA is disabled by default in MbedTLS integration.
+ * HW acceleration of SHA is enabled on chip with context switch.
  */
-//#define MBEDTLS_FREESCALE_HASHCRYPT_SHA1   /* Enable use of HASHCRYPT SHA1.*/
-//#define MBEDTLS_FREESCALE_HASHCRYPT_SHA256 /* Enable use of HASHCRYPT SHA256.*/
+#if defined(FSL_FEATURE_HASHCRYPT_HAS_RELOAD_FEATURE)
+#define MBEDTLS_FREESCALE_HASHCRYPT_SHA1   /* Enable use of HASHCRYPT SHA1.*/
+#define MBEDTLS_FREESCALE_HASHCRYPT_SHA256 /* Enable use of HASHCRYPT SHA256.*/
+#endif
 #endif
 
 #if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA) || defined(MBEDTLS_FREESCALE_CAAM_PKHA)

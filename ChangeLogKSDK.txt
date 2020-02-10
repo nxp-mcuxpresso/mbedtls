@@ -4,6 +4,11 @@
 @section mbedtls mbedTLS for MCUXpresso SDK
   The current version of mbedTLS is based on mbedTLS 2.16.2 released 2019-06-11
    
+  - 2.16.2_rev2
+    - Bug fixes:
+      - Add support for HASHCRYPT context switch check, Hashcrypt without context switch is not able to calculate SHA in parallel with AES.
+		HW acceleration of SHA is disabled by default in MbedTLS integration, enabled on chip with context switch. 
+	  	  
   - 2.16.2_rev1
     - Bug fixes:
       - Add support for CTR_DRBG using AES-128 for crypto engines without AES-256 capability.

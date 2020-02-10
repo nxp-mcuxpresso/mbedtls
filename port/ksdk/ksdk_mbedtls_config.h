@@ -181,6 +181,9 @@
 #define MBEDTLS_FREESCALE_CASPER_PKHA /* Enable use of CASPER PKHA.*/
 #define FREESCALE_PKHA_INT_MAX_BYTES (512)
 
+/* Note: While using CASPER for ECC, please enable appropriate ECC curve in fls_casper.h */
+/* (CASPER_ECC_P256 or CASPER_ECC_P384) and MbedTLS define */
+/* (MBEDTLS_ECP_DP_SECP256R1_ENABLED or MBEDTLS_ECP_DP_SECP384R1_ENABLED) */
 #define MBEDTLS_ECP_MUL_COMB_ALT /* Alternate implementation of ecp_mul_comb() */
 #define MBEDTLS_ECP_MULADD_ALT /* Alternate implementation of mbedtls_ecp_muladd() */
 #define MBEDTLS_MCUX_CASPER_ECC /* CASPER implementation */

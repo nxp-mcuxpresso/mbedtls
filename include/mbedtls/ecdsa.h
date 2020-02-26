@@ -65,6 +65,7 @@
 extern "C" {
 #endif
 
+#if !defined(MBEDTLS_ECDSA_ALT)
 /**
  * \brief           The ECDSA context structure.
  *
@@ -73,6 +74,9 @@ extern "C" {
  *                  should not be shared between multiple threads.
  */
 typedef mbedtls_ecp_keypair mbedtls_ecdsa_context;
+#else  /* !MBEDTLS_ECDSA_ALT */
+#include "ecdsa_alt.h"
+#endif /* !MBEDTLS_ECDSA_ALT */
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 

@@ -52,7 +52,6 @@
  * Features undefining this flag, must have a warning in their description in
  * config.h stating that the feature breaks backward compatibility.
  */
-#define MBEDTLS_ECDH_LEGACY_CONTEXT
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,6 +65,9 @@ typedef enum
     MBEDTLS_ECDH_OURS,   /**< Our key. */
     MBEDTLS_ECDH_THEIRS, /**< The key of the peer. */
 } mbedtls_ecdh_side;
+
+#if !defined(MBEDTLS_ECDH_ALT)
+#define MBEDTLS_ECDH_LEGACY_CONTEXT
 
 #if !defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
 /**
@@ -144,6 +146,9 @@ typedef struct mbedtls_ecdh_context
 #endif /* MBEDTLS_ECDH_LEGACY_CONTEXT */
 }
 mbedtls_ecdh_context;
+#else  /* !MBEDTLS_ECDH_ALT */
+#include "ecdh_alt.h"
+#endif /* !MBEDTLS_ECDH_ALT */
 
 /**
  * \brief           This function generates an ECDH keypair on an elliptic

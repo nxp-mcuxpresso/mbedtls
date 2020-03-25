@@ -305,7 +305,9 @@ void mbedtls_sha256_finish(mbedtls_sha256_context *ctx, unsigned char output[32]
     mbedtls_sha256_finish_ret(ctx, output);
 }
 #endif
+#endif /* MBEDTLS_SHA256_ALT */
 
+#if defined(NXP_MBEDTLS_SHA256_ALT)
 /*
  * output = SHA-256( input buffer )
  */
@@ -346,7 +348,6 @@ void mbedtls_sha256(const unsigned char *input, size_t ilen, unsigned char outpu
     mbedtls_sha256_ret(input, ilen, output, is224);
 }
 #endif
-
-#endif /* MBEDTLS_SHA256_ALT */
+#endif /* NXP_MBEDTLS_SHA256_ALT */
 
 #endif /* MBEDTLS_SHA256_C */

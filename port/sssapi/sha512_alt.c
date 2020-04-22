@@ -24,7 +24,7 @@
  *  http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf
  */
 /*
- * Copyright 2019 NXP
+ * Copyright 2019-2020 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -105,135 +105,6 @@ void mbedtls_sha512_clone(mbedtls_sha512_context *dst, const mbedtls_sha512_cont
     SHA512_VALIDATE(src != NULL);
 
     *dst = *src;
-}
-
-/*
- * SHA-512 context setup
- */
-int mbedtls_sha512_starts_ret(mbedtls_sha512_context *ctx, int is384)
-{
-    SHA512_VALIDATE_RET(ctx != NULL);
-    SHA512_VALIDATE_RET(is384 == 0 || is384 == 1);
-
-    int ret;
-    sss_algorithm_t alg;
-    if (is384)
-    {
-        alg = kAlgorithm_SSS_SHA384;
-    }
-    else
-    {
-        alg = kAlgorithm_SSS_SHA512;
-    }
-    CRYPTO_InitHardware();
-    if (sss_sscp_digest_context_init(&ctx->ctx, &g_sssSession, alg, kMode_SSS_Digest) != kStatus_SSS_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    else if (sss_sscp_digest_init(&ctx->ctx) != kStatus_SSS_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    else
-    {
-        ret = 0;
-    }
-    return ret;
-}
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-void mbedtls_sha512_starts(mbedtls_sha512_context *ctx, int is384)
-{
-    mbedtls_sha512_starts_ret(ctx, is384);
-}
-#endif
-
-int mbedtls_sha512_update_ret(mbedtls_sha512_context *ctx, const unsigned char *input, size_t ilen)
-{
-    int ret;
-    CRYPTO_InitHardware();
-    if (sss_sscp_digest_update(&ctx->ctx, (uint8_t *)input, ilen) != kStatus_SSS_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    else
-    {
-        ret = 0;
-    }
-    return ret;
-}
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-void mbedtls_sha512_update(mbedtls_sha512_context *ctx, const unsigned char *input, size_t ilen)
-{
-    mbedtls_sha512_update_ret(ctx, input, ilen);
-}
-#endif
-
-/*
- * SHA-512 final digest
- */
-int mbedtls_sha512_finish_ret(mbedtls_sha512_context *ctx, unsigned char output[64])
-{
-    int ret;
-    size_t len = ctx->ctx.digestFullLen;
-    CRYPTO_InitHardware();
-    if (sss_sscp_digest_finish(&ctx->ctx, output, &len) != kStatus_SSS_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    else
-    {
-        ret = 0;
-    }
-    sss_sscp_digest_context_free(&ctx->ctx);
-    return ret;
-}
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-void mbedtls_sha512_finish(mbedtls_sha512_context *ctx, unsigned char output[64])
-{
-    mbedtls_sha512_finish_ret(ctx, output);
-}
-#endif
-
-/*
- * output = SHA-512( input buffer )
- */
-int mbedtls_sha512_ret(const unsigned char *input, size_t ilen, unsigned char output[64], int is384)
-{
-    sss_sscp_digest_t dctx;
-    sss_algorithm_t alg;
-    int ret;
-    size_t size = 64u;
-    if (is384)
-    {
-        alg = kAlgorithm_SSS_SHA384;
-    }
-    else
-    {
-        alg = kAlgorithm_SSS_SHA512;
-    }
-    if (sss_sscp_digest_context_init(&dctx, &g_sssSession, alg, kMode_SSS_Digest) != kStatus_SSS_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    else if (sss_sscp_digest_one_go(&dctx, input, ilen, output, &size) != kStatus_SSS_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    else
-    {
-        ret = 0;
-    }
-    sss_sscp_digest_context_free(&dctx);
-    return ret;
-}
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-void mbedtls_sha512(const unsigned char *input, size_t ilen, unsigned char output[64], int is384)
-{
-    mbedtls_sha512_ret(input, ilen, output, is384);
 }
 
 #if !defined(MBEDTLS_SHA512_PROCESS_ALT)
@@ -353,8 +224,139 @@ void mbedtls_sha512_process(mbedtls_sha512_context *ctx, const unsigned char dat
 
 #endif
 #endif /* !MBEDTLS_SHA512_PROCESS_ALT */
+
+/*
+ * SHA-512 context setup
+ */
+int mbedtls_sha512_starts_ret(mbedtls_sha512_context *ctx, int is384)
+{
+    SHA512_VALIDATE_RET(ctx != NULL);
+    SHA512_VALIDATE_RET(is384 == 0 || is384 == 1);
+
+    int ret;
+    sss_algorithm_t alg;
+    if (is384)
+    {
+        alg = kAlgorithm_SSS_SHA384;
+    }
+    else
+    {
+        alg = kAlgorithm_SSS_SHA512;
+    }
+    CRYPTO_InitHardware();
+    if (sss_sscp_digest_context_init(&ctx->ctx, &g_sssSession, alg, kMode_SSS_Digest) != kStatus_SSS_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if (sss_sscp_digest_init(&ctx->ctx) != kStatus_SSS_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else
+    {
+        ret = 0;
+    }
+    return ret;
+}
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+void mbedtls_sha512_starts(mbedtls_sha512_context *ctx, int is384)
+{
+    mbedtls_sha512_starts_ret(ctx, is384);
+}
+#endif
+
+int mbedtls_sha512_update_ret(mbedtls_sha512_context *ctx, const unsigned char *input, size_t ilen)
+{
+    int ret;
+    CRYPTO_InitHardware();
+    if (sss_sscp_digest_update(&ctx->ctx, (uint8_t *)input, ilen) != kStatus_SSS_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else
+    {
+        ret = 0;
+    }
+    return ret;
+}
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+void mbedtls_sha512_update(mbedtls_sha512_context *ctx, const unsigned char *input, size_t ilen)
+{
+    mbedtls_sha512_update_ret(ctx, input, ilen);
+}
+#endif
+
+/*
+ * SHA-512 final digest
+ */
+int mbedtls_sha512_finish_ret(mbedtls_sha512_context *ctx, unsigned char output[64])
+{
+    int ret;
+    size_t len = ctx->ctx.digestFullLen;
+    CRYPTO_InitHardware();
+    if (sss_sscp_digest_finish(&ctx->ctx, output, &len) != kStatus_SSS_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else
+    {
+        ret = 0;
+    }
+    sss_sscp_digest_context_free(&ctx->ctx);
+    return ret;
+}
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+void mbedtls_sha512_finish(mbedtls_sha512_context *ctx, unsigned char output[64])
+{
+    mbedtls_sha512_finish_ret(ctx, output);
+}
 #endif
 
 #endif /* MBEDTLS_SHA512_ALT */
+
+#if defined(NXP_MBEDTLS_SHA512_ALT)
+/*
+ * output = SHA-512( input buffer )
+ */
+int mbedtls_sha512_ret(const unsigned char *input, size_t ilen, unsigned char output[64], int is384)
+{
+    sss_sscp_digest_t dctx;
+    sss_algorithm_t alg;
+    int ret;
+    size_t size = 64u;
+    if (is384)
+    {
+        alg = kAlgorithm_SSS_SHA384;
+    }
+    else
+    {
+        alg = kAlgorithm_SSS_SHA512;
+    }
+    if (sss_sscp_digest_context_init(&dctx, &g_sssSession, alg, kMode_SSS_Digest) != kStatus_SSS_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if (sss_sscp_digest_one_go(&dctx, input, ilen, output, &size) != kStatus_SSS_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else
+    {
+        ret = 0;
+    }
+    sss_sscp_digest_context_free(&dctx);
+    return ret;
+}
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+void mbedtls_sha512(const unsigned char *input, size_t ilen, unsigned char output[64], int is384)
+{
+    mbedtls_sha512_ret(input, ilen, output, is384);
+}
+#endif
+#endif /* NXP_MBEDTLS_SHA512_ALT */
 
 #endif /* MBEDTLS_SHA512_C */

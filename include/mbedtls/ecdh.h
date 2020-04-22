@@ -66,7 +66,8 @@ typedef enum
     MBEDTLS_ECDH_THEIRS, /**< The key of the peer. */
 } mbedtls_ecdh_side;
 
-#if !defined(MBEDTLS_ECDH_ALT)
+/* NXP adding for SSS API support */
+#if !defined(NXP_MBEDTLS_ECDH_ALT) 
 #define MBEDTLS_ECDH_LEGACY_CONTEXT
 
 #if !defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
@@ -146,9 +147,9 @@ typedef struct mbedtls_ecdh_context
 #endif /* MBEDTLS_ECDH_LEGACY_CONTEXT */
 }
 mbedtls_ecdh_context;
-#else  /* !MBEDTLS_ECDH_ALT */
+#else  /* !NXP_MBEDTLS_ECDH_ALT */
 #include "ecdh_alt.h"
-#endif /* !MBEDTLS_ECDH_ALT */
+#endif /* !NXP_MBEDTLS_ECDH_ALT */
 
 /**
  * \brief           This function generates an ECDH keypair on an elliptic

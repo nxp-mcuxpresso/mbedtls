@@ -26,7 +26,7 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 /*
- * Copyright 2019 NXP
+ * Copyright 2019-2020 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -41,12 +41,15 @@
 
 /* Define ALT functions for MBEDTLS_NXP_SSSAPI and SENTINEL unit. */
 #if defined(MBEDTLS_NXP_SSSAPI)
-#if defined(MBEDTLS_NXP_SENTINEL200)
+#if defined(MBEDTLS_NXP_SENTINEL200) || defined(MBEDTLS_NXP_SENTINEL300)
 #define MBEDTLS_CCM_ALT
 #define MBEDTLS_CMAC_ALT
 #define MBEDTLS_SHA256_ALT
+#define NXP_MBEDTLS_SHA256_ALT
 #define MBEDTLS_SHA512_ALT
+#define NXP_MBEDTLS_SHA512_ALT
 #define MBEDTLS_ECDH_ALT
+#define NXP_MBEDTLS_ECDH_ALT
 #define MBEDTLS_ECDSA_ALT
 #define MBEDTLS_ECDSA_VERIFY_ALT
 #define MBEDTLS_ECDSA_SIGN_ALT

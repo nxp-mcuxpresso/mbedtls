@@ -29,7 +29,7 @@
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
 /*
- * Copyright 2019 NXP
+ * Copyright 2019-2020 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause

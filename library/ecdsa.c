@@ -222,6 +222,7 @@ static void ecdsa_restart_det_free( mbedtls_ecdsa_restart_det_ctx *ctx )
 
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
+#if !defined(MBEDTLS_ECDSA_SIGN_ALT)
 /*
  * Derive a suitable integer for group grp from a buffer of length len
  * SEC1 4.1.3 step 5 aka SEC1 4.1.4 step 3
@@ -245,7 +246,6 @@ cleanup:
     return( ret );
 }
 
-#if !defined(MBEDTLS_ECDSA_SIGN_ALT)
 /*
  * Compute ECDSA signature of a hashed message (SEC1 4.1.3)
  * Obviously, compared to SEC1 4.1.3, we skip step 4 (hash message)

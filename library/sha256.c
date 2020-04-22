@@ -404,6 +404,10 @@ void mbedtls_sha256_finish( mbedtls_sha256_context *ctx,
 }
 #endif
 
+#endif /* !MBEDTLS_SHA256_ALT */
+
+/* NXP adding for SSS API support */
+#if !defined(NXP_MBEDTLS_SHA256_ALT)
 /*
  * output = SHA-256( input buffer )
  */
@@ -445,8 +449,7 @@ void mbedtls_sha256( const unsigned char *input,
     mbedtls_sha256_ret( input, ilen, output, is224 );
 }
 #endif
-
-#endif /* !MBEDTLS_SHA256_ALT */
+#endif /* !NXP_MBEDTLS_SHA256_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 /*

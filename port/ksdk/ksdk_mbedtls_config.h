@@ -338,6 +338,11 @@
 #define MBEDTLS_SHA256_PROCESS_ALT
 #endif
 
+/* Use SHA-256 HW acceleration for MD COOKIE when SHA-224 mode is not available */
+#ifdef MBEDTLS_SHA256_ALT_NO_224
+#define FSL_MD_COOKIE_USE_SHA256
+#endif
+      
 #if USE_RTOS && defined(FSL_RTOS_FREE_RTOS)
 #include "FreeRTOS.h"
 

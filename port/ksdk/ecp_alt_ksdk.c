@@ -46,15 +46,12 @@
 #if defined(CASPER_ECC_P256) && (CASPER_ECC_P256 > 0)
 #define ECC_SIZE_BITS (256)
 #define ECC_SIZE_BYTES (ECC_SIZE_BITS / 8) /* 32 for 256 bits, 48 for 384 bits and 72 for 521 bits*/
-#define ECC_SIZE_WORDS (ECC_SIZE_BYTES / sizeof(uint32_t))
 #elif defined(CASPER_ECC_P384) && (CASPER_ECC_P384 > 0)
 #define ECC_SIZE_BITS (384)
 #define ECC_SIZE_BYTES (ECC_SIZE_BITS / 8) /* 32 for 256 bits, 48 for 384 bits and 72 for 521 bits*/
-#define ECC_SIZE_WORDS (ECC_SIZE_BYTES / sizeof(uint32_t))
 #elif defined(CASPER_ECC_P521) && (CASPER_ECC_P521 > 0)
 #define ECC_SIZE_BITS (521)
 #define ECC_SIZE_BYTES 72 /* 32 for 256 bits, 48 for 384 bits and 72 for 521 bits*/
-#define ECC_SIZE_WORDS (ECC_SIZE_BYTES / sizeof(uint32_t))
 #endif
 
 /* Parameter validation macros based on platform_util.h */
@@ -86,9 +83,9 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
                  void *p_rng,
                  mbedtls_ecp_restart_ctx *rs_ctx ) /* TBD: rs_ctx is not used MBEDTLS_ECP_RESTARTABLE is not supported */
 {
-    uint32_t M[ECC_SIZE_WORDS] = {0};
-    uint32_t X[ECC_SIZE_WORDS] = {0};
-    uint32_t Y[ECC_SIZE_WORDS] = {0};
+    uint32_t M[ECC_SIZE_BYTES/ sizeof(uint32_t)] = {0};
+    uint32_t X[ECC_SIZE_BYTES/ sizeof(uint32_t)] = {0};
+    uint32_t Y[ECC_SIZE_BYTES/ sizeof(uint32_t)] = {0};
 
     /* Write MbedTLS mpi coordinates into binary buffer */
     mbedtls_mpi_write_binary( &P->X, (unsigned char*)&X[0], ECC_SIZE_BYTES );
@@ -106,7 +103,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
         __BKPT(0);
         return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
     }
-    mbedtls_mpi_write_binary(m, (void *)M, sizeof(M));
+    mbedtls_mpi_write_binary(m, (void *)M, ECC_SIZE_BYTES);
     reverse_array((void *)M, ECC_SIZE_BYTES);
 #if (ECC_SIZE_BITS == 256)
     CASPER_ECC_SECP256R1_Mul(CASPER, &X[0], &Y[0], &X[0], &Y[0], (void *)M);
@@ -119,10 +116,17 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     reverse_array((uint8_t *)X, ECC_SIZE_BYTES);
     reverse_array((uint8_t *)Y, ECC_SIZE_BYTES);
 
+#if (ECC_SIZE_BITS == 521)
     /* Write results into R MPI */
-    mbedtls_mpi_read_binary( &R->X, (void*)&X[1], ECC_SIZE_WORDS - 1U );
-    mbedtls_mpi_read_binary( &R->Y, (void*)&Y[1], ECC_SIZE_WORDS - 1U );
+    mbedtls_mpi_read_binary( &R->X, (void*)&X[1], ECC_SIZE_BYTES - sizeof(uint32_t) );
+    mbedtls_mpi_read_binary( &R->Y, (void*)&Y[1], ECC_SIZE_BYTES - sizeof(uint32_t) );
     mbedtls_mpi_lset( &R->Z, 1 );
+#else
+    /* Write results into R MPI */
+    mbedtls_mpi_read_binary( &R->X, (void*)&X[0], ECC_SIZE_BYTES );
+    mbedtls_mpi_read_binary( &R->Y, (void*)&Y[0], ECC_SIZE_BYTES );
+    mbedtls_mpi_lset( &R->Z, 1 );
+#endif
 
     return 0;
 }
@@ -139,12 +143,12 @@ int mbedtls_ecp_muladd_restartable(
              const mbedtls_mpi *n, const mbedtls_ecp_point *Q,
              mbedtls_ecp_restart_ctx *rs_ctx ) /* TBD restartable is not implemented */
 {
-    uint32_t X1[ECC_SIZE_WORDS] = {0};
-    uint32_t Y1[ECC_SIZE_WORDS] = {0};
-    uint32_t X2[ECC_SIZE_WORDS] = {0};
-    uint32_t Y2[ECC_SIZE_WORDS] = {0};
-    uint32_t M[ECC_SIZE_WORDS] = {0};
-    uint32_t N[ECC_SIZE_WORDS] = {0};
+    uint32_t X1[ECC_SIZE_BYTES / sizeof(uint32_t)] = {0};
+    uint32_t Y1[ECC_SIZE_BYTES / sizeof(uint32_t)] = {0};
+    uint32_t X2[ECC_SIZE_BYTES / sizeof(uint32_t)] = {0};
+    uint32_t Y2[ECC_SIZE_BYTES / sizeof(uint32_t)] = {0};
+    uint32_t M[ECC_SIZE_BYTES / sizeof(uint32_t)] = {0};
+    uint32_t N[ECC_SIZE_BYTES / sizeof(uint32_t)] = {0};
 
     /* shortcut for (m == 1) && (n == 1). this case is point addition. */
     /* this shortcut follows original mbedtls_ecp_muladd() implementation */
@@ -158,8 +162,8 @@ int mbedtls_ecp_muladd_restartable(
     mbedtls_mpi_write_binary( &P->X, (unsigned char*)&X1[0], ECC_SIZE_BYTES );
     mbedtls_mpi_write_binary( &P->Y, (unsigned char*)&Y1[0], ECC_SIZE_BYTES );
     
-    reverse_array((uint8_t *)X1, ECC_SIZE_WORDS);
-    reverse_array((uint8_t *)Y1, ECC_SIZE_WORDS);
+    reverse_array((uint8_t *)X1, ECC_SIZE_BYTES);
+    reverse_array((uint8_t *)Y1, ECC_SIZE_BYTES);
     
     CASPER_ecc_init();
 
@@ -169,22 +173,22 @@ int mbedtls_ecp_muladd_restartable(
         return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
     }
     mbedtls_mpi_write_binary(m, (void *)M, sizeof(M));
-    reverse_array((void *)M, ECC_SIZE_WORDS);
+    reverse_array((void *)M, ECC_SIZE_BYTES);
 
     /* Write MbedTLS mpi coordinates into binary bufer */
-    mbedtls_mpi_write_binary( &Q->X, (unsigned char*)&X2[0], ECC_SIZE_WORDS );
-    mbedtls_mpi_write_binary( &Q->Y, (unsigned char*)&Y2[0], ECC_SIZE_WORDS );
+    mbedtls_mpi_write_binary( &Q->X, (unsigned char*)&X2[0], ECC_SIZE_BYTES );
+    mbedtls_mpi_write_binary( &Q->Y, (unsigned char*)&Y2[0], ECC_SIZE_BYTES );
     
-    reverse_array((uint8_t *)X2, ECC_SIZE_WORDS);
-    reverse_array((uint8_t *)Y2, ECC_SIZE_WORDS);
+    reverse_array((uint8_t *)X2, ECC_SIZE_BYTES);
+    reverse_array((uint8_t *)Y2, ECC_SIZE_BYTES);
 
     if (mbedtls_mpi_size(n) > sizeof(N))
     {
         __BKPT(0);
         return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
     }
-    mbedtls_mpi_write_binary(n, (void *)N, sizeof(N));
-    reverse_array((void *)N, ECC_SIZE_WORDS);
+    mbedtls_mpi_write_binary(n, (void *)N, ECC_SIZE_BYTES);
+    reverse_array((void *)N, ECC_SIZE_BYTES);
 #if (ECC_SIZE_BITS == 256)
     CASPER_ECC_SECP256R1_MulAdd(CASPER, &X1[0], &Y1[0], &X1[0], &Y1[0], (void *)M, &X2[0], &Y2[0], (void *)N);
 #elif (ECC_SIZE_BITS == 384)
@@ -193,13 +197,21 @@ int mbedtls_ecp_muladd_restartable(
     CASPER_ECC_SECP521R1_MulAdd(CASPER, &X1[0], &Y1[0], &X1[0], &Y1[0], (void *)M, &X2[0], &Y2[0], (void *)N);
 #endif
     /* Reverse results back to MbedTLS format */
-    reverse_array((uint8_t *)X1, ECC_SIZE_WORDS);
-    reverse_array((uint8_t *)Y1, ECC_SIZE_WORDS);
-    
+    reverse_array((uint8_t *)X1, ECC_SIZE_BYTES);
+    reverse_array((uint8_t *)Y1, ECC_SIZE_BYTES);
+
+#if (ECC_SIZE_BITS == 521)
     /* Write results into R MPI */
-    mbedtls_mpi_read_binary( &R->X, (void*)&X1[1], ECC_SIZE_WORDS - 1U );
-    mbedtls_mpi_read_binary( &R->Y, (void*)&Y1[1], ECC_SIZE_WORDS - 1U );
+    mbedtls_mpi_read_binary( &R->X, (void*)&X1[1], ECC_SIZE_BYTES - sizeof(uint32_t) );
+    mbedtls_mpi_read_binary( &R->Y, (void*)&Y1[1], ECC_SIZE_BYTES - sizeof(uint32_t) );
     mbedtls_mpi_lset( &R->Z, 1 );
+#else
+    /* Write results into R MPI */
+    mbedtls_mpi_read_binary( &R->X, (void*)&X1[0], ECC_SIZE_BYTES );
+    mbedtls_mpi_read_binary( &R->Y, (void*)&Y1[0], ECC_SIZE_BYTES );
+    mbedtls_mpi_lset( &R->Z, 1 );
+#endif    
+
     
     return 0;
 }

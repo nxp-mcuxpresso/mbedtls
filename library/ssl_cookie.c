@@ -56,7 +56,6 @@
 #else
 #define COOKIE_MD           MBEDTLS_MD_SHA224
 #endif /* FSL_MD_COOKIE_USE_SHA256 */
-#define COOKIE_MD           MBEDTLS_MD_SHA224
 #define COOKIE_MD_OUTLEN    32
 #define COOKIE_HMAC_LEN     28
 #elif defined(MBEDTLS_SHA512_C)

@@ -182,7 +182,7 @@
 #define FREESCALE_PKHA_INT_MAX_BYTES (512)
 
 /* Note: While using CASPER for ECC, please enable appropriate ECC curve in MbedTLS define */
-/* (MBEDTLS_ECP_DP_SECP256R1_ENABLED or MBEDTLS_ECP_DP_SECP384R1_ENABLED) */
+/* (MBEDTLS_ECP_DP_SECP256R1_ENABLED or MBEDTLS_ECP_DP_SECP384R1_ENABLED or MBEDTLS_ECP_DP_SECP521R1_ENABLED) */
 #define MBEDTLS_ECP_MUL_COMB_ALT /* Alternate implementation of ecp_mul_comb() */
 #define MBEDTLS_ECP_MULADD_ALT /* Alternate implementation of mbedtls_ecp_muladd() */
 #define MBEDTLS_MCUX_CASPER_ECC /* CASPER implementation */
@@ -337,6 +337,11 @@
 #define MBEDTLS_SHA256_PROCESS_ALT
 #endif
 
+/* Use SHA-256 HW acceleration for MD COOKIE when SHA-224 mode is not available */
+#ifdef MBEDTLS_SHA256_ALT_NO_224
+#define FSL_MD_COOKIE_USE_SHA256
+#endif
+      
 #if USE_RTOS && defined(FSL_RTOS_FREE_RTOS)
 #include "FreeRTOS.h"
 
@@ -356,7 +361,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 #define MBEDTLS_MPI_WINDOW_SIZE 1
 #define MBEDTLS_ECP_WINDOW_SIZE 2
 #define MBEDTLS_MPI_MAX_SIZE 512 /* Maximum number of bytes for usable MPIs. */
-#define MBEDTLS_ECP_MAX_BITS 384 /* Maximum bit size of groups */
+#define MBEDTLS_ECP_MAX_BITS 521 /* Maximum bit size of groups */
 
 /**************************** KSDK end ****************************************/
 
@@ -927,7 +932,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 //#define MBEDTLS_ECP_DP_SECP192R1_ENABLED
 //#define MBEDTLS_ECP_DP_SECP224R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP384R1_ENABLED
+//#define MBEDTLS_ECP_DP_SECP384R1_ENABLED
 //#ifndef MBEDTLS_FREESCALE_LTC_PKHA /* PKHA suports only <=512 */
 //#define MBEDTLS_ECP_DP_SECP521R1_ENABLED
 //#endif

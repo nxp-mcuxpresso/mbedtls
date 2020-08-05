@@ -38,13 +38,13 @@
  ******************************************************************************/
 #if defined(MBEDTLS_MCUX_CASPER_ECC)
 
-#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) || defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) || \
-    defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) || defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
 #error "CASPER hw acceleration currently supported only for SECP256R1 and SECP384R1."
 #endif
 
-#define CASPER_MAX_ECC_SIZE_BITS (384)
-#define CASPER_MAX_ECC_SIZE_BYTES (48)      
+/* CASPER driver allows usage of 256, 384 and 521 ECC */
+#define CASPER_MAX_ECC_SIZE_BITS (521)
+#define CASPER_MAX_ECC_SIZE_BYTES (72) /* 32 for 256 bits, 48 for 384 bits and 72 for 521 bits*/     
           
 /* Parameter validation macros based on platform_util.h */
 #define ECP_VALIDATE_RET( cond )    \
@@ -103,6 +103,10 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     {  
     CASPER_ecc_init(kCASPER_ECC_P384);
     }
+	if (size == 72)
+    {  
+    CASPER_ecc_init(kCASPER_ECC_P521);
+    }
 
     if (mbedtls_mpi_size(m) > sizeof(M))
     {
@@ -120,6 +124,10 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     if (size == 48)
     {  
     CASPER_ECC_SECP384R1_Mul(CASPER, &X[0], &Y[0], &X[0], &Y[0], (void *)M);
+    }
+	 if (size == 72)
+    {  
+    CASPER_ECC_SECP521R1_Mul(CASPER, &X[0], &Y[0], &X[0], &Y[0], (void *)M);
     }
     /* Reverse results back to MbedTLS format */
     reverse_array((uint8_t *)X, size);
@@ -184,6 +192,10 @@ int mbedtls_ecp_muladd_restartable(
     {  
     CASPER_ecc_init(kCASPER_ECC_P384);
     }
+	if (size == 72)
+    {  
+    CASPER_ecc_init(kCASPER_ECC_P521);
+    }
 
     if (mbedtls_mpi_size(m) > sizeof(M))
     {
@@ -216,6 +228,10 @@ int mbedtls_ecp_muladd_restartable(
     if (size == 48)
     { 
     CASPER_ECC_SECP384R1_MulAdd(CASPER, &X1[0], &Y1[0], &X1[0], &Y1[0], (void *)M, &X2[0], &Y2[0], (void *)N);
+    }
+	if (size == 72)
+    { 
+    CASPER_ECC_SECP521R1_MulAdd(CASPER, &X1[0], &Y1[0], &X1[0], &Y1[0], (void *)M, &X2[0], &Y2[0], (void *)N);
     }
     /* Reverse results back to MbedTLS format */
     reverse_array((uint8_t *)X1, size);

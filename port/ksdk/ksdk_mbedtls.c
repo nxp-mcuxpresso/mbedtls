@@ -47,6 +47,18 @@
         goto cleanup;       \
     }
 
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+#include "fsl_cache.h"
+
+SDK_L1DCACHE_ALIGN(uint8_t input_buff[FSL_FEATURE_L1DCACHE_LINESIZE_BYTE]);
+SDK_L1DCACHE_ALIGN(uint8_t output_buff[FSL_FEATURE_L1DCACHE_LINESIZE_BYTE]);
+
+/* Returns 1 if aligned, 0 otherwise */
+#define IS_CACHE_ALIGNED(addr) (!((uint32_t)addr & (FSL_FEATURE_L1DCACHE_LINESIZE_BYTE - 1)))
+
+
+#endif /* __DCACHE_PRESENT */
+
 /******************************************************************************/
 /*************************** CAAM *********************************************/
 /******************************************************************************/
@@ -772,7 +784,55 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
         DCP_AES_SetKey(DCP, &s_dcpHandle, key, ctx->nr);
         crypto_attach_ctx_to_key_slot(ctx, s_dcpHandle.keySlot);
     }
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
+    uint32_t *inputPtr = NULL;
+    uint32_t *outputPtr = NULL;
+    
+    
+    /* If input is not cache line aligned, use internal aligned buffer */
+    if(IS_CACHE_ALIGNED(input))
+    {
+        inputPtr = (uint32_t*)input;
+        DCACHE_CleanByRange((uint32_t)inputPtr, 16); /* will clean 32 bytes granularity */
+    }
+    else
+    {
+        inputPtr = (uint32_t*)input_buff;
+        memcpy(input_buff, input, 16);
+        DCACHE_CleanByRange((uint32_t)inputPtr, 16);
+    }
+ 
+    /* If output buffer is same as input, use it. Otherwise check if aligned. */
+    /* If not use also internal aligned output buffer */
+    if (input == output)
+    {
+        outputPtr = inputPtr;
+    }
+    else if(IS_CACHE_ALIGNED(output))
+    {
+        outputPtr = (uint32_t*)output;
+        DCACHE_CleanByRange((uint32_t)outputPtr, 16); /* will clean 32 bytes granularity */
+    }
+    else
+    {
+        outputPtr = (uint32_t*)output_buff;
+    }
+    
+    
+    DCP_AES_EncryptEcb(DCP, &s_dcpHandle, (uint8_t*)inputPtr ,(uint8_t*) outputPtr, 16);
+    
+    /* Ivalidate output */
+    DCACHE_InvalidateByRange((uint32_t)outputPtr, 16);
+    
+    /* If output is not aligned we used internal buffer, so we have to copy data to output */
+    if(!IS_CACHE_ALIGNED(output))
+    {
+        memcpy(output, outputPtr, 16);
+    }
+    
+#else /* __DCACHE_PRESENT && DCP_USE_DCACHE */
     DCP_AES_EncryptEcb(DCP, &s_dcpHandle, input, output, 16);
+#endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
 #endif
 
     return (0);
@@ -808,7 +868,53 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
         DCP_AES_SetKey(DCP, &s_dcpHandle, key, ctx->nr);
         crypto_attach_ctx_to_key_slot(ctx, s_dcpHandle.keySlot);
     }
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
+    uint32_t *inputPtr = NULL;
+    uint32_t *outputPtr = NULL;
+    
+    /* If input is not cache line aligned, use internal aligned buffer */
+    if(IS_CACHE_ALIGNED(input))
+    {
+        inputPtr = (uint32_t*)input;
+        DCACHE_CleanByRange((uint32_t)inputPtr, 16); /* will clean 32 bytes granularity */
+    }
+    else
+    {
+        inputPtr = (uint32_t*)input_buff;
+        memcpy(input_buff, input, 16);
+        DCACHE_CleanByRange((uint32_t)inputPtr, 16);
+    }
+    
+    /* If output buffer is same as input, use it. Otherwise check if aligned. */
+    /* If not use also internal aligned output buffer */
+    if (input == output)
+    {
+        outputPtr = inputPtr;
+    }
+    else if(IS_CACHE_ALIGNED(output))
+    {
+        outputPtr = (uint32_t*)output;
+        DCACHE_CleanByRange((uint32_t)outputPtr, 16); /* will clean 32 bytes granularity */
+    }
+    else
+    {
+        outputPtr = (uint32_t*)output_buff;
+    }
+    
+    
+    DCP_AES_DecryptEcb(DCP, &s_dcpHandle, (uint8_t*)inputPtr , (uint8_t*) outputPtr, 16);
+
+    /* Ivalidate output */
+    DCACHE_InvalidateByRange((uint32_t)outputPtr, 16);
+    /* If output is not aligned we used internal buffer, so we have to copy data to output */
+    if(!IS_CACHE_ALIGNED(output))
+    {
+        memcpy(output, outputPtr, 16);
+    }
+    
+#else /* __DCACHE_PRESENT && DCP_USE_DCACHE */
     DCP_AES_DecryptEcb(DCP, &s_dcpHandle, input, output, 16);
+#endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
 #endif
 
     return (0);
@@ -933,12 +1039,26 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     {
         uint8_t tmp[16];
         memcpy(tmp, input + length - 16, 16);
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
+        DCACHE_CleanByRange((uint32_t)input, length);
+        DCACHE_CleanByRange((uint32_t)iv, 16);
+#endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
         DCP_AES_DecryptCbc(DCP, &s_dcpHandle, input, output, length, iv);
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
+        DCACHE_InvalidateByRange((uint32_t)output, length);
+#endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
         memcpy(iv, tmp, 16);
     }
     else
     {
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
+        DCACHE_CleanByRange((uint32_t)input, length);
+        DCACHE_CleanByRange((uint32_t)iv, 16);
+#endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
         DCP_AES_EncryptCbc(DCP, &s_dcpHandle, input, output, length, iv);
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
+        DCACHE_InvalidateByRange((uint32_t)output, length);
+#endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
         memcpy(iv, output + length - 16, 16);
     }
 
@@ -3736,6 +3856,9 @@ int mbedtls_sha1_starts_ret(mbedtls_sha1_context *ctx)
 int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
 {
     status_t ret = kStatus_Fail;
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
+    DCACHE_CleanByRange((uint32_t)data, 64u);
+#endif /* __DCACHE_PRESENT & DCP_USE_DCACHE */ 
     ret = DCP_HASH_Update(DCP, ctx, data, 64);
     if (ret != kStatus_Success)
     {
@@ -3750,6 +3873,9 @@ int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char
 int mbedtls_sha1_update_ret(mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen)
 {
     status_t ret = kStatus_Fail;
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
+    DCACHE_CleanByRange((uint32_t)input, ilen);
+#endif /* __DCACHE_PRESENT & DCP_USE_DCACHE */ 
     ret = DCP_HASH_Update(DCP, ctx, input, ilen);
     if (ret != kStatus_Success)
     {
@@ -3765,6 +3891,9 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 {
     status_t ret = kStatus_Fail;
     ret = DCP_HASH_Finish(DCP, ctx, output, NULL);
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
+    DCACHE_InvalidateByRange((uint32_t)output, 20);
+#endif /* __DCACHE_PRESENT & DCP_USE_DCACHE */ 
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;

@@ -103,7 +103,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     {  
     CASPER_ecc_init(kCASPER_ECC_P384);
     }
-	if (size == 72)
+    if (size == 66)
     {  
     CASPER_ecc_init(kCASPER_ECC_P521);
     }
@@ -125,7 +125,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     {  
     CASPER_ECC_SECP384R1_Mul(CASPER, &X[0], &Y[0], &X[0], &Y[0], (void *)M);
     }
-	 if (size == 72)
+	 if (size == 66)
     {  
     CASPER_ECC_SECP521R1_Mul(CASPER, &X[0], &Y[0], &X[0], &Y[0], (void *)M);
     }
@@ -192,7 +192,7 @@ int mbedtls_ecp_muladd_restartable(
     {  
     CASPER_ecc_init(kCASPER_ECC_P384);
     }
-	if (size == 72)
+	if (size == 66)
     {  
     CASPER_ecc_init(kCASPER_ECC_P521);
     }
@@ -229,7 +229,7 @@ int mbedtls_ecp_muladd_restartable(
     { 
     CASPER_ECC_SECP384R1_MulAdd(CASPER, &X1[0], &Y1[0], &X1[0], &Y1[0], (void *)M, &X2[0], &Y2[0], (void *)N);
     }
-	if (size == 72)
+	if (size == 66)
     { 
     CASPER_ECC_SECP521R1_MulAdd(CASPER, &X1[0], &Y1[0], &X1[0], &Y1[0], (void *)M, &X2[0], &Y2[0], (void *)N);
     }

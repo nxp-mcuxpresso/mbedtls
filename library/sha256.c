@@ -511,7 +511,7 @@ int mbedtls_sha256_self_test( int verbose )
     unsigned char *buf;
     unsigned char sha256sum[32];
     mbedtls_sha256_context ctx;
-
+    
     buf = mbedtls_calloc( 1024, sizeof(unsigned char) );
     if( NULL == buf )
     {

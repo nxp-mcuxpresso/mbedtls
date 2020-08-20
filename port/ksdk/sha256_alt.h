@@ -65,7 +65,6 @@ extern "C" {
  * \brief          SHA-256 context structure
  */
 #define mbedtls_sha256_context dcp_hash_ctx_t
-  
 
 #elif defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA256)
 

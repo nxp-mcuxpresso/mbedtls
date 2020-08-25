@@ -53,9 +53,35 @@
 SDK_L1DCACHE_ALIGN(uint8_t input_buff[FSL_FEATURE_L1DCACHE_LINESIZE_BYTE]);
 SDK_L1DCACHE_ALIGN(uint8_t output_buff[FSL_FEATURE_L1DCACHE_LINESIZE_BYTE]);
 
+/* Get NONCACHED region info from linker files */
+#if defined(__CC_ARM) || defined(__ARMCC_VERSION)
+extern uint32_t Image$$RW_m_ncache$$Base[];
+/* RW_m_ncache_unused is a auxiliary region which is used to get the whole size of noncache section */
+extern uint32_t Image$$RW_m_ncache_unused$$Base[];
+extern uint32_t Image$$RW_m_ncache_unused$$ZI$$Limit[];
+uint32_t nonCacheStart = (uint32_t)Image$$RW_m_ncache$$Base;
+uint32_t nonCacheSize  = ((uint32_t)Image$$RW_m_ncache_unused$$Base == nonCacheStart) ?
+                    0 :
+                    ((uint32_t)Image$$RW_m_ncache_unused$$ZI$$Limit - nonCacheStart);
+#elif defined(__MCUXPRESSO)
+extern uint32_t __base_NCACHE_REGION;
+extern uint32_t __top_NCACHE_REGION;
+uint32_t nonCacheStart = (uint32_t)(&__base_NCACHE_REGION);
+uint32_t nonCacheSize  = (uint32_t)(&__top_NCACHE_REGION) - nonCacheStart;
+#elif defined(__ICCARM__) || defined(__GNUC__)
+extern uint32_t __NCACHE_REGION_START[];
+extern uint32_t __NCACHE_REGION_SIZE[];
+uint32_t nonCacheStart = (uint32_t)__NCACHE_REGION_START;
+uint32_t nonCacheSize  = (uint32_t)__NCACHE_REGION_SIZE;
+#endif
+
+/* Returns 1 if in noncached, 0 otherwise */
+#define IS_IN_NONCACHED(addr) ((addr > nonCacheStart) && (addr < (nonCacheStart + nonCacheSize)))
+
 /* Returns 1 if aligned, 0 otherwise */
 #define IS_CACHE_ALIGNED(addr) (!((uint32_t)addr & (FSL_FEATURE_L1DCACHE_LINESIZE_BYTE - 1)))
 
+#define MBEDTLS_ERR_DCACHE_ALIGMENT_FAILED  MBEDTLS_ERR_AES_HW_ACCEL_FAILED
 
 #endif /* __DCACHE_PRESENT */
 
@@ -1028,6 +1054,18 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     if (length % 16)
         return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
 
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
+    if((!IS_IN_NONCACHED((uint32_t)input)) && (!IS_CACHE_ALIGNED((uint32_t)input)))
+    {
+        return MBEDTLS_ERR_DCACHE_ALIGMENT_FAILED;
+    }
+    
+    if((!IS_IN_NONCACHED((uint32_t)output)) && (!IS_CACHE_ALIGNED((uint32_t)output)))
+    {
+        return MBEDTLS_ERR_DCACHE_ALIGMENT_FAILED;
+    }
+#endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
+    
     key = (uint8_t *)ctx->rk;
     if (!crypto_key_is_loaded(ctx))
     {

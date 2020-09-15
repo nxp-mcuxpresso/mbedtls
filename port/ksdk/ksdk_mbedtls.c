@@ -60,14 +60,14 @@ extern uint32_t Image$$RW_m_ncache$$Base[];
 extern uint32_t Image$$RW_m_ncache_unused$$Base[];
 extern uint32_t Image$$RW_m_ncache_unused$$ZI$$Limit[];
 uint32_t nonCacheStart = (uint32_t)Image$$RW_m_ncache$$Base;
-uint32_t nonCacheSize  = ((uint32_t)Image$$RW_m_ncache_unused$$Base == nonCacheStart) ?
-                    0 :
-                    ((uint32_t)Image$$RW_m_ncache_unused$$ZI$$Limit - nonCacheStart);
+uint32_t nonCacheEnd  =  (uint32_t)Image$$RW_m_ncache_unused$$Base;
+#define nonCacheSize  nonCacheEnd- nonCacheStart		
 #elif defined(__MCUXPRESSO)
 extern uint32_t __base_NCACHE_REGION;
 extern uint32_t __top_NCACHE_REGION;
 uint32_t nonCacheStart = (uint32_t)(&__base_NCACHE_REGION);
-uint32_t nonCacheSize  = (uint32_t)(&__top_NCACHE_REGION) - nonCacheStart;
+uint32_t nonCacheEnd = (uint32_t)(&__top_NCACHE_REGION);
+#define nonCacheSize  nonCacheEnd- nonCacheStart
 #elif defined(__ICCARM__) || defined(__GNUC__)
 extern uint32_t __NCACHE_REGION_START[];
 extern uint32_t __NCACHE_REGION_SIZE[];

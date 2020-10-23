@@ -562,6 +562,7 @@ void mbedtls_gcm_free( mbedtls_gcm_context *ctx )
 static const int key_index[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 1 };
 
+/* NXP: AT_NONCACHEABLE_SECTION for DCACHE compatibility */
 AT_NONCACHEABLE_SECTION_ALIGN(static const unsigned char key[MAX_TESTS][32],8U) =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,

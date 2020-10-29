@@ -47,7 +47,7 @@
         goto cleanup;       \
     }
 
-#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
 #include "fsl_cache.h"
 
 SDK_L1DCACHE_ALIGN(uint8_t input_buff[FSL_FEATURE_L1DCACHE_LINESIZE_BYTE]);

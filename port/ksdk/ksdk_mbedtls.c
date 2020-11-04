@@ -53,6 +53,8 @@
 SDK_L1DCACHE_ALIGN(uint8_t input_buff[FSL_FEATURE_L1DCACHE_LINESIZE_BYTE]);
 SDK_L1DCACHE_ALIGN(uint8_t output_buff[FSL_FEATURE_L1DCACHE_LINESIZE_BYTE]);
 
+#define DTCM_START  0x20000000 /* Start of  DTCM memory */
+
 /* Get NONCACHED region info from linker files */
 #if defined(__CC_ARM) || defined(__ARMCC_VERSION)
 extern uint32_t Image$$RW_m_ncache$$Base[];
@@ -75,8 +77,62 @@ uint32_t nonCacheStart = (uint32_t)__NCACHE_REGION_START;
 uint32_t nonCacheSize  = (uint32_t)__NCACHE_REGION_SIZE;
 #endif
 
-/* Returns 1 if in noncached, 0 otherwise */
-#define IS_IN_NONCACHED(addr) ((addr > nonCacheStart) && (addr < (nonCacheStart + nonCacheSize)))
+/* Returns TRUE if in noncached, FALSE otherwise */
+bool static IS_IN_NONCACHED(int addr, int size)
+{
+    /* Check if data are in DTCM (non-cached) memory */
+#if defined(__DTCM_PRESENT) && (__DTCM_PRESENT == 1U)
+    uint8_t DTCMSZ = 0U;
+    uint32_t DTCM_SIZE = 0, DTCM_END = 0U;
+    /* Get DTCM size configuration from GPR14 */
+    DTCMSZ = (IOMUXC_GPR_GPR14_CM7_CFGDTCMSZ_MASK & IOMUXC_GPR->GPR14) >> IOMUXC_GPR_GPR14_CM7_CFGDTCMSZ_SHIFT;
+    
+    switch (DTCMSZ)
+    {
+        case 0x0: /* no DTCM */
+            DTCM_SIZE = 0U;
+            break;
+        case 0x3: /* 4KB */
+            DTCM_SIZE = 0x1000;
+            break;
+        case 0x4: /* 8KB */
+            DTCM_SIZE = 0x2000;
+            break;
+        case 0x5: /* 16KB */
+            DTCM_SIZE = 0x4000;
+            break;
+        case 0x6: /* 32KB */
+            DTCM_SIZE = 0x8000;
+            break;
+        case 0x7: /* 64KB */
+            DTCM_SIZE = 0x10000;
+            break;
+        case 0x8: /* 128KB */
+            DTCM_SIZE = 0x20000;
+            break;
+        case 0x9: /* 256KB */
+            DTCM_SIZE = 0x40000;
+            break;
+        case 0xA: /* 512KB */
+            DTCM_SIZE = 0x80000;
+            break;
+    }
+    
+    DTCM_END = DTCM_START + DTCM_SIZE;
+    
+    if((addr >= DTCM_START) && (addr+size < DTCM_END))
+    {
+        return true;
+    }
+#endif /* __DTCM_PRESENT */
+    /* If not in DTCM, check non-cached section based linker file */
+    if((addr >= nonCacheStart) && ((addr+size) < (nonCacheStart + nonCacheSize)))
+    {
+        return true;
+    }
+
+    return false;
+}
 
 /* Returns 1 if aligned, 0 otherwise */
 #define IS_CACHE_ALIGNED(addr) (!((uint32_t)addr & (FSL_FEATURE_L1DCACHE_LINESIZE_BYTE - 1)))
@@ -1055,12 +1111,12 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
 
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
-    if((!IS_IN_NONCACHED((uint32_t)input)) && (!IS_CACHE_ALIGNED((uint32_t)input)))
+    if((!IS_IN_NONCACHED((uint32_t)input, length)) && (!IS_CACHE_ALIGNED((uint32_t)input)))
     {
         return MBEDTLS_ERR_DCACHE_ALIGMENT_FAILED;
     }
     
-    if((!IS_IN_NONCACHED((uint32_t)output)) && (!IS_CACHE_ALIGNED((uint32_t)output)))
+    if((!IS_IN_NONCACHED((uint32_t)output, length)) && (!IS_CACHE_ALIGNED((uint32_t)output)))
     {
         return MBEDTLS_ERR_DCACHE_ALIGMENT_FAILED;
     }

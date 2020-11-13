@@ -909,7 +909,7 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
     /* If output is not aligned we used internal buffer, so we have to copy data to output */
     if(!IS_CACHE_ALIGNED(output))
     {
-        memcpy(output, outputPtr, 16);
+        memmove(output, outputPtr, 16);
     }
     
 #else /* __DCACHE_PRESENT && DCP_USE_DCACHE */
@@ -991,7 +991,7 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
     /* If output is not aligned we used internal buffer, so we have to copy data to output */
     if(!IS_CACHE_ALIGNED(output))
     {
-        memcpy(output, outputPtr, 16);
+        memmove(output, outputPtr, 16);
     }
     
 #else /* __DCACHE_PRESENT && DCP_USE_DCACHE */

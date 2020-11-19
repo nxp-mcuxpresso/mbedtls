@@ -85,7 +85,7 @@ bool static IS_IN_NONCACHED(uint32_t addr, uint32_t size)
     uint8_t DTCMSZ = 0U;
     uint32_t DTCM_SIZE = 0, DTCM_END = 0U;
     /* Get DTCM size configuration from GPR14 */
-    DTCMSZ = (IOMUXC_GPR_GPR14_CM7_CFGDTCMSZ_MASK & IOMUXC_GPR->GPR14) >> IOMUXC_GPR_GPR14_CM7_CFGDTCMSZ_SHIFT;
+    DTCMSZ = (uint8_t)(IOMUXC_GPR_GPR14_CM7_CFGDTCMSZ_MASK & IOMUXC_GPR->GPR14) >> IOMUXC_GPR_GPR14_CM7_CFGDTCMSZ_SHIFT;
     
     switch (DTCMSZ)
     {
@@ -175,7 +175,7 @@ static cau3_handle_t s_cau3Handle = {.taskDone = MBEDTLS_CAU3_COMPLETION_SIGNAL,
 /**************************** DCP *********************************************/
 /******************************************************************************/
 #if defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0)
-static dcp_handle_t s_dcpHandle = {.channel = kDCP_Channel0, .keySlot = kDCP_KeySlot0, .swapConfig = kDCP_NoSwap};
+static dcp_handle_t s_dcpHandle = {.channel = kDCP_Channel0, .keySlot = kDCP_KeySlot0, .swapConfig = (uint32_t)kDCP_NoSwap};
 #endif
 
 /******************************************************************************/
@@ -221,7 +221,7 @@ static bool crypto_key_is_loaded(const void *ctx)
 static void mbedtls_zeroize(void *v, size_t n)
 {
     volatile unsigned char *p = v;
-    while (n--)
+    while (0U != n--)
     {
         *p++ = 0;
     }    
@@ -327,7 +327,7 @@ int mbedtls_des_setkey_enc(mbedtls_des_context *ctx, const unsigned char key[MBE
     /* fix key parity, if needed */
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE; i++)
     {
-        sk_b[i] = ((key[i] & 0xFEU) | parityLookup[key[i] >> 1]);
+        sk_b[i] = (uint8_t)((key[i] & 0xFEU) | parityLookup[key[i] >> 1]);
     }
 #endif
     ctx->mode = MBEDTLS_DES_ENCRYPT;
@@ -349,7 +349,7 @@ int mbedtls_des_setkey_dec(mbedtls_des_context *ctx, const unsigned char key[MBE
     /* fix key parity, if needed */
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE; i++)
     {
-        sk_b[i] = ((key[i] & 0xFEU) | parityLookup[key[i] >> 1]);
+        sk_b[i] = (uint8_t)((key[i] & 0xFEU) | parityLookup[key[i] >> 1]);
     }
 #endif
     ctx->mode = MBEDTLS_DES_DECRYPT;
@@ -376,7 +376,7 @@ int mbedtls_des3_set2key_enc(mbedtls_des3_context *ctx, const unsigned char key[
     /* fix key parity, if needed */
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 2; i++)
     {
-        sk_b[i] = ((key[i] & 0xFEU) | parityLookup[key[i] >> 1]);
+        sk_b[i] = (uint8_t)((key[i] & 0xFEU) | parityLookup[key[i] >> 1]);
     }
     for (i = MBEDTLS_DES_KEY_SIZE * 2; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
@@ -406,7 +406,7 @@ int mbedtls_des3_set2key_dec(mbedtls_des3_context *ctx, const unsigned char key[
     /* fix key parity, if needed */
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 2; i++)
     {
-        sk_b[i] = ((key[i] & 0xFEU) | parityLookup[key[i] >> 1]);
+        sk_b[i] = (uint8_t)((key[i] & 0xFEU) | parityLookup[key[i] >> 1]);
     }
     for (i = MBEDTLS_DES_KEY_SIZE * 2; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
@@ -435,7 +435,7 @@ int mbedtls_des3_set3key_enc(mbedtls_des3_context *ctx, const unsigned char key[
     /* fix key parity, if needed */
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
-        sk_b[i] = ((key[i] & 0xFEU) | parityLookup[key[i] >> 1]);
+        sk_b[i] = (uint8_t)((key[i] & 0xFEU) | parityLookup[key[i] >> 1]);
     }
 #endif
     ctx->mode = MBEDTLS_DES_ENCRYPT;
@@ -460,7 +460,7 @@ int mbedtls_des3_set3key_dec(mbedtls_des3_context *ctx, const unsigned char key[
     /* fix key parity, if needed */
     for (i = 0; i < MBEDTLS_DES_KEY_SIZE * 3; i++)
     {
-        sk_b[i] = ((key[i] & 0xFEU) | parityLookup[key[i] >> 1]);
+        sk_b[i] = (uint8_t)((key[i] & 0xFEU) | parityLookup[key[i] >> 1]);
     }
 #endif
     ctx->mode = MBEDTLS_DES_DECRYPT;
@@ -727,14 +727,15 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
     defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
     const unsigned char *key_tmp = key;    
     ctx->rk = RK = ctx->buf;
-    (void)memcpy(RK, key_tmp, keybits / 8U);
+    (void)memcpy(RK, (const uint32_t *)(uintptr_t)key_tmp, keybits / 8U);
 
 #if defined(MBEDTLS_FREESCALE_CAU3_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
     crypto_detach_ctx_from_key_slot(ctx);
 #endif /* MBEDTLS_FREESCALE_CAU3_AES || MBEDTLS_FREESCALE_DCP_AES */
-
+    
+    /* Set keysize in bytes.*/
     switch (keybits)
-    { /* Set keysize in bytes.*/
+    { 
         case 128:
             ctx->nr = 16;
             break;
@@ -797,7 +798,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
 #if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAU3_AES) || \
     defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
     const unsigned char *key_tmp = key;
-    (void)memcpy(RK, key_tmp, keybits / 8U);
+    (void)memcpy(RK, (const uint32_t *)(uintptr_t)key_tmp, keybits / 8U);
 
 #if defined(MBEDTLS_FREESCALE_CAU3_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
     crypto_detach_ctx_from_key_slot(ctx);
@@ -868,8 +869,8 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
 #elif defined(MBEDTLS_FREESCALE_DCP_AES)
     if (!crypto_key_is_loaded(ctx))
     {
-        (void)DCP_AES_SetKey(DCP, &s_dcpHandle, key, ctx->nr);
-        crypto_attach_ctx_to_key_slot(ctx, s_dcpHandle.keySlot);
+        (void)DCP_AES_SetKey(DCP, &s_dcpHandle, key, (uint32_t)ctx->nr);
+        crypto_attach_ctx_to_key_slot(ctx, (uint8_t)s_dcpHandle.keySlot);
     }
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
     uint32_t *inputPtr = NULL;
@@ -879,12 +880,12 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
     /* If input is not cache line aligned, use internal aligned buffer */
     if(IS_CACHE_ALIGNED(input))
     {
-        inputPtr = (uint32_t*)input;
+        inputPtr = (uint32_t*)(uintptr_t)input;
         DCACHE_CleanByRange((uint32_t)inputPtr, 16); /* will clean 32 bytes granularity */
     }
     else
     {
-        inputPtr = (uint32_t*)input_buff;
+        inputPtr = (uint32_t*)(uintptr_t)input_buff;
         (void)memcpy(input_buff, input, 16);
         DCACHE_CleanByRange((uint32_t)inputPtr, 16);
     }
@@ -897,12 +898,12 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
     }
     else if(IS_CACHE_ALIGNED(output))
     {
-        outputPtr = (uint32_t*)output;
+        outputPtr = (uint32_t*)(uintptr_t)output;
         DCACHE_CleanByRange((uint32_t)outputPtr, 16); /* will clean 32 bytes granularity */
     }
     else
     {
-        outputPtr = (uint32_t*)output_buff;
+        outputPtr = (uint32_t*)(uintptr_t)output_buff;
     }
     
     
@@ -914,7 +915,7 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
     /* If output is not aligned we used internal buffer, so we have to copy data to output */
     if(!IS_CACHE_ALIGNED(output))
     {
-        (void)memmove(output, outputPtr, 16);
+        (void)memmove(output, (uint8_t *)outputPtr, 16);
     }
     
 #else /* __DCACHE_PRESENT && DCP_USE_DCACHE */
@@ -952,8 +953,8 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
 #elif defined(MBEDTLS_FREESCALE_DCP_AES)
     if (!crypto_key_is_loaded(ctx))
     {
-        (void)DCP_AES_SetKey(DCP, &s_dcpHandle, key, ctx->nr);
-        crypto_attach_ctx_to_key_slot(ctx, s_dcpHandle.keySlot);
+        (void)DCP_AES_SetKey(DCP, &s_dcpHandle, key, (uint32_t)ctx->nr);
+        crypto_attach_ctx_to_key_slot(ctx, (uint8_t)s_dcpHandle.keySlot);
     }
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
     uint32_t *inputPtr = NULL;
@@ -962,12 +963,12 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
     /* If input is not cache line aligned, use internal aligned buffer */
     if(IS_CACHE_ALIGNED(input))
     {
-        inputPtr = (uint32_t*)input;
+        inputPtr = (uint32_t*)(uintptr_t)input;
         DCACHE_CleanByRange((uint32_t)inputPtr, 16); /* will clean 32 bytes granularity */
     }
     else
     {
-        inputPtr = (uint32_t*)input_buff;
+        inputPtr = (uint32_t*)(uintptr_t)input_buff;
         (void)memcpy(input_buff, input, 16);
         DCACHE_CleanByRange((uint32_t)inputPtr, 16);
     }
@@ -980,12 +981,12 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
     }
     else if(IS_CACHE_ALIGNED(output))
     {
-        outputPtr = (uint32_t*)output;
+        outputPtr = (uint32_t*)(uintptr_t)output;
         DCACHE_CleanByRange((uint32_t)outputPtr, 16); /* will clean 32 bytes granularity */
     }
     else
     {
-        outputPtr = (uint32_t*)output_buff;
+        outputPtr = (uint32_t*)(uintptr_t)output_buff;
     }
     
     
@@ -996,7 +997,7 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
     /* If output is not aligned we used internal buffer, so we have to copy data to output */
     if(!IS_CACHE_ALIGNED(output))
     {
-        (void)memmove(output, outputPtr, 16);
+        (void)memmove(output, (uint8_t *)outputPtr, 16);
     }
     
 #else /* __DCACHE_PRESENT && DCP_USE_DCACHE */
@@ -1112,7 +1113,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
 {
     uint8_t *key;
 
-    if (length % 16)
+    if (0U !=(length % 16U))
         return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
 
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
@@ -1130,23 +1131,23 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     key = (uint8_t *)ctx->rk;
     if (!crypto_key_is_loaded(ctx))
     {
-        DCP_AES_SetKey(DCP, &s_dcpHandle, key, ctx->nr);
-        crypto_attach_ctx_to_key_slot(ctx, s_dcpHandle.keySlot);
+        (void)DCP_AES_SetKey(DCP, &s_dcpHandle, key, (uint32_t)ctx->nr);
+        crypto_attach_ctx_to_key_slot(ctx, (uint8_t)s_dcpHandle.keySlot);
     }
 
     if (mode == MBEDTLS_AES_DECRYPT)
     {
         uint8_t tmp[16];
-        memcpy(tmp, input + length - 16, 16);
+        (void)memcpy(tmp, input + length - 16, 16);
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
         DCACHE_CleanByRange((uint32_t)input, length);
         DCACHE_CleanByRange((uint32_t)iv, 16);
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
-        DCP_AES_DecryptCbc(DCP, &s_dcpHandle, input, output, length, iv);
+        (void)DCP_AES_DecryptCbc(DCP, &s_dcpHandle, input, output, length, iv);
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
         DCACHE_InvalidateByRange((uint32_t)output, length);
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
-        memcpy(iv, tmp, 16);
+        (void)memcpy(iv, tmp, 16);
     }
     else
     {
@@ -1154,11 +1155,11 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         DCACHE_CleanByRange((uint32_t)input, length);
         DCACHE_CleanByRange((uint32_t)iv, 16);
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
-        DCP_AES_EncryptCbc(DCP, &s_dcpHandle, input, output, length, iv);
+        (void)DCP_AES_EncryptCbc(DCP, &s_dcpHandle, input, output, length, iv);
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
         DCACHE_InvalidateByRange((uint32_t)output, length);
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
-        memcpy(iv, output + length - 16, 16);
+        (void)memcpy(iv, output + length - 16, 16);
     }
 
     return (0);
@@ -3926,7 +3927,7 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 
 void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
 {
-    memset(ctx, 0, sizeof(mbedtls_sha1_context));
+    (void)memset(ctx, 0, sizeof(mbedtls_sha1_context));
 }
 
 void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
@@ -4081,22 +4082,22 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 
 void mbedtls_sha1_starts(mbedtls_sha1_context *ctx)
 {
-    mbedtls_sha1_starts_ret(ctx);
+    (void)mbedtls_sha1_starts_ret(ctx);
 }
 
 void mbedtls_sha1_update(mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen)
 {
-    mbedtls_sha1_update_ret(ctx, input, ilen);
+    (void)mbedtls_sha1_update_ret(ctx, input, ilen);
 }
 
 void mbedtls_sha1_finish(mbedtls_sha1_context *ctx, unsigned char output[20])
 {
-    mbedtls_sha1_finish_ret(ctx, output);
+    (void)mbedtls_sha1_finish_ret(ctx, output);
 }
 
 void mbedtls_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
 {
-    mbedtls_internal_sha1_process(ctx, data);
+    (void)mbedtls_internal_sha1_process(ctx, data);
 }
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_SHA1_C */
@@ -4446,7 +4447,7 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
 
 void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
 {
-    memset(ctx, 0, sizeof(mbedtls_sha256_context));
+    (void)memset(ctx, 0, sizeof(mbedtls_sha256_context));
 }
 
 void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
@@ -4468,7 +4469,7 @@ void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_cont
 int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
 {
     status_t ret = kStatus_Fail;
-    if (!is224)
+    if (0 == is224)
     {
         ret = DCP_HASH_Init(DCP, &s_dcpHandle, ctx, kDCP_Sha256);
     }
@@ -4607,22 +4608,22 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
 
 void mbedtls_sha256_starts(mbedtls_sha256_context *ctx, int is224)
 {
-    mbedtls_sha256_starts_ret(ctx, is224);
+    (void)mbedtls_sha256_starts_ret(ctx, is224);
 }
 
 void mbedtls_sha256_update(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
 {
-    mbedtls_sha256_update_ret(ctx, input, ilen);
+    (void)mbedtls_sha256_update_ret(ctx, input, ilen);
 }
 
 void mbedtls_sha256_finish(mbedtls_sha256_context *ctx, unsigned char output[32])
 {
-    mbedtls_sha256_finish_ret(ctx, output);
+    (void)mbedtls_sha256_finish_ret(ctx, output);
 }
 
 void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
 {
-    mbedtls_internal_sha256_process(ctx, data);
+    (void)mbedtls_internal_sha256_process(ctx, data);
 }
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_SHA256_C */
@@ -4667,13 +4668,13 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 
         if (length >= sizeof(uint32_t))
         {
-            (void)memcpy(output, &rn, sizeof(uint32_t));
+            (void)memcpy(output, (uint8_t *)&rn, sizeof(uint32_t));
             length -= sizeof(uint32_t);
             output += sizeof(uint32_t);
         }
         else
         {
-            (void)memcpy(output, &rn, length);
+            (void)memcpy(output, (uint8_t *)&rn, length);
             output += length;
             len = 0U;
         }

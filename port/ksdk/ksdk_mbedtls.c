@@ -85,7 +85,7 @@ bool static IS_IN_NONCACHED(uint32_t addr, uint32_t size)
     uint8_t DTCMSZ = 0U;
     uint32_t DTCM_SIZE = 0, DTCM_END = 0U;
     /* Get DTCM size configuration from GPR14 */
-    DTCMSZ = (uint8_t)(IOMUXC_GPR_GPR14_CM7_CFGDTCMSZ_MASK & IOMUXC_GPR->GPR14) >> IOMUXC_GPR_GPR14_CM7_CFGDTCMSZ_SHIFT;
+    DTCMSZ = (uint8_t)((IOMUXC_GPR_GPR14_CM7_CFGDTCMSZ_MASK & IOMUXC_GPR->GPR14) >> IOMUXC_GPR_GPR14_CM7_CFGDTCMSZ_SHIFT);
     
     switch (DTCMSZ)
     {

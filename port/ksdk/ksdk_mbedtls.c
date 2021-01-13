@@ -3549,6 +3549,12 @@ static int mbedtls_mpi_exp_mod_shim(mbedtls_mpi *X,
     {
         CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
     }
+	
+#if defined(MBEDTLS_THREADING_C)
+    int _ret;
+    if ((_ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (_ret);
+#endif
 
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(A, ptrA, sizeA));
     reverse_array(ptrA, sizeA);
@@ -3566,7 +3572,11 @@ cleanup:
         mbedtls_free(ptrX);
     }
 
-    return ret;
+#if defined(MBEDTLS_THREADING_C)
+    if ((_ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+       return (_ret);
+#endif
+     return ret;
 }
 
 int mbedtls_rsa_public(mbedtls_rsa_context *ctx, const unsigned char *input, unsigned char *output)

@@ -19,6 +19,10 @@
 
 #include <string.h>
 
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
+
 #if defined(MBEDTLS_ECP_ALT)
 
 /*******************************************************************************
@@ -39,7 +43,7 @@
 #if defined(MBEDTLS_MCUX_CASPER_ECC)
 
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) || defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
-#error "CASPER hw acceleration currently supported only for SECP256R1 and SECP384R1."
+#error "CASPER hw acceleration currently supported only for SECP256R1 , SECP384R1 and SECP521R1."
 #endif
 
 /* CASPER driver allows usage of 256, 384 and 521 ECC */
@@ -78,9 +82,15 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
                  mbedtls_ecp_restart_ctx *rs_ctx ) /* TBD: rs_ctx is not used MBEDTLS_ECP_RESTARTABLE is not supported */
 {
     size_t size;
+	
+	int ret = 0;
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (ret);
+#endif
   
     size = mbedtls_mpi_size(&grp->P);
-  
+	  
     uint32_t M[CASPER_MAX_ECC_SIZE_BYTES/ sizeof(uint32_t)] = {0};
     uint32_t X[CASPER_MAX_ECC_SIZE_BYTES/ sizeof(uint32_t)] = {0};
     uint32_t Y[CASPER_MAX_ECC_SIZE_BYTES/ sizeof(uint32_t)] = {0};
@@ -111,7 +121,8 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     if (mbedtls_mpi_size(m) > sizeof(M))
     {
         __BKPT(0);
-        return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+        ret = MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+		return (ret);
     }
     mbedtls_mpi_write_binary(m, (void *)M, size);
     reverse_array((void *)M, size);
@@ -139,7 +150,11 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     mbedtls_mpi_lset( &R->Z, 1 );
 
 
-    return 0;
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (ret);
+#endif
+    return (ret);
 }
 #endif /* MBEDTLS_ECP_MUL_COMB_ALT */
 
@@ -162,6 +177,12 @@ int mbedtls_ecp_muladd_restartable(
     uint32_t N[CASPER_MAX_ECC_SIZE_BYTES / sizeof(uint32_t)] = {0};
     
     size_t size;
+	
+	int ret = 0;
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (ret);
+#endif
 
     /* shortcut for (m == 1) && (n == 1). this case is point addition. */
     /* this shortcut follows original mbedtls_ecp_muladd() implementation */
@@ -200,7 +221,8 @@ int mbedtls_ecp_muladd_restartable(
     if (mbedtls_mpi_size(m) > sizeof(M))
     {
         __BKPT(0);
-        return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+        ret = MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+		return (ret);
     }
     mbedtls_mpi_write_binary(m, (void *)M, size);
     reverse_array((void *)M, size);
@@ -215,7 +237,8 @@ int mbedtls_ecp_muladd_restartable(
     if (mbedtls_mpi_size(n) > sizeof(N))
     {
         __BKPT(0);
-        return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+        ret = MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+		return (ret);
     }
     mbedtls_mpi_write_binary(n, (void *)N, size);
     reverse_array((void *)N, size);
@@ -242,7 +265,12 @@ int mbedtls_ecp_muladd_restartable(
     mbedtls_mpi_read_binary( &R->Y, (void*)&Y1[0], size );
     mbedtls_mpi_lset( &R->Z, 1 );
     
-    return 0;
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (ret);
+#endif
+    return ret;
+	
 }
 
 /*

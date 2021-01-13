@@ -24,6 +24,10 @@
 #include "mbedtls/aesni.h"
 #endif
 
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
+
 #if defined(MBEDTLS_AES_ALT)
 /* clang-format off */
 /*
@@ -1787,12 +1791,17 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
     {
         ctx->keyType = kHASHCRYPT_UserKey;
     }
-    if (kStatus_Success != HASHCRYPT_AES_SetKey(HASHCRYPT, ctx, key, key_size))
-    {
-        return (MBEDTLS_ERR_AES_HW_ACCEL_FAILED);
-    }
-
-    return (0);
+#if defined(MBEDTLS_THREADING_C)
+    int ret;
+   if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+       return (ret);
+#endif
+    status_t status = HASHCRYPT_AES_SetKey(HASHCRYPT, ctx, key, key_size);
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (ret);
+#endif
+   return (kStatus_Success == status)?0:MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
 
 /*
@@ -1825,12 +1834,18 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
     {
         ctx->keyType = kHASHCRYPT_UserKey;
     }
-    if (kStatus_Success != HASHCRYPT_AES_SetKey(HASHCRYPT, ctx, key, key_size))
-    {
-        return (MBEDTLS_ERR_AES_HW_ACCEL_FAILED);
-    }
-
-    return 0;
+	
+#if defined(MBEDTLS_THREADING_C)
+    int ret;
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (ret);
+#endif
+    status_t status = HASHCRYPT_AES_SetKey(HASHCRYPT, ctx, key, key_size);
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (ret);
+#endif
+    return (kStatus_Success == status)?0:MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
 
 /*
@@ -1838,12 +1853,19 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
  */
 int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16])
 {
-    if (kStatus_Success != HASHCRYPT_AES_EncryptEcb(HASHCRYPT, ctx, input, output, 16))
-    {
-        return (MBEDTLS_ERR_AES_HW_ACCEL_FAILED);
-    }
+#if defined(MBEDTLS_THREADING_C)
+    int ret;
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (ret);
+#endif
 
-    return (0);
+    status_t status = HASHCRYPT_AES_EncryptEcb(HASHCRYPT, ctx, input, output, 16);
+	
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (ret);
+#endif
+    return (kStatus_Success == status)?0:MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
 
 /*
@@ -1851,12 +1873,19 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
  */
 int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16])
 {
-    if (kStatus_Success != HASHCRYPT_AES_DecryptEcb(HASHCRYPT, ctx, input, output, 16))
-    {
-        return (MBEDTLS_ERR_AES_HW_ACCEL_FAILED);
-    }
+#if defined(MBEDTLS_THREADING_C)
+    int ret;
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (ret);
+#endif
 
-    return (0);
+    status_t status = HASHCRYPT_AES_DecryptEcb(HASHCRYPT, ctx, input, output, 16);
+	
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (ret);
+#endif
+    return (kStatus_Success == status)?0:MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -1872,27 +1901,37 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
 {
     if (length % 16)
         return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
+	
+#if defined(MBEDTLS_THREADING_C)
+    int ret;
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (ret);
+#endif
 
+    status_t status;
+	
     if (mode == MBEDTLS_AES_DECRYPT)
     {
         uint8_t tmp[16];
         memcpy(tmp, input + length - 16, 16);
-        if (kStatus_Success != HASHCRYPT_AES_DecryptCbc(HASHCRYPT, ctx, input, output, length, iv))
-        {
-            return (MBEDTLS_ERR_AES_HW_ACCEL_FAILED);
-        }
-        memcpy(iv, tmp, 16);
+        status = HASHCRYPT_AES_DecryptCbc(HASHCRYPT, ctx, input, output, length, iv);
+        if (kStatus_Success == status) {
+            memcpy(iv, tmp, 16);
+         }
     }
     else
     {
-        if (kStatus_Success != HASHCRYPT_AES_EncryptCbc(HASHCRYPT, ctx, input, output, length, iv))
-        {
-            return (MBEDTLS_ERR_AES_HW_ACCEL_FAILED);
+        status = HASHCRYPT_AES_EncryptCbc(HASHCRYPT, ctx, input, output, length, iv);
+        if (kStatus_Success == status) {
+            memcpy(iv, output + length - 16, 16);
         }
-        memcpy(iv, output + length - 16, 16);
     }
 
-    return (0);
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (ret);
+#endif
+    return (kStatus_Success == status)?0:MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -1908,13 +1947,20 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
                           const unsigned char *input,
                           unsigned char *output)
 {
-    if (kStatus_Success !=
-        HASHCRYPT_AES_CryptCtr(HASHCRYPT, ctx, input, output, length, nonce_counter, stream_block, nc_off))
-    {
-        return (MBEDTLS_ERR_AES_HW_ACCEL_FAILED);
-    }
+	
+#if defined(MBEDTLS_THREADING_C)
+    int ret;
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (ret);
+#endif
 
-    return (0);
+    status_t status = HASHCRYPT_AES_CryptCtr(HASHCRYPT, ctx, input, output, length, nonce_counter, stream_block, nc_off);
+
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+        return (ret);
+#endif
+    return (kStatus_Success == status)?0:MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 #endif /* MBEDTLS_FREESCALE_HASHCRYPT_AES */

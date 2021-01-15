@@ -4763,6 +4763,24 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 #endif
 
 /******************************************************************************/
+/*************************** Mutex ********************************************/
+/******************************************************************************/
+#if defined(MBEDTLS_THREADING_C)
+
+/*
+ * Define global mutexes
+ */
+
+#ifndef MUTEX_INIT
+#define MUTEX_INIT
+#endif
+
+mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_mutex MUTEX_INIT; //MUTEX for HW crypto modules
+
+
+#endif /* defined(MBEDTLS_THREADING_C) */
+
+/******************************************************************************/
 /*************************** FreeRTOS ********************************************/
 /******************************************************************************/
 #if defined(USE_RTOS) && defined(FSL_RTOS_FREE_RTOS) && defined(MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT)

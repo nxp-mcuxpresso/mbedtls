@@ -6,7 +6,7 @@
 
   - 2.16.6_rev3
     - New features:
-      - Added MBEDTLS_THREADING_C optinion for HW module HASHCRYPT and CASPER.
+      - Added mutex for HW modules HASHCRYPT and CASPER. Enabled by MBEDTLS_THREADING_C
 	  
   - 2.16.6_rev2
     - New features:

@@ -20,7 +20,7 @@
  */
  
  /*
- * Copyright 2019-2020 NXP
+ * Copyright 2019-2021 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -455,6 +455,7 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
     size_t coordinateBitsLen = ctx->grp.pbits;
     size_t keySize           = 2 * coordinateLen;
     uint8_t *pubKey          = mbedtls_calloc(keySize, sizeof(uint8_t));
+    uint32_t keyOpt = (uint32_t)kSSS_KeyGenMode_Ecc;
     CRYPTO_InitHardware();
     if (ctx->isKeyInitialized == false)
     {
@@ -475,7 +476,7 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
             ctx->isKeyInitialized = true;
         }
     }
-    if (sss_sscp_key_store_generate_key(&g_keyStore, &ctx->key, coordinateBitsLen, NULL) != kStatus_SSS_Success)
+    if (sss_sscp_key_store_generate_key(&g_keyStore, &ctx->key, coordinateBitsLen, &keyOpt) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -764,14 +765,14 @@ int mbedtls_ecdh_self_test(int verbose)
         {
             if (verbose != 0)
                 mbedtls_printf("failed\n");
-            continue;
+            return (1);
         }
         if (mbedtls_ecp_group_load(&ecdhServer.grp, curve_info->grp_id) != 0 ||
             mbedtls_ecdh_make_public_sw(&ecdhServer, &olen, buf, sizeof(buf), myrand, NULL) != 0)
         {
             if (verbose != 0)
                 mbedtls_printf("failed\n");
-            continue;
+            return (1);
         }
 
         mbedtls_ecp_copy(&ecdhServer.Qp, &ecdhClient.Q);

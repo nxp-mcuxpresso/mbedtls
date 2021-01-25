@@ -9,6 +9,16 @@
 #ifndef SSSAPI_MBEDTLS_H
 #define SSSAPI_MBEDTLS_H
 
+#if defined(MBEDTLS_NXP_SENTINEL200)
+#define SSS_SUBSYSTEM (kType_SSS_Sentinel200)
+#elif defined(MBEDTLS_NXP_SENTINEL300)
+#define SSS_SUBSYSTEM (kType_SSS_Sentinel300)
+#else
+#define SSS_SUBSYSTEM (kType_SSS_Software)
+#endif
+
+#define SSS_MAX_SUBSYTEM_WAIT (0xFFFFFFFFu)
+
 #ifdef __cplusplus
 extern "C" {
 #endif

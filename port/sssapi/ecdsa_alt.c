@@ -19,7 +19,7 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 /*
- * Copyright 2019-2020 NXP
+ * Copyright 2019-2021 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -213,7 +213,8 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
     size_t keyLen     = (ctx->grp.pbits + 7u) / 8u;
     size_t keyBitsLen = ctx->grp.pbits;
     size_t keySize    = 3 * keyLen;
-    uint8_t *pubKey   = mbedtls_calloc(keySize, sizeof(uint8_t));
+    uint8_t *pubKey   = mbedtls_calloc(0x2u * keyLen, sizeof(uint8_t));
+    uint32_t keyOpt = (uint32_t)kSSS_KeyGenMode_Ecc;
     CRYPTO_InitHardware();
     if (ctx->isKeyInitialized == false)
     {
@@ -223,8 +224,8 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
         /* Allocate key handle */
-        else if (sss_sscp_key_object_allocate_handle(&ctx->key, 0u, kSSS_KeyPart_Pair, kSSS_CipherType_EC_NIST_P,
-                                                     3 * keyLen, 0xF0u) != kStatus_SSS_Success)
+        else if (sss_sscp_key_object_allocate_handle(&ctx->key, 0x0u, kSSS_KeyPart_Pair, kSSS_CipherType_EC_NIST_P,
+                                                     keySize, 0xF0u) != kStatus_SSS_Success)
         {
             sss_sscp_key_object_free(&ctx->key);
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -234,7 +235,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
             ctx->isKeyInitialized = true;
         }
     }
-    if (sss_sscp_key_store_generate_key(&g_keyStore, &ctx->key, keyBitsLen, NULL) != kStatus_SSS_Success)
+    if (sss_sscp_key_store_generate_key(&g_keyStore, &ctx->key, keyBitsLen, &keyOpt) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }

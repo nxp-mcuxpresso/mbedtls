@@ -50,12 +50,12 @@
 #include <stdlib.h>
 #define mbedtls_printf printf
 #define mbedtls_calloc calloc
-#define mbedtls_free free
+#define mbedtls_free   free
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
 #define SHA256_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA)
-#define SHA256_VALIDATE(cond) MBEDTLS_INTERNAL_VALIDATE(cond)
+#define SHA256_VALIDATE(cond)     MBEDTLS_INTERNAL_VALIDATE(cond)
 
 #if defined(MBEDTLS_SHA256_ALT)
 
@@ -156,7 +156,7 @@ static const uint32_t K[] = {
     0x748F82EE, 0x78A5636F, 0x84C87814, 0x8CC70208, 0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2,
 };
 
-#define SHR(x, n) (((x)&0xFFFFFFFF) >> (n))
+#define SHR(x, n)  (((x)&0xFFFFFFFF) >> (n))
 #define ROTR(x, n) (SHR(x, n) | ((x) << (32 - (n))))
 
 #define S0(x) (ROTR(x, 7) ^ ROTR(x, 18) ^ SHR(x, 3))

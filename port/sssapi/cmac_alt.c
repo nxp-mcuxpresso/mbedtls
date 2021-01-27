@@ -63,7 +63,7 @@
 #else
 #include <stdlib.h>
 #define mbedtls_calloc calloc
-#define mbedtls_free free
+#define mbedtls_free   free
 #endif /* MBEDTLS_PLATFORM_C */
 
 static int cmac_multiply_by_u(unsigned char *output, const unsigned char *input, size_t blocksize)

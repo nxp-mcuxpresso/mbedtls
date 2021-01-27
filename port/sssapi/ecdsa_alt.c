@@ -49,14 +49,14 @@
 #else
 #include <stdlib.h>
 #define mbedtls_calloc calloc
-#define mbedtls_free free
+#define mbedtls_free   free
 #endif
 
 #include "mbedtls/platform_util.h"
 
 /* Parameter validation macros based on platform_util.h */
 #define ECDSA_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA)
-#define ECDSA_VALIDATE(cond) MBEDTLS_INTERNAL_VALIDATE(cond)
+#define ECDSA_VALIDATE(cond)     MBEDTLS_INTERNAL_VALIDATE(cond)
 
 #define ECDSA_RS_ECP NULL
 
@@ -214,7 +214,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
     size_t keyBitsLen = ctx->grp.pbits;
     size_t keySize    = 3 * keyLen;
     uint8_t *pubKey   = mbedtls_calloc(0x2u * keyLen, sizeof(uint8_t));
-    uint32_t keyOpt = (uint32_t)kSSS_KeyGenMode_Ecc;
+    uint32_t keyOpt   = (uint32_t)kSSS_KeyGenMode_Ecc;
     CRYPTO_InitHardware();
     if (ctx->isKeyInitialized == false)
     {

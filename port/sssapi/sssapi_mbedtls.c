@@ -21,6 +21,8 @@ sss_sscp_session_t g_sssSession;
 sscp_context_t g_sscpContext;
 static uint32_t g_isCryptoHWInitialized = 0;
 
+#define SSS_HIGH_QUALITY_RNG (0x1u)
+
 /******************************************************************************/
 /******************** CRYPTO_InitHardware **************************************/
 /******************************************************************************/
@@ -54,9 +56,10 @@ void CRYPTO_InitHardware(void)
         /* RNG call used to init Sentinel TRNG required e.g. by sss_sscp_key_store_generate_key service
         if TRNG inicialization is no needed for used operations, the following code can be removed
         to increase the perfomance.*/
-        else if (sss_sscp_rng_context_init(&g_sssSession, &rctx, 0x1u) != kStatus_SSS_Success)
+        else if (sss_sscp_rng_context_init(&g_sssSession, &rctx, SSS_HIGH_QUALITY_RNG) != kStatus_SSS_Success)
         {
         }
+        /*Providing NULL output buffer, as we just need to initialize TRNG, not get random data*/
         else if (sss_sscp_rng_get_random(&rctx, NULL, 0x0u) != kStatus_SSS_Success)
         {
         }

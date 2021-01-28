@@ -67,7 +67,7 @@
 #define MBEDTLS_SSL_MAX_CONTENT_LEN (1024 * 10) /* Reduce SSL frame buffer. */
 #define MBEDTLS_MPI_WINDOW_SIZE     1
 #define MBEDTLS_ECP_WINDOW_SIZE     2
-#define MBEDTLS_MPI_MAX_SIZE        512 /* Maximum number of bytes for usable MPIs. */
+#define MBEDTLS_MPI_MAX_SIZE        521 /* Maximum number of bytes for usable MPIs. */
 #define MBEDTLS_ECP_MAX_BITS        384 /* Maximum bit size of groups */
 /**************************** SSSAPI DEF END **********************************************/
 

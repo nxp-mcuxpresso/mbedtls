@@ -225,7 +225,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
         }
         /* Allocate key handle */
         else if (sss_sscp_key_object_allocate_handle(&ctx->key, 0x0u, kSSS_KeyPart_Pair, kSSS_CipherType_EC_NIST_P,
-                                                     keySize, 0xF0u) != kStatus_SSS_Success)
+                                                     keySize, SSS_PUBLIC_KEY_PART_EXPORTABLE) != kStatus_SSS_Success)
         {
             sss_sscp_key_object_free(&ctx->key);
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -335,7 +335,7 @@ static int ecdsa_verify_restartable(mbedtls_ecp_group *grp,
     }
     /* Allocate key handle */
     else if (sss_sscp_key_object_allocate_handle(&ecdsaPublic, 0u, kSSS_KeyPart_Pair, kSSS_CipherType_EC_NIST_P,
-                                                 keySize, 0xF0u) != kStatus_SSS_Success)
+                                                 keySize, SSS_PUBLIC_KEY_PART_EXPORTABLE) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }

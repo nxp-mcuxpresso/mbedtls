@@ -18,6 +18,7 @@
 #endif
 
 #define SSS_MAX_SUBSYTEM_WAIT (0xFFFFFFFFu)
+#define SSS_PUBLIC_KEY_PART_EXPORTABLE (0xF0u)
 
 #ifdef __cplusplus
 extern "C" {

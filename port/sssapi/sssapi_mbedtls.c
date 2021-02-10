@@ -21,6 +21,8 @@ sss_sscp_session_t g_sssSession;
 sscp_context_t g_sscpContext;
 static uint32_t g_isCryptoHWInitialized = 0;
 
+#define SSS_HIGH_QUALITY_RNG (0x1u)
+
 /******************************************************************************/
 /******************** CRYPTO_InitHardware **************************************/
 /******************************************************************************/
@@ -34,18 +36,34 @@ void CRYPTO_InitHardware(void)
 {
     if (!g_isCryptoHWInitialized)
     {
+        sss_sscp_rng_t rctx;
         SNT_loadFwLocal(S3MUA);
-        if (sscp_mu_init(&g_sscpContext, (MU_Type*)S3MUA) != kStatus_SSCP_Success)
+        if (SNT_mu_wait_for_ready(S3MUA, SSS_MAX_SUBSYTEM_WAIT) != kStatus_SNT_Success)
         {
         }
-        else if (sss_sscp_open_session(&g_sssSession, kType_SSS_Sentinel300, &g_sscpContext, 0u, NULL) !=
-                 kStatus_SSS_Success)
+        else if (sscp_mu_init(&g_sscpContext, (MU_Type *)S3MUA) != kStatus_SSCP_Success)
+        {
+        }
+        else if (sss_sscp_open_session(&g_sssSession, SSS_SUBSYSTEM, &g_sscpContext, 0u, NULL) != kStatus_SSS_Success)
         {
         }
         else if (sss_sscp_key_store_context_init(&g_keyStore, &g_sssSession) != kStatus_SSS_Success)
         {
         }
         else if (sss_sscp_key_store_allocate(&g_keyStore, 0u) != kStatus_SSS_Success)
+        {
+        }
+        /* RNG call used to init Sentinel TRNG required e.g. by sss_sscp_key_store_generate_key service
+        if TRNG inicialization is no needed for used operations, the following code can be removed
+        to increase the perfomance.*/
+        else if (sss_sscp_rng_context_init(&g_sssSession, &rctx, SSS_HIGH_QUALITY_RNG) != kStatus_SSS_Success)
+        {
+        }
+        /*Providing NULL output buffer, as we just need to initialize TRNG, not get random data*/
+        else if (sss_sscp_rng_get_random(&rctx, NULL, 0x0u) != kStatus_SSS_Success)
+        {
+        }
+        else if (sss_sscp_rng_free(&rctx) != kStatus_SSS_Success)
         {
         }
         g_isCryptoHWInitialized = 1;

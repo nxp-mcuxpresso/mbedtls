@@ -54,11 +54,11 @@
 #else
 #include <stdlib.h>
 #define mbedtls_calloc calloc
-#define mbedtls_free free
+#define mbedtls_free   free
 #endif /* MBEDTLS_PLATFORM_C */
 
 #define SHA512_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_SHA512_BAD_INPUT_DATA)
-#define SHA512_VALIDATE(cond) MBEDTLS_INTERNAL_VALIDATE(cond)
+#define SHA512_VALIDATE(cond)     MBEDTLS_INTERNAL_VALIDATE(cond)
 
 #ifndef GET_UINT64_BE
 #define GET_UINT64_BE(n, b, i)                                                                                   \
@@ -143,7 +143,7 @@ int mbedtls_internal_sha512_process(mbedtls_sha512_context *ctx, const unsigned 
     SHA512_VALIDATE_RET(ctx != NULL);
     SHA512_VALIDATE_RET((const unsigned char *)data != NULL);
 
-#define SHR(x, n) ((x) >> (n))
+#define SHR(x, n)  ((x) >> (n))
 #define ROTR(x, n) (SHR((x), (n)) | ((x) << (64 - (n))))
 
 #define S0(x) (ROTR(x, 1) ^ ROTR(x, 8) ^ SHR(x, 7))

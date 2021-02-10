@@ -13,6 +13,10 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
+
 #include "fsl_common.h"
 
 #if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
@@ -270,11 +274,17 @@ void CRYPTO_InitHardware(void)
 #if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
     /* Initialize CASPER */
     CASPER_Init(CASPER);
-#endif
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_init( &mbedtls_threading_hwcrypto_casper_mutex );
+#endif  /* (MBEDTLS_THREADING_C) */    
+#endif  /* (FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0) */
 #if defined(FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0)
     /* Initialize HASHCRYPT */
     HASHCRYPT_Init(HASHCRYPT);
-#endif
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_init( &mbedtls_threading_hwcrypto_hashcrypt_mutex );
+#endif   /* (MBEDTLS_THREADING_C) */   
+#endif   /* (FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0) */
     { /* Init RNG module.*/
 #if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
 #if defined(TRNG)
@@ -3552,7 +3562,7 @@ static int mbedtls_mpi_exp_mod_shim(mbedtls_mpi *X,
 	
 #if defined(MBEDTLS_THREADING_C)
     int _ret;
-    if ((_ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+    if ((_ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_casper_mutex)) != 0)
         return (_ret);
 #endif
 
@@ -3573,7 +3583,7 @@ cleanup:
     }
 
 #if defined(MBEDTLS_THREADING_C)
-    if ((_ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+    if ((_ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_casper_mutex)) != 0)
        return (_ret);
 #endif
      return ret;
@@ -4775,8 +4785,10 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 #define MUTEX_INIT
 #endif
 
-mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_mutex MUTEX_INIT; //MUTEX for HW crypto modules
-
+/* MUTEX for HW Hashcrypt crypto module */
+mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_hashcrypt_mutex MUTEX_INIT;
+/* MUTEX for HW CASPER crypto module */
+mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_casper_mutex MUTEX_INIT;
 
 #endif /* defined(MBEDTLS_THREADING_C) */
 

@@ -85,7 +85,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
 	
 	int ret = 0;
 #if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_casper_mutex)) != 0)
         return (ret);
 #endif
   
@@ -121,6 +121,10 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     if (mbedtls_mpi_size(m) > sizeof(M))
     {
         __BKPT(0);
+#if defined(MBEDTLS_THREADING_C)
+    ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_casper_mutex);
+      
+#endif  /* (MBEDTLS_THREADING_C) */      
         ret = MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
 		return (ret);
     }
@@ -151,7 +155,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
 
 
 #if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_casper_mutex)) != 0)
         return (ret);
 #endif
     return (ret);
@@ -180,7 +184,7 @@ int mbedtls_ecp_muladd_restartable(
 	
 	int ret = 0;
 #if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_casper_mutex)) != 0)
         return (ret);
 #endif
 
@@ -221,6 +225,10 @@ int mbedtls_ecp_muladd_restartable(
     if (mbedtls_mpi_size(m) > sizeof(M))
     {
         __BKPT(0);
+#if defined(MBEDTLS_THREADING_C)
+    ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_casper_mutex);
+      
+#endif  /* (MBEDTLS_THREADING_C) */          
         ret = MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
 		return (ret);
     }
@@ -266,7 +274,7 @@ int mbedtls_ecp_muladd_restartable(
     mbedtls_mpi_lset( &R->Z, 1 );
     
 #if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mutex)) != 0)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_casper_mutex)) != 0)
         return (ret);
 #endif
     return ret;

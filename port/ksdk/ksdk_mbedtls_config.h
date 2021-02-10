@@ -163,7 +163,7 @@
 #if defined(FSL_FEATURE_SOC_SHA_COUNT) && (FSL_FEATURE_SOC_SHA_COUNT > 0)
 #include "fsl_sha.h"
 
-/* SHA HW accelerator does not support to compute multiple interleaved hashes, 
+/* SHA HW accelerator does not support to compute multiple interleaved hashes,
  * it doesn't support context switch.
  * HW acceleration of SHA is disabled by default in MbedTLS integration.
  */
@@ -186,7 +186,7 @@
 #define MBEDTLS_MCUX_CASPER_ECC /* CASPER implementation */
 
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED /* Enable ECP_DP_SECP256R1 curve */
-#define MBEDTLS_ECP_DP_SECP384R1_ENABLED /* Enable ECP_DP_SECP384R1 curve */       
+#define MBEDTLS_ECP_DP_SECP384R1_ENABLED /* Enable ECP_DP_SECP384R1 curve */
 #define MBEDTLS_ECP_DP_SECP521R1_ENABLED /* Enable ECP_DP_SECP521R1 curve */
 
 #endif
@@ -195,8 +195,8 @@
  * \def MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT
  *
  * Enable implementation for FreeRTOS's pvPortCalloc() in ksdk_mbedtls.c module.
- * You can comment this macro if you provide your own alternate implementation. 
- * 
+ * You can comment this macro if you provide your own alternate implementation.
+ *
  */
 #if defined(USE_RTOS) && defined(FSL_RTOS_FREE_RTOS)
 #define MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT
@@ -346,7 +346,7 @@
 #ifdef MBEDTLS_SHA256_ALT_NO_224
 #define FSL_MD_COOKIE_USE_SHA256
 #endif
-      
+
 #if defined(USE_RTOS) && defined(FSL_RTOS_FREE_RTOS)
 #include "FreeRTOS.h"
 

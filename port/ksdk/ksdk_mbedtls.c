@@ -2266,7 +2266,7 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         pkha_size_t sizeC;
         int sign = A->s * B->s;
 
-        uint8_t N[4*FREESCALE_PKHA_INT_MAX_BYTES];
+        uint8_t *N = mbedtls_calloc(4, FREESCALE_PKHA_INT_MAX_BYTES);
         uint8_t *ptrA = N + FREESCALE_PKHA_INT_MAX_BYTES;
         uint8_t *ptrB = ptrA + FREESCALE_PKHA_INT_MAX_BYTES;
         uint8_t *ptrC = ptrB + FREESCALE_PKHA_INT_MAX_BYTES;

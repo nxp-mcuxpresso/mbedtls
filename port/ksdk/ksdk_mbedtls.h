@@ -16,18 +16,6 @@ extern "C" {
 int fsl_mbedtls_printf(const char *fmt_s, ...);
 void CRYPTO_InitHardware(void);
 
-/**
- * @brief Initializes the mbedTLS mutex functions.
- *
- * Provides mbedTLS access to mutex create, destroy, take and free.
- *
- * @see MBEDTLS_THREADING_ALT
- */
-
-#if defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
-void CRYPTO_ConfigureThreading( void );
-#endif /* defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) */
-
 #ifdef __cplusplus
 }
 #endif

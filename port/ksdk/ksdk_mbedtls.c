@@ -17,6 +17,9 @@
 /* Threading mutex implementations for mbedTLS. */
 #include "mbedtls/threading.h"
 #include "threading_alt.h"
+#if defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
+static void CRYPTO_ConfigureThreading( void );
+#endif /* defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) */
 #endif
 
 #include "fsl_common.h"
@@ -249,7 +252,7 @@ void CRYPTO_InitHardware(void)
 {
 
 #if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
-    CRYPTO_ConfigureThreading;
+    CRYPTO_ConfigureThreading();
 #endif /* (MBEDTLS_THREADING_C) && defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT */  
 #if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
     /* Initialize LTC driver.

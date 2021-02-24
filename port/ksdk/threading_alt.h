@@ -13,21 +13,6 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 
-/*
- * Global mutexes
- */
-
-
-/* MUTEX FOR HW Modules*/
-#if defined(FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0)
-extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_hashcrypt_mutex;  
-#endif /* (FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0 */
-
-#if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
-extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_casper_mutex;
-#endif  /* (FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0) */ 
-
-
 /**
  * @brief Mutex struct used to synchronize mbed TLS operations.
  *

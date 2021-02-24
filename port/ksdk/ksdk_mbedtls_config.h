@@ -202,6 +202,16 @@
 #define MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT
 #endif
 
+/**
+ * \def MBEDTLS_MCUX_FREERTOS_THREADING_ALT
+ *
+ * Enable implementation for mbedTLS threading functions for FreeRTOS in ksdk_mbedtls.c module.
+ * You can comment this macro if you provide your own alternate implementation.
+ *
+ */
+#if defined(USE_RTOS) && defined(FSL_RTOS_FREE_RTOS) && defined(MBEDTLS_THREADING_C)
+#define MBEDTLS_MCUX_FREERTOS_THREADING_ALT
+#endif
 
 /* Define ALT functions. */
 #define MBEDTLS_ECP_ALT

@@ -14,7 +14,9 @@
 #endif
 
 #if defined(MBEDTLS_THREADING_C)
+/* Threading mutex implementations for mbedTLS. */
 #include "mbedtls/threading.h"
+#include "threading_alt.h"
 #endif
 
 #include "fsl_common.h"
@@ -245,6 +247,10 @@ static void mbedtls_zeroize(void *v, size_t n)
  */
 void CRYPTO_InitHardware(void)
 {
+
+#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
+    CRYPTO_ConfigureThreading;
+#endif /* (MBEDTLS_THREADING_C) && defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT */  
 #if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
     /* Initialize LTC driver.
      * This enables clocking and resets the module to a known state. */
@@ -4784,10 +4790,16 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 #define MUTEX_INIT
 #endif
 
-/* MUTEX for HW Hashcrypt crypto module */
-mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_hashcrypt_mutex MUTEX_INIT;
-/* MUTEX for HW CASPER crypto module */
-mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_casper_mutex MUTEX_INIT;
+
+#if defined(FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0)
+    /* MUTEX for HW Hashcrypt crypto module */
+    mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_hashcrypt_mutex MUTEX_INIT;
+#endif /* (FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0) */
+
+#if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
+    /* MUTEX for HW CASPER crypto module */
+    mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_casper_mutex MUTEX_INIT;
+#endif /* (FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0) */
 
 #endif /* defined(MBEDTLS_THREADING_C) */
 
@@ -4825,3 +4837,106 @@ void *pvPortCalloc(size_t num, size_t size)
     return pvReturn;
 }
 #endif /* USE_RTOS && defined(FSL_RTOS_FREE_RTOS) && defined(MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT) */
+
+/*-----------------------------------------------------------*/
+/*--------- mbedTLS threading functions for FreeRTOS --------*/
+/*--------------- See MBEDTLS_THREADING_ALT -----------------*/
+/*-----------------------------------------------------------*/
+#if defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
+/* Threading mutex implementations for mbedTLS. */
+#include "mbedtls/threading.h"
+#include "threading_alt.h"
+
+/**
+ * @brief Implementation of mbedtls_mutex_init for thread-safety.
+ *
+ */
+void mcux_mbedtls_mutex_init( mbedtls_threading_mutex_t * mutex )
+{
+    mutex->mutex = xSemaphoreCreateMutex();
+
+    if( mutex->mutex != NULL )
+    {
+        mutex->is_valid = 1;
+    }
+    else
+    {
+        mutex->is_valid = 0;
+    }
+}
+
+/**
+ * @brief Implementation of mbedtls_mutex_free for thread-safety.
+ *
+ */
+void mcux_mbedtls_mutex_free( mbedtls_threading_mutex_t * mutex )
+{
+    if( mutex->is_valid == 1 )
+    {
+        vSemaphoreDelete( mutex->mutex );
+        mutex->is_valid = 0;
+    }
+}
+
+/**
+ * @brief Implementation of mbedtls_mutex_lock for thread-safety.
+ *
+ * @return 0 if successful, MBEDTLS_ERR_THREADING_MUTEX_ERROR if timeout,
+ * MBEDTLS_ERR_THREADING_BAD_INPUT_DATA if the mutex is not valid.
+ */
+int mcux_mbedtls_mutex_lock( mbedtls_threading_mutex_t * mutex )
+{
+    int ret = MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
+
+    if( mutex->is_valid == 1 )
+    {
+        if( xSemaphoreTake( mutex->mutex, portMAX_DELAY ) )
+        {
+            ret = 0;
+        }
+        else
+        {
+            ret = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+        }
+    }
+
+    return ret;
+}
+
+/**
+ * @brief Implementation of mbedtls_mutex_unlock for thread-safety.
+ *
+ * @return 0 if successful, MBEDTLS_ERR_THREADING_MUTEX_ERROR if timeout,
+ * MBEDTLS_ERR_THREADING_BAD_INPUT_DATA if the mutex is not valid.
+ */
+int mcux_mbedtls_mutex_unlock( mbedtls_threading_mutex_t * mutex )
+{
+    int ret = MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
+
+    if( mutex->is_valid == 1 )
+    {
+        if( xSemaphoreGive( mutex->mutex ) )
+        {
+            ret = 0;
+        }
+        else
+        {
+            ret = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+        }
+    }
+
+    return ret;
+}
+
+
+void CRYPTO_ConfigureThreading( void )
+{
+
+    /* Configure mbedtls to use FreeRTOS mutexes. */
+    mbedtls_threading_set_alt( mcux_mbedtls_mutex_init,
+                               mcux_mbedtls_mutex_free,
+                               mcux_mbedtls_mutex_lock,
+                               mcux_mbedtls_mutex_unlock );
+
+}
+#endif /* defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) */

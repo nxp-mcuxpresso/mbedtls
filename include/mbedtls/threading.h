@@ -99,20 +99,6 @@ extern int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t *mutex );
 /*
  * Global mutexes
  */
-
-/*NXP ADDED */ 
-
-/* MUTEX FOR HW Modules*/
-#if defined(FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0)
-extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_hashcrypt_mutex;  
-#endif /* (FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0 */
-
-#if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
-extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_casper_mutex;
-#endif  /* (FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0) */ 
-
-/*NXP ADDED */ 
-
 #if defined(MBEDTLS_FS_IO)
 extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
 #endif

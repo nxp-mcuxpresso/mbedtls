@@ -9,9 +9,10 @@
 #ifndef __THREADING_ALT_H__
 #define __THREADING_ALT_H__
 
-
+#if defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
 #include "FreeRTOS.h"
 #include "semphr.h"
+#endif /* defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) */
 
 /**
  * @brief Mutex struct used to synchronize mbed TLS operations.
@@ -28,5 +29,15 @@ extern void mbedtls_threading_set_alt( void ( * mutex_init )( mbedtls_threading_
                                        int ( * mutex_lock )( mbedtls_threading_mutex_t * ),
                                        int ( * mutex_unlock )( mbedtls_threading_mutex_t * ) );
 
+
+
+/* MUTEX FOR HW Modules*/
+#if defined(FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0)
+extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_hashcrypt_mutex;  
+#endif /* (FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0 */
+
+#if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
+extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_casper_mutex;
+#endif  /* (FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0) */ 
 
 #endif /* ifndef __THREADING_ALT_H__ */

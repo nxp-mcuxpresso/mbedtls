@@ -4862,7 +4862,7 @@ mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_casper_mutex MUTEX_INIT;
 /******************************************************************************/
 /*************************** FreeRTOS ********************************************/
 /******************************************************************************/
-#if defined(USE_RTOS) && defined(FSL_RTOS_FREE_RTOS) && defined(MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT)
+#if defined(USE_RTOS) && defined(SDK_OS_FREE_RTOS) && defined(MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT)
 #include <stdlib.h>
 #include "FreeRTOS.h"
 #include "task.h"
@@ -4892,7 +4892,7 @@ void *pvPortCalloc(size_t num, size_t size)
 
     return pvReturn;
 }
-#endif /* USE_RTOS && defined(FSL_RTOS_FREE_RTOS) && defined(MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT) */
+#endif /* USE_RTOS && defined(SDK_OS_FREE_RTOS) && defined(MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT) */
 
 /*-----------------------------------------------------------*/
 /*--------- mbedTLS threading functions for FreeRTOS --------*/

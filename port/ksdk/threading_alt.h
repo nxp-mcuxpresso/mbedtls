@@ -9,10 +9,8 @@
 #ifndef __THREADING_ALT_H__
 #define __THREADING_ALT_H__
 
-#if defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
 #include "FreeRTOS.h"
 #include "semphr.h"
-#endif /* defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) */
 
 /**
  * @brief Mutex struct used to synchronize mbed TLS operations.

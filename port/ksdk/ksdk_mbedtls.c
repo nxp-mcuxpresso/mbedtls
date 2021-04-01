@@ -17,9 +17,6 @@
 /* Threading mutex implementations for mbedTLS. */
 #include "mbedtls/threading.h"
 #include "threading_alt.h"
-#if defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
-static int CRYPTO_ConfigureThreading(void);
-#endif /* defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) */
 #endif
 
 #include "fsl_common.h"
@@ -251,16 +248,11 @@ static void mbedtls_zeroize(void *v, size_t n)
  */
 int CRYPTO_InitHardware(void)
 {
-#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
-    int retval;
-    retval = CRYPTO_ConfigureThreading();
+#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
 
-    if (retval != 0)
-    {
-        return (kStatus_Fail);
-    }
+    CRYPTO_ConfigureThreading();
 
-#endif /* (MBEDTLS_THREADING_C) && defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT */
+#endif /* (MBEDTLS_THREADING_C)  */
 #if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
     /* Initialize LTC driver.
      * This enables clocking and resets the module to a known state. */
@@ -4984,12 +4976,10 @@ int mcux_mbedtls_mutex_unlock(mbedtls_threading_mutex_t *mutex)
     return ret;
 }
 
-int CRYPTO_ConfigureThreading(void)
+void CRYPTO_ConfigureThreading(void)
 {
     /* Configure mbedtls to use FreeRTOS mutexes. */
     mbedtls_threading_set_alt(mcux_mbedtls_mutex_init, mcux_mbedtls_mutex_free, mcux_mbedtls_mutex_lock,
                               mcux_mbedtls_mutex_unlock);
-
-    return (0);
 }
 #endif /* defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) */

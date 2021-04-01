@@ -456,7 +456,10 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
     size_t keySize           = 2 * coordinateLen;
     uint8_t *pubKey          = mbedtls_calloc(keySize, sizeof(uint8_t));
     uint32_t keyOpt          = (uint32_t)kSSS_KeyGenMode_Ecc;
-    CRYPTO_InitHardware();
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
     if (ctx->isKeyInitialized == false)
     {
         if (sss_sscp_key_object_init(&ctx->key, &g_keyStore) != kStatus_SSS_Success)
@@ -557,8 +560,11 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx,
     size_t coordinateBitsLen = ctx->grp.pbits;
     size_t keySize           = 3 * coordinateLen;
     uint8_t *pubKey          = mbedtls_calloc(keySize, sizeof(uint8_t));
-    CRYPTO_InitHardware();
-    if (sss_sscp_key_object_init(&ctx->peerPublicKey, &g_keyStore) != kStatus_SSS_Success)
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if (sss_sscp_key_object_init(&ctx->peerPublicKey, &g_keyStore) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -582,13 +588,13 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx,
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    if (sss_sscp_key_object_allocate_handle(&ctx->sharedSecret, 2u, kSSS_KeyPart_Default, kSSS_CipherType_AES,
-                                            coordinateLen, 0xFFu) != kStatus_SSS_Success)
+    else if (sss_sscp_key_object_allocate_handle(&ctx->sharedSecret, 2u, kSSS_KeyPart_Default, kSSS_CipherType_AES,
+                                                 coordinateLen, SSS_FULL_KEY_EXPORTABLE) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    if (sss_sscp_derive_key_context_init(&dCtx, &g_sssSession, &ctx->key, kAlgorithm_SSS_ECDH,
-                                         kMode_SSS_ComputeSharedSecret) != kStatus_SSS_Success)
+    else if (sss_sscp_derive_key_context_init(&dCtx, &g_sssSession, &ctx->key, kAlgorithm_SSS_ECDH,
+                                              kMode_SSS_ComputeSharedSecret) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }

@@ -376,8 +376,11 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
         case MBEDTLS_CIPHER_AES_256_ECB:
             sssType = kAlgorithm_SSS_CMAC_AES;
             memcpy(ramKey, key, (keylen + 7u) / 8u);
-            CRYPTO_InitHardware();
-            if ((sss_sscp_key_object_init(&sssKey, &g_keyStore)) != kStatus_SSS_Success)
+            if (CRYPTO_InitHardware() != kStatus_Success)
+            {
+                ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            }
+            else if ((sss_sscp_key_object_init(&sssKey, &g_keyStore)) != kStatus_SSS_Success)
             {
                 ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             }

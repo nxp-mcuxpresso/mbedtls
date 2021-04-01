@@ -121,8 +121,11 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
     {
         alg = kAlgorithm_SSS_SHA256;
     }
-    CRYPTO_InitHardware();
-    if (sss_sscp_digest_context_init(&ctx->ctx, &g_sssSession, alg, kMode_SSS_Digest) != kStatus_SSS_Success)
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if (sss_sscp_digest_context_init(&ctx->ctx, &g_sssSession, alg, kMode_SSS_Digest) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -260,8 +263,11 @@ void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char dat
 int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
 {
     int ret;
-    CRYPTO_InitHardware();
-    if (sss_sscp_digest_update(&ctx->ctx, (uint8_t *)input, ilen) != kStatus_SSS_Success)
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if (sss_sscp_digest_update(&ctx->ctx, (uint8_t *)input, ilen) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -286,8 +292,11 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
 {
     int ret;
     size_t len = ctx->ctx.digestFullLen;
-    CRYPTO_InitHardware();
-    if (sss_sscp_digest_finish(&ctx->ctx, output, &len) != kStatus_SSS_Success)
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if (sss_sscp_digest_finish(&ctx->ctx, output, &len) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -325,8 +334,11 @@ int mbedtls_sha256_ret(const unsigned char *input, size_t ilen, unsigned char ou
     {
         alg = kAlgorithm_SSS_SHA256;
     }
-    CRYPTO_InitHardware();
-    if (sss_sscp_digest_context_init(&dctx, &g_sssSession, alg, kMode_SSS_Digest) != kStatus_SSS_Success)
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if (sss_sscp_digest_context_init(&dctx, &g_sssSession, alg, kMode_SSS_Digest) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }

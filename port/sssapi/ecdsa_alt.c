@@ -65,6 +65,7 @@
 #define ECDSA_RS_ENTER(SUB) (void)rs_ctx
 #define ECDSA_RS_LEAVE(SUB) (void)rs_ctx
 
+/* Used as values s and n of mbedtls_mpi object to indicate that P contain pointer to key object. */
 #define MBEDTLS_ECDSA_MPI_S_HAVE_OBJECT (155u)
 #define MBEDTLS_ECDSA_MPI_N_HAVE_OBJECT (1u)
 
@@ -132,14 +133,19 @@ static int ecdsa_sign_restartable(mbedtls_ecp_group *grp,
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
     if (grp->N.p == NULL)
         return (MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
-    CRYPTO_InitHardware();
-    if (d->s != MBEDTLS_ECDSA_MPI_S_HAVE_OBJECT)
+    if (CRYPTO_InitHardware() != kStatus_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
+    /* Check if mbedtls_mpi was initialized with key object. */
+    else if (d->s != MBEDTLS_ECDSA_MPI_S_HAVE_OBJECT)
+    {
+        ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+    /* Check if mbedtls_mpi was initialized with key object. */
     else if (d->n != MBEDTLS_ECDSA_MPI_N_HAVE_OBJECT)
     {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
     else if ((ret = mbedtls_ecdsa_verify_digest_len(bufLen, &alg)) != 0)
     {
@@ -215,7 +221,10 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
     size_t keySize    = 3 * keyLen;
     uint8_t *pubKey   = mbedtls_calloc(0x2u * keyLen, sizeof(uint8_t));
     uint32_t keyOpt   = (uint32_t)kSSS_KeyGenMode_Ecc;
-    CRYPTO_InitHardware();
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
     if (ctx->isKeyInitialized == false)
     {
         if (sss_sscp_key_object_init(&ctx->key, &g_keyStore) != kStatus_SSS_Success)
@@ -315,8 +324,11 @@ static int ecdsa_verify_restartable(mbedtls_ecp_group *grp,
     sss_sscp_asymmetric_t asyc;
     sss_algorithm_t alg;
     uint8_t *allignedDigest = mbedtls_calloc(coordinateLen, sizeof(uint8_t));
-    CRYPTO_InitHardware();
-    if ((ret = mbedtls_ecdsa_verify_digest_len(bufLen, &alg)) != 0)
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if ((ret = mbedtls_ecdsa_verify_digest_len(bufLen, &alg)) != 0)
     {
     }
     else if (mbedtls_ecdsa_verify_digest_allign(bufLen, coordinateLen, (const uint8_t *)buf, allignedDigest) != 0)

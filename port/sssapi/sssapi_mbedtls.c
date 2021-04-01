@@ -19,7 +19,7 @@
 sss_sscp_key_store_t g_keyStore;
 sss_sscp_session_t g_sssSession;
 sscp_context_t g_sscpContext;
-static uint32_t g_isCryptoHWInitialized = 0;
+static uint32_t g_isCryptoHWInitialized = SSS_CRYPTOHW_NONINITIALIZED;
 
 #define SSS_HIGH_QUALITY_RNG (0x1u)
 
@@ -32,13 +32,19 @@ static uint32_t g_isCryptoHWInitialized = 0;
  * This function is provided to be called by MCUXpresso SDK applications.
  * It calls basic init for Crypto Hw acceleration and Hw entropy modules.
  */
-void CRYPTO_InitHardware(void)
+status_t CRYPTO_InitHardware(void)
 {
-    if (!g_isCryptoHWInitialized)
+    status_t ret = kStatus_Fail;
+    if (g_isCryptoHWInitialized == SSS_CRYPTOHW_NONINITIALIZED)
     {
         sss_sscp_rng_t rctx;
-        SNT_loadFwLocal(S3MUA);
-        if (SNT_mu_wait_for_ready(S3MUA, SSS_MAX_SUBSYTEM_WAIT) != kStatus_SNT_Success)
+#if (defined(SNT_HAS_LOADABLE_FW) && SNT_HAS_LOADABLE_FW)
+        if (SNT_loadFwLocal(S3MUA) != kStatus_SNT_Success)
+        {
+        }
+        else
+#endif /* SNT_HAS_LOADABLE_FW */
+            if (SNT_mu_wait_for_ready(S3MUA, SSS_MAX_SUBSYTEM_WAIT) != kStatus_Success)
         {
         }
         else if (sscp_mu_init(&g_sscpContext, (MU_Type *)S3MUA) != kStatus_SSCP_Success)
@@ -66,6 +72,18 @@ void CRYPTO_InitHardware(void)
         else if (sss_sscp_rng_free(&rctx) != kStatus_SSS_Success)
         {
         }
-        g_isCryptoHWInitialized = 1;
+        else
+        {
+            g_isCryptoHWInitialized = SSS_CRYPTOHW_INITIALIZED;
+            ret                     = kStatus_Success;
+        }
     }
+    else
+    {
+        if (g_isCryptoHWInitialized == SSS_CRYPTOHW_INITIALIZED)
+        {
+            ret = kStatus_Success;
+        }
+    }
+    return ret;
 }

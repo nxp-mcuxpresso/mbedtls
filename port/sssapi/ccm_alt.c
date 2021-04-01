@@ -81,8 +81,11 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
     int ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     uint8_t ramKey[32];
     memcpy(ramKey, key, (keybits + 7u) / 8u);
-    CRYPTO_InitHardware();
-    if ((sss_sscp_key_object_init(&ctx->key, &g_keyStore)) != kStatus_SSS_Success)
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if ((sss_sscp_key_object_init(&ctx->key, &g_keyStore)) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -110,8 +113,10 @@ void mbedtls_ccm_free(mbedtls_ccm_context *ctx)
 {
     if (ctx == NULL)
         return;
-    CRYPTO_InitHardware();
-    if (sss_sscp_key_object_free(&ctx->key) != kStatus_SSS_Success)
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+    }
+    else if (sss_sscp_key_object_free(&ctx->key) != kStatus_SSS_Success)
     {
     }
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_ccm_context));
@@ -141,8 +146,11 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
     sss_sscp_aead_t aeadCtx;
     size_t tlen = tag_len;
     sss_mode_t sssMode;
-    CRYPTO_InitHardware();
-    if (mode == CCM_ENCRYPT)
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if (mode == CCM_ENCRYPT)
     {
         sssMode = kMode_SSS_Encrypt;
     }

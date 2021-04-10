@@ -265,7 +265,7 @@ static void mbedtls_zeroize(void *v, size_t n)
  * This function is provided to be called by MCUXpresso SDK applications.
  * It calls basic init for Crypto Hw acceleration and Hw entropy modules.
  */
-int CRYPTO_InitHardware(void)
+status_t CRYPTO_InitHardware(void)
 {
 #if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
 

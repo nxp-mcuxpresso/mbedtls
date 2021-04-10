@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 int fsl_mbedtls_printf(const char *fmt_s, ...);
-int CRYPTO_InitHardware(void);
+status_t CRYPTO_InitHardware(void);
 
 #if defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
 /**

@@ -4,6 +4,10 @@
 @section mbedtls mbedTLS for MCUXpresso SDK
   The current version of mbedTLS is based on mbedTLS 2.16.6 released 2020-04-14
 
+  - 2.16.6_rev5
+    - New features:
+      - Changed return type of CRYPTO_InitHardware() from void to status_t. Added check of this return value in selftest.c and benchmark.c files.
+
   - 2.16.6_rev4
     - New features:
       - Added mutex for HW modules HASHCRYPT and CASPER. Enabled by MBEDTLS_THREADING_C

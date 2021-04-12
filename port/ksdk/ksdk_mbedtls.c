@@ -1,6 +1,6 @@
 /*
  * Copyright 2015-2016, Freescale Semiconductor, Inc.
- * Copyright 2017 NXP
+ * Copyright 2017, 2021 NXP
  * All rights reserved.
  *
  *
@@ -524,38 +524,38 @@ int mbedtls_des3_set3key_dec(mbedtls_des3_context *ctx, const unsigned char key[
  */
 int mbedtls_des_crypt_ecb(mbedtls_des_context *ctx, const unsigned char input[8], unsigned char output[8])
 {
-    int ret;
+    status_t status = kStatus_Fail;
 
     uint8_t *key = (uint8_t *)ctx->sk;
 #if defined(MBEDTLS_FREESCALE_LTC_DES)
     if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {
-        ret = LTC_DES_EncryptEcb(LTC_INSTANCE, input, output, 8, key);
+        status = LTC_DES_EncryptEcb(LTC_INSTANCE, input, output, 8, key);
     }
     else
     {
-        ret = LTC_DES_DecryptEcb(LTC_INSTANCE, input, output, 8, key);
+        status = LTC_DES_DecryptEcb(LTC_INSTANCE, input, output, 8, key);
     }
 #elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
     if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {
-        ret = MMCAU_DES_EncryptEcb(input, key, output);
+        status = MMCAU_DES_EncryptEcb(input, key, output);
     }
     else
     {
-        ret = MMCAU_DES_DecryptEcb(input, key, output);
+        status = MMCAU_DES_DecryptEcb(input, key, output);
     }
 #elif defined(MBEDTLS_FREESCALE_CAAM_DES)
     if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {
-        ret = CAAM_DES_EncryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key);
+        status = CAAM_DES_EncryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key);
     }
     else
     {
-        ret = CAAM_DES_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key);
+        status = CAAM_DES_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key);
     }
 #endif
-    return (ret);
+    return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_DES_HW_ACCEL_FAILED;
 }
 #endif /* MBEDTLS_FREESCALE_LTC_DES || MBEDTLS_FREESCALE_MMCAU_DES || MBEDTLS_FREESCALE_CAAM_DES */
 
@@ -564,57 +564,57 @@ int mbedtls_des_crypt_ecb(mbedtls_des_context *ctx, const unsigned char input[8]
  */
 int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx, const unsigned char input[8], unsigned char output[8])
 {
-    int ret;
+    status_t status = kStatus_Fail;
 
     uint8_t *key = (uint8_t *)ctx->sk;
 #if defined(MBEDTLS_FREESCALE_LTC_DES)
     if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {
-        ret = LTC_DES3_EncryptEcb(LTC_INSTANCE, input, output, 8, key, key + 8, key + 16);
+        status = LTC_DES3_EncryptEcb(LTC_INSTANCE, input, output, 8, key, key + 8, key + 16);
     }
     else
     {
-        ret = LTC_DES3_DecryptEcb(LTC_INSTANCE, input, output, 8, key, key + 8, key + 16);
+        status = LTC_DES3_DecryptEcb(LTC_INSTANCE, input, output, 8, key, key + 8, key + 16);
     }
 #elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
     if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {
-        ret = MMCAU_DES_EncryptEcb(input, key, output);
-        ret = MMCAU_DES_DecryptEcb(output, key + 8, output);
-        ret = MMCAU_DES_EncryptEcb(output, key + 16, output);
+        status = MMCAU_DES_EncryptEcb(input, key, output);
+        status = MMCAU_DES_DecryptEcb(output, key + 8, output);
+        status = MMCAU_DES_EncryptEcb(output, key + 16, output);
     }
     else
     {
-        ret = MMCAU_DES_DecryptEcb(input, key + 16, output);
-        ret = MMCAU_DES_EncryptEcb(output, key + 8, output);
-        ret = MMCAU_DES_DecryptEcb(output, key, output);
+        status = MMCAU_DES_DecryptEcb(input, key + 16, output);
+        status = MMCAU_DES_EncryptEcb(output, key + 8, output);
+        status = MMCAU_DES_DecryptEcb(output, key, output);
     }
 #elif defined(MBEDTLS_FREESCALE_CAAM_DES)
     if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {
-        ret = CAAM_DES3_EncryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key, key + 8, key + 16);
+        status = CAAM_DES3_EncryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key, key + 8, key + 16);
     }
     else
     {
-        ret = CAAM_DES3_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key, key + 8, key + 16);
+        status = CAAM_DES3_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key, key + 8, key + 16);
     }
 #elif defined(MBEDTLS_FREESCALE_CAU3_DES)
     if (!crypto_key_is_loaded(ctx))
     {
-        ret = CAU3_TDES_SetKey(CAU3, &s_cau3Handle, key, 24);
+        status = CAU3_TDES_SetKey(CAU3, &s_cau3Handle, key, 24);
         crypto_attach_ctx_to_key_slot(ctx, s_cau3Handle.keySlot);
     }
 
     if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {
-        ret = CAU3_TDES_Encrypt(CAU3, &s_cau3Handle, input, output);
+        status = CAU3_TDES_Encrypt(CAU3, &s_cau3Handle, input, output);
     }
     else
     {
-        ret = CAU3_TDES_Decrypt(CAU3, &s_cau3Handle, input, output);
+        status = CAU3_TDES_Decrypt(CAU3, &s_cau3Handle, input, output);
     }
 #endif
-    return (ret);
+    return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_DES_HW_ACCEL_FAILED;
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -630,24 +630,24 @@ int mbedtls_des_crypt_cbc(mbedtls_des_context *ctx,
                           unsigned char *output)
 {
     unsigned char temp[8];
-    int ret;
-    uint8_t *key = (uint8_t *)ctx->sk;
+    status_t status = kStatus_Fail;
+    uint8_t *key    = (uint8_t *)ctx->sk;
 
     if (length % 8)
         return (MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH);
 
     if (mode == MBEDTLS_DES_ENCRYPT)
     {
-        ret = LTC_DES_EncryptCbc(LTC_INSTANCE, input, output, length, iv, key);
+        status = LTC_DES_EncryptCbc(LTC_INSTANCE, input, output, length, iv, key);
         memcpy(iv, output + length - 8, 8);
     }
     else /* MBEDTLS_DES_DECRYPT */
     {
         memcpy(temp, input + length - 8, 8);
-        ret = LTC_DES_DecryptCbc(LTC_INSTANCE, input, output, length, iv, key);
+        status = LTC_DES_DecryptCbc(LTC_INSTANCE, input, output, length, iv, key);
         memcpy(iv, temp, 8);
     }
-    return (ret);
+    return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_DES_HW_ACCEL_FAILED;
 }
 
 /*
@@ -661,25 +661,25 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
                            unsigned char *output)
 {
     unsigned char temp[8];
-    int ret;
-    uint8_t *key = (uint8_t *)ctx->sk;
+    status_t status = kStatus_Fail;
+    uint8_t *key    = (uint8_t *)ctx->sk;
 
     if (length % 8)
         return (MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH);
 
     if (mode == MBEDTLS_DES_ENCRYPT)
     {
-        ret = LTC_DES3_EncryptCbc(LTC_INSTANCE, input, output, length, iv, key, key + 8, key + 16);
+        status = LTC_DES3_EncryptCbc(LTC_INSTANCE, input, output, length, iv, key, key + 8, key + 16);
         memcpy(iv, output + length - 8, 8);
     }
     else /* MBEDTLS_DES_DECRYPT */
     {
         memcpy(temp, input + length - 8, 8);
-        ret = LTC_DES3_DecryptCbc(LTC_INSTANCE, input, output, length, iv, key, key + 8, key + 16);
+        status = LTC_DES3_DecryptCbc(LTC_INSTANCE, input, output, length, iv, key, key + 8, key + 16);
         memcpy(iv, temp, 8);
     }
 
-    return (ret);
+    return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_DES_HW_ACCEL_FAILED;
 }
 #elif defined(MBEDTLS_FREESCALE_CAAM_DES)
 int mbedtls_des_crypt_cbc(mbedtls_des_context *ctx,
@@ -690,7 +690,7 @@ int mbedtls_des_crypt_cbc(mbedtls_des_context *ctx,
                           unsigned char *output)
 {
     unsigned char temp[8];
-    int ret;
+    status_t status = kStatus_Fail;
     uint8_t *key = (uint8_t *)ctx->sk;
 
     if (length % 8)
@@ -698,16 +698,16 @@ int mbedtls_des_crypt_cbc(mbedtls_des_context *ctx,
 
     if (mode == MBEDTLS_DES_ENCRYPT)
     {
-        ret = CAAM_DES_EncryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key);
+        status = CAAM_DES_EncryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key);
         memcpy(iv, output + length - 8, 8);
     }
     else /* MBEDTLS_DES_DECRYPT */
     {
         memcpy(temp, input + length - 8, 8);
-        ret = CAAM_DES_DecryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key);
+        status = CAAM_DES_DecryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key);
         memcpy(iv, temp, 8);
     }
-    return (ret);
+    return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_DES_HW_ACCEL_FAILED;
 }
 
 /*
@@ -721,7 +721,7 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
                            unsigned char *output)
 {
     unsigned char temp[8];
-    int ret;
+    status_t status = kStatus_Fail;
     uint8_t *key = (uint8_t *)ctx->sk;
 
     if (length % 8)
@@ -729,17 +729,17 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
 
     if (mode == MBEDTLS_DES_ENCRYPT)
     {
-        ret = CAAM_DES3_EncryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, key + 8, key + 16);
+        status = CAAM_DES3_EncryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, key + 8, key + 16);
         memcpy(iv, output + length - 8, 8);
     }
     else /* MBEDTLS_DES_DECRYPT */
     {
         memcpy(temp, input + length - 8, 8);
-        ret = CAAM_DES3_DecryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, key + 8, key + 16);
+        status = CAAM_DES3_DecryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, key + 8, key + 16);
         memcpy(iv, temp, 8);
     }
 
-    return (ret);
+    return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_DES_HW_ACCEL_FAILED;
 }
 
 #endif /* MBEDTLS_FREESCALE_LTC_DES */
@@ -1151,8 +1151,8 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
                           const unsigned char *input,
                           unsigned char *output)
 {
-    uint8_t *key = (uint8_t *)ctx->rk;
-    int ret;
+    uint8_t *key     = (uint8_t *)ctx->rk;
+    status_t status  = kStatus_Fail;
     uint32_t keySize = ctx->nr;
 
     if (length % 16)
@@ -1162,16 +1162,16 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     {
         uint8_t tmp[16];
         memcpy(tmp, input + length - 16, 16);
-        ret = LTC_AES_DecryptCbc(LTC_INSTANCE, input, output, length, iv, key, keySize, kLTC_EncryptKey);
+        status = LTC_AES_DecryptCbc(LTC_INSTANCE, input, output, length, iv, key, keySize, kLTC_EncryptKey);
         memcpy(iv, tmp, 16);
     }
     else
     {
-        ret = LTC_AES_EncryptCbc(LTC_INSTANCE, input, output, length, iv, key, keySize);
+        status = LTC_AES_EncryptCbc(LTC_INSTANCE, input, output, length, iv, key, keySize);
         memcpy(iv, output + length - 16, 16);
     }
 
-    return (ret);
+    return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
 #elif defined(MBEDTLS_FREESCALE_LPC_AES)
 int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
@@ -1182,7 +1182,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
                           unsigned char *output)
 {
     uint8_t *key;
-    int ret;
+    status_t status = kStatus_Fail;
     size_t keySize;
 
     if (length % 16)
@@ -1200,16 +1200,16 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     {
         uint8_t tmp[16];
         memcpy(tmp, input + length - 16, 16);
-        ret = AES_DecryptCbc(AES_INSTANCE, tmp, output, length, iv);
+        status = AES_DecryptCbc(AES_INSTANCE, tmp, output, length, iv);
         memcpy(iv, tmp, 16);
     }
     else
     {
-        ret = AES_EncryptCbc(AES_INSTANCE, input, output, length, iv);
+        status = AES_EncryptCbc(AES_INSTANCE, input, output, length, iv);
         memcpy(iv, output + length - 16, 16);
     }
 
-    return (ret);
+    return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
 #elif defined(MBEDTLS_FREESCALE_CAAM_AES)
 int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
@@ -1220,7 +1220,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
                           unsigned char *output)
 {
     uint8_t *key = (uint8_t *)ctx->rk;
-    int ret;
+    status_t status = kStatus_Fail;
     uint32_t keySize = ctx->nr;
 
     if (length % 16)
@@ -1230,16 +1230,16 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     {
         uint8_t tmp[16];
         memcpy(tmp, input + length - 16, 16);
-        ret = CAAM_AES_DecryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, keySize);
+        status = CAAM_AES_DecryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, keySize);
         memcpy(iv, tmp, 16);
     }
     else
     {
-        ret = CAAM_AES_EncryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, keySize);
+        status = CAAM_AES_EncryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, keySize);
         memcpy(iv, output + length - 16, 16);
     }
 
-    return (ret);
+    return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
 #elif defined(MBEDTLS_FREESCALE_DCP_AES)
 int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
@@ -1250,7 +1250,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
                           unsigned char *output)
 {
     uint8_t *key;
-    int ret;
+    status_t status = kStatus_Fail;
     if (0U != (length % 16U))
         return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
 
@@ -1291,7 +1291,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         DCACHE_CleanByRange((uint32_t)input, length);
         DCACHE_CleanByRange((uint32_t)iv, 16);
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
-        ret = DCP_AES_DecryptCbc(DCP, &s_dcpHandle, input, output, length, iv);
+        status = DCP_AES_DecryptCbc(DCP, &s_dcpHandle, input, output, length, iv);
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
         DCACHE_InvalidateByRange((uint32_t)output, length);
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
@@ -1303,14 +1303,14 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         DCACHE_CleanByRange((uint32_t)input, length);
         DCACHE_CleanByRange((uint32_t)iv, 16);
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
-        ret = DCP_AES_EncryptCbc(DCP, &s_dcpHandle, input, output, length, iv);
+        status = DCP_AES_EncryptCbc(DCP, &s_dcpHandle, input, output, length, iv);
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
         DCACHE_InvalidateByRange((uint32_t)output, length);
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
         (void)memcpy(iv, output + length - 16, 16);
     }
 
-    return (ret);
+    return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
 #endif
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
@@ -1330,7 +1330,7 @@ int mbedtls_aes_crypt_cfb128(mbedtls_aes_context *ctx,
 {
     uint8_t *key;
     size_t keySize;
-    int ret;
+    status_t status = kStatus_Fail;
 
     key     = (uint8_t *)ctx->rk;
     keySize = (size_t)ctx->nr;
@@ -1338,14 +1338,14 @@ int mbedtls_aes_crypt_cfb128(mbedtls_aes_context *ctx,
 
     if (mode == MBEDTLS_AES_DECRYPT)
     {
-        ret = AES_DecryptCfb(AES_INSTANCE, input, output, length, iv);
+        status = AES_DecryptCfb(AES_INSTANCE, input, output, length, iv);
     }
     else
     {
-        ret = AES_EncryptCfb(AES_INSTANCE, input, output, length, iv);
+        status = AES_EncryptCfb(AES_INSTANCE, input, output, length, iv);
     }
 
-    return (ret);
+    return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
 
 /*
@@ -1401,15 +1401,15 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
                           unsigned char *output)
 {
     uint8_t *key;
-    int ret;
+    status_t status = kStatus_Fail;
     uint32_t keySize;
 
     key     = (uint8_t *)ctx->rk;
     keySize = ctx->nr;
-    ret     = LTC_AES_CryptCtr(LTC_INSTANCE, input, output, length, nonce_counter, key, keySize, stream_block,
-                           (uint32_t *)nc_off);
+    status  = LTC_AES_CryptCtr(LTC_INSTANCE, input, output, length, nonce_counter, key, keySize, stream_block,
+                              (uint32_t *)nc_off);
 
-    return (ret);
+    return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
 #elif defined(MBEDTLS_FREESCALE_LPC_AES)
 int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
@@ -1421,7 +1421,7 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
                           unsigned char *output)
 {
     uint8_t *key;
-    int ret;
+    status_t status = kStatus_Fail;
     size_t keySize;
 
     key = (uint8_t *)ctx->rk;
@@ -1432,9 +1432,9 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
         return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
     }
 
-    ret = AES_CryptCtr(AES_INSTANCE, input, output, length, nonce_counter, stream_block, nc_off);
+    status = AES_CryptCtr(AES_INSTANCE, input, output, length, nonce_counter, stream_block, nc_off);
 
-    return (ret);
+    return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
 #elif defined(MBEDTLS_FREESCALE_CAAM_AES)
 int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
@@ -1447,15 +1447,15 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
 {
     uint8_t *key;
     uint32_t keySize;
-    int ret;
+    status_t status = kStatus_Fail;
 
     key = (uint8_t *)ctx->rk;
     keySize = ctx->nr;
 
-    ret = CAAM_AES_CryptCtr(CAAM_INSTANCE, &s_caamHandle, input, output, length, nonce_counter, key, keySize,
-                            stream_block, nc_off);
+    status = CAAM_AES_CryptCtr(CAAM_INSTANCE, &s_caamHandle, input, output, length, nonce_counter, key, keySize,
+                               stream_block, nc_off);
 
-    return (ret);
+    return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
 #endif
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
@@ -3077,6 +3077,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
                  void *p_rng)
 {
     int ret;
+    status_t status = kStatus_Fail;
     bool is_inf;
     size_t size;
     size_t size_bin;
@@ -3125,8 +3126,13 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     ltc_reverse_array(ptrN, size);
 
     /* Multiply */
-    ret = LTC_PKHA_ECC_PointMul(LTC_INSTANCE, &A, ptrE, size_bin, ptrN, NULL, ptrParamA, ptrParamB, size,
-                                kLTC_PKHA_TimingEqualized, kLTC_PKHA_IntegerArith, &result, &is_inf);
+    status = LTC_PKHA_ECC_PointMul(LTC_INSTANCE, &A, ptrE, size_bin, ptrN, NULL, ptrParamA, ptrParamB, size,
+                                   kLTC_PKHA_TimingEqualized, kLTC_PKHA_IntegerArith, &result, &is_inf);
+
+    if (status != kStatus_Success)
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
     /* Convert result */
     ltc_reverse_array(ptrRX, size);
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->X, ptrRX, size));
@@ -3155,6 +3161,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
                  void *p_rng)
 {
     int ret;
+    status_t status = kStatus_Fail;
     size_t size;
     size_t size_bin;
     int sign = m->s;
@@ -3200,8 +3207,13 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, ptrN, size));
 
     /* Multiply */
-    ret = CAAM_PKHA_ECC_PointMul(CAAM_INSTANCE, &s_caamHandle, &A, ptrE, size_bin, ptrN, NULL, ptrParamA, ptrParamB,
-                                 size, kCAAM_PKHA_TimingEqualized, kCAAM_PKHA_IntegerArith, &result);
+    status = CAAM_PKHA_ECC_PointMul(CAAM_INSTANCE, &s_caamHandle, &A, ptrE, size_bin, ptrN, NULL, ptrParamA, ptrParamB,
+                                    size, kCAAM_PKHA_TimingEqualized, kCAAM_PKHA_IntegerArith, &result);
+
+    if (status != kStatus_Success)
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
     /* Convert result */
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->X, ptrRX, size));
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->Y, ptrRY, size));
@@ -3228,6 +3240,7 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
                  void *p_rng)
 {
     int ret;
+    status_t status = kStatus_Fail;
     size_t size;
     size_t size_bin;
     int sign = m->s;
@@ -3275,10 +3288,10 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     cau3_reverse_array(ptrN, size);
 
     /* Multiply */
-    ret = CAU3_PKHA_ECC_PointMul(CAU3, &A, ptrE, size_bin, ptrN, NULL, ptrParamA, ptrParamB, size,
-                                 kCAU3_PKHA_TimingEqualized, kCAU3_PKHA_IntegerArith, &result);
+    status = CAU3_PKHA_ECC_PointMul(CAU3, &A, ptrE, size_bin, ptrN, NULL, ptrParamA, ptrParamB, size,
+                                    kCAU3_PKHA_TimingEqualized, kCAU3_PKHA_IntegerArith, &result);
 
-    if (ret != kStatus_Success)
+    if (status != kStatus_Success)
     {
         CLEAN_RETURN(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
     }
@@ -3336,6 +3349,7 @@ static inline ecp_curve_type ecp_get_type(const mbedtls_ecp_group *grp)
 int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q)
 {
     int ret;
+    status_t status = kStatus_Fail;
     size_t size;
     ltc_pkha_ecc_point_t A;
     ltc_pkha_ecc_point_t B;
@@ -3378,8 +3392,12 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, ptrN, size));
     ltc_reverse_array(ptrN, size);
     /* Multiply */
-    ret = LTC_PKHA_ECC_PointAdd(LTC_INSTANCE, &A, &B, ptrN, NULL, ptrParamA, ptrParamB, size, kLTC_PKHA_IntegerArith,
-                                &result);
+    status = LTC_PKHA_ECC_PointAdd(LTC_INSTANCE, &A, &B, ptrN, NULL, ptrParamA, ptrParamB, size, kLTC_PKHA_IntegerArith,
+                                   &result);
+    if (status != kStatus_Success)
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
     /* Convert result */
     ltc_reverse_array(ptrRX, size);
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->X, ptrRX, size));
@@ -3401,6 +3419,7 @@ cleanup:
 int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q)
 {
     int ret;
+    status_t status = kStatus_Fail;
     size_t size;
     caam_pkha_ecc_point_t A;
     caam_pkha_ecc_point_t B;
@@ -3443,8 +3462,13 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, ptrN, size));
 
     /* Multiply */
-    ret = CAAM_PKHA_ECC_PointAdd(CAAM_INSTANCE, &s_caamHandle, &A, &B, ptrN, NULL, ptrParamA, ptrParamB, size,
-                                 kCAAM_PKHA_IntegerArith, &result);
+    status = CAAM_PKHA_ECC_PointAdd(CAAM_INSTANCE, &s_caamHandle, &A, &B, ptrN, NULL, ptrParamA, ptrParamB, size,
+                                    kCAAM_PKHA_IntegerArith, &result);
+
+    if (status != kStatus_Success)
+    {
+        CLEAN_RETURN(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
     /* Convert result */
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->X, ptrRX, size));
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&R->Y, ptrRY, size));

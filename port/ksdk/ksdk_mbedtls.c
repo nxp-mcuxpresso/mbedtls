@@ -3361,29 +3361,6 @@ cleanup:
 #endif /* MBEDTLS_ECP_MUL_COMB_ALT */
 
 /*
- * Curve types: internal for now, might be exposed later
- */
-typedef enum
-{
-    ECP_TYPE_NONE = 0,
-    ECP_TYPE_SHORT_WEIERSTRASS, /* y^2 = x^3 + a x + b      */
-    ECP_TYPE_MONTGOMERY,        /* y^2 = x^3 + a x^2 + x    */
-} ecp_curve_type;
-/*
- * Get the type of a curve
- */
-static inline ecp_curve_type ecp_get_type(const mbedtls_ecp_group *grp)
-{
-    if (grp->G.X.p == NULL)
-        return (ECP_TYPE_NONE);
-
-    if (grp->G.Y.p == NULL)
-        return (ECP_TYPE_MONTGOMERY);
-    else
-        return (ECP_TYPE_SHORT_WEIERSTRASS);
-}
-
-/*
  * Addition: R = P + Q, result's coordinates normalized
  */
 #if defined(MBEDTLS_ECP_ADD_ALT)
@@ -3411,7 +3388,7 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
         CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
     }
 
-    if (ecp_get_type(grp) != ECP_TYPE_SHORT_WEIERSTRASS)
+    if (mbedtls_ecp_get_type(grp) != MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS)
         CLEAN_RETURN(MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE);
 
     A.X      = ptrAX;
@@ -3481,7 +3458,7 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
         CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
     }
 
-    if (ecp_get_type(grp) != ECP_TYPE_SHORT_WEIERSTRASS)
+    if (mbedtls_ecp_get_type(grp) != MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS)
         CLEAN_RETURN(MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE);
 
     A.X = ptrAX;
@@ -3550,7 +3527,7 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
         CLEAN_RETURN(MBEDTLS_ERR_MPI_ALLOC_FAILED);
     }
 
-    if (ecp_get_type(grp) != ECP_TYPE_SHORT_WEIERSTRASS)
+    if (mbedtls_ecp_get_type(grp) != MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS)
         CLEAN_RETURN(MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE);
 
     A.X = ptrAX;

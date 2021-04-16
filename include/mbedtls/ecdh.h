@@ -150,6 +150,15 @@ mbedtls_ecdh_context;
 #endif /* !NXP_MBEDTLS_ECDH_ALT */
 
 /**
+ * \brief          Check whether a given group can be used for ECDH.
+ *
+ * \param gid      The ECP group ID to check.
+ *
+ * \return         \c 1 if the group can be used, \c 0 otherwise
+ */
+int mbedtls_ecdh_can_do( mbedtls_ecp_group_id gid );
+
+/**
  * \brief           This function generates an ECDH keypair on an elliptic
  *                  curve.
  *

@@ -1852,7 +1852,7 @@ int mbedtls_aes_self_test( int verbose )
          * there is an alternative underlying implementation i.e. when
          * MBEDTLS_AES_ALT is defined.
          */
-        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192 )
+        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
         {
             mbedtls_printf( "skipped\n" );
             continue;
@@ -1912,11 +1912,11 @@ int mbedtls_aes_self_test( int verbose )
         }
 
         /*
-         * AES-192 is an optional feature that may be unavailable when
+         * AES-192 and AES-256 is an optional feature that may be unavailable when
          * there is an alternative underlying implementation i.e. when
          * MBEDTLS_AES_ALT is defined.
          */
-        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192 )
+        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
         {
             mbedtls_printf( "skipped\n" );
             continue;
@@ -1977,11 +1977,11 @@ int mbedtls_aes_self_test( int verbose )
         offset = 0;
         ret = mbedtls_aes_setkey_enc( &ctx, key, keybits );
         /*
-         * AES-192 is an optional feature that may be unavailable when
+         * AES-192 and AES-256 is an optional feature that may be unavailable when
          * there is an alternative underlying implementation i.e. when
          * MBEDTLS_AES_ALT is defined.
          */
-        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192 )
+        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
         {
             mbedtls_printf( "skipped\n" );
             continue;
@@ -2040,11 +2040,11 @@ int mbedtls_aes_self_test( int verbose )
         offset = 0;
         ret = mbedtls_aes_setkey_enc( &ctx, key, keybits );
         /*
-         * AES-192 is an optional feature that may be unavailable when
+         * AES-192 and AES-256 is an optional feature that may be unavailable when
          * there is an alternative underlying implementation i.e. when
          * MBEDTLS_AES_ALT is defined.
          */
-        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192 )
+        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
         {
             mbedtls_printf( "skipped\n" );
             continue;

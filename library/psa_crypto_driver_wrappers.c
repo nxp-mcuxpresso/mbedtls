@@ -19,6 +19,10 @@
  *  limitations under the License.
  */
 
+#if defined(FREESCALE_KSDK_BM)
+
+#else /* FREESCALE_KSDK_BM */
+
 #include "psa_crypto_core.h"
 #include "psa_crypto_driver_wrappers.h"
 #include "mbedtls/platform.h"
@@ -1067,3 +1071,4 @@ psa_status_t psa_driver_wrapper_cipher_abort(
 }
 
 /* End of automatically generated file. */
+#endif

@@ -495,17 +495,6 @@ int mbedtls_ctr_drbg_seed( mbedtls_ctr_drbg_context *ctx,
     return( 0 );
 }
 
-/* Backward compatibility wrapper */
-int mbedtls_ctr_drbg_seed_entropy_len(
-    mbedtls_ctr_drbg_context *ctx,
-    int (*f_entropy)(void *, unsigned char *, size_t), void *p_entropy,
-    const unsigned char *custom, size_t len,
-    size_t entropy_len )
-{
-    mbedtls_ctr_drbg_set_entropy_len( ctx, entropy_len );
-    return( mbedtls_ctr_drbg_seed( ctx, f_entropy, p_entropy, custom, len ) );
-}
-
 /* CTR_DRBG_Generate with derivation function (SP 800-90A &sect;10.2.1.5.2)
  * mbedtls_ctr_drbg_random_with_add(ctx, output, output_len, additional, add_len)
  * implements

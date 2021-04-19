@@ -13,6 +13,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#include "mbedtls/platform.h"
+
 #if defined(MBEDTLS_THREADING_C)
 /* Threading mutex implementations for mbedTLS. */
 #include "mbedtls/threading.h"
@@ -816,7 +818,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
 #if defined(MBEDTLS_AES192_ALT_SW)
         return mbedtls_aes_setkey_enc_sw(ctx, key, keybits);
 #else
-        return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
+        return (MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED);
 #endif /* MBEDTLS_AES_ALT_SW */
     }
 #endif /* MBEDTLS_AES_ALT_NO_192 */
@@ -827,7 +829,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
 #if defined(MBEDTLS_AES256_ALT_SW)
         return mbedtls_aes_setkey_enc_sw(ctx, key, keybits);
 #else
-        return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
+        return (MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED);
 #endif /* MBEDTLS_AES_ALT_SW */
     }
 #endif /* MBEDTLS_AES_ALT_NO_256 */
@@ -897,7 +899,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
 #if defined(MBEDTLS_AES192_ALT_SW) && defined(MBEDTLS_FREESCALE_DCP_AES)
         return mbedtls_aes_setkey_dec_sw(ctx, key, keybits);
 #else
-        return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
+        return (MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED);
 #endif /* defined(MBEDTLS_AES_ALT_SW) && defined(MBEDTLS_FREESCALE_DCP_AES) */
     }
 #endif
@@ -908,7 +910,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
 #if defined(MBEDTLS_AES256_ALT_SW) && defined(MBEDTLS_FREESCALE_DCP_AES)
         return mbedtls_aes_setkey_dec_sw(ctx, key, keybits);
 #else
-        return (MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE);
+        return (MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED);
 #endif /* defined(MBEDTLS_AES_ALT_SW) && defined(MBEDTLS_FREESCALE_DCP_AES) */
     }
 #endif

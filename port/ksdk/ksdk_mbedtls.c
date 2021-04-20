@@ -153,6 +153,27 @@ bool static IS_IN_NONCACHED(uint32_t addr, uint32_t size)
 #endif /* __DCACHE_PRESENT */
 
 /******************************************************************************/
+/*************************** Mutex ********************************************/
+/******************************************************************************/
+#if defined(MBEDTLS_THREADING_C)
+
+/*
+ * Define global mutexes for HW accelerator
+ */
+#if defined(FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0)
+/* MUTEX for HW Hashcrypt crypto module */
+mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_hashcrypt_mutex;
+#endif /* (FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0) */
+
+#if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
+/* MUTEX for HW CASPER crypto module */
+mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_casper_mutex ;
+#endif /* (FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0) */
+
+#endif /* defined(MBEDTLS_THREADING_C) */
+
+
+/******************************************************************************/
 /*************************** CAAM *********************************************/
 /******************************************************************************/
 #if defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0) && defined(CRYPTO_USE_DRIVER_CAAM)
@@ -271,7 +292,7 @@ status_t CRYPTO_InitHardware(void)
 
     CRYPTO_ConfigureThreading();
 
-#endif /* (MBEDTLS_THREADING_C)  */
+#endif /* (MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT) */
 #if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
     /* Initialize LTC driver.
      * This enables clocking and resets the module to a known state. */
@@ -4903,31 +4924,6 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 }
 
 #endif
-
-/******************************************************************************/
-/*************************** Mutex ********************************************/
-/******************************************************************************/
-#if defined(MBEDTLS_THREADING_C)
-
-/*
- * Define global mutexes
- */
-
-#ifndef MUTEX_INIT
-#define MUTEX_INIT
-#endif
-
-#if defined(FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0)
-/* MUTEX for HW Hashcrypt crypto module */
-mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_hashcrypt_mutex MUTEX_INIT;
-#endif /* (FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0) */
-
-#if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
-/* MUTEX for HW CASPER crypto module */
-mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_casper_mutex MUTEX_INIT;
-#endif /* (FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0) */
-
-#endif /* defined(MBEDTLS_THREADING_C) */
 
 /******************************************************************************/
 /*************************** FreeRTOS ********************************************/

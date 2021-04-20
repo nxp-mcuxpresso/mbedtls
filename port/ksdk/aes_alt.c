@@ -54,6 +54,7 @@
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
+#include "ksdk_mbedtls.h"
 #endif
 
 #if defined(MBEDTLS_AES_ALT)

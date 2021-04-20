@@ -157,6 +157,15 @@ bool static IS_IN_NONCACHED(uint32_t addr, uint32_t size)
 /******************************************************************************/
 #if defined(MBEDTLS_THREADING_C)
 
+/**
+ * \def MBEDTLS_MCUX_FREERTOS_THREADING_ALT
+ * You can comment this macro if you provide your own alternate implementation.
+ *
+ */
+#if defined(SDK_OS_FREE_RTOS)
+#define MBEDTLS_MCUX_FREERTOS_THREADING_ALT
+#endif
+
 /*
  * Define global mutexes for HW accelerator
  */
@@ -169,6 +178,18 @@ mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_hashcrypt_mutex;
 /* MUTEX for HW CASPER crypto module */
 mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_casper_mutex ;
 #endif /* (FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0) */
+
+
+#if defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
+/**
+ * @brief Initializes the mbedTLS mutex functions.
+ *
+ * Provides mbedTLS access to mutex create, destroy, take and free.
+ *
+ * @see MBEDTLS_THREADING_ALT
+ */
+static void CRYPTO_ConfigureThreadingMcux(void);
+#endif /* defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) */
 
 #endif /* defined(MBEDTLS_THREADING_C) */
 
@@ -290,7 +311,7 @@ status_t CRYPTO_InitHardware(void)
 {
 #if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
 
-    CRYPTO_ConfigureThreading();
+    CRYPTO_ConfigureThreadingMcux();
 
 #endif /* (MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT) */
 #if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
@@ -5050,7 +5071,7 @@ int mcux_mbedtls_mutex_unlock(mbedtls_threading_mutex_t *mutex)
     return ret;
 }
 
-void CRYPTO_ConfigureThreading(void)
+static void CRYPTO_ConfigureThreadingMcux(void)
 {
     /* Configure mbedtls to use FreeRTOS mutexes. */
     mbedtls_threading_set_alt(mcux_mbedtls_mutex_init, mcux_mbedtls_mutex_free, mcux_mbedtls_mutex_lock,

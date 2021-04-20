@@ -29,17 +29,6 @@ extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_casper_mutex;
 
 #endif /* defined(MBEDTLS_THREADING_C) */
 
-#if defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
-/**
- * @brief Initializes the mbedTLS mutex functions.
- *
- * Provides mbedTLS access to mutex create, destroy, take and free.
- *
- * @see MBEDTLS_THREADING_ALT
- */
-void CRYPTO_ConfigureThreading(void);
-#endif /* defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) */
-
 #ifdef __cplusplus
 }
 #endif

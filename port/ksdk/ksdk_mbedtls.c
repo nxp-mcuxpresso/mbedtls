@@ -212,16 +212,6 @@ AT_NONCACHEABLE_SECTION(static caam_job_ring_interface_t s_jrif2);
 /*! @brief CAAM job ring interface 3 in system memory. */
 AT_NONCACHEABLE_SECTION(static caam_job_ring_interface_t s_jrif3);
 #else
-#if defined(FSL_FEATURE_HAS_L1CACHE) || defined(__DCACHE_PRESENT)
-/*! @brief CAAM job ring interface 0 in system memory. */
-AT_NONCACHEABLE_SECTION(static caam_job_ring_interface_t s_jrif0);
-/*! @brief CAAM job ring interface 1 in system memory. */
-AT_NONCACHEABLE_SECTION(static caam_job_ring_interface_t s_jrif1);
-/*! @brief CAAM job ring interface 2 in system memory. */
-AT_NONCACHEABLE_SECTION(static caam_job_ring_interface_t s_jrif2);
-/*! @brief CAAM job ring interface 3 in system memory. */
-AT_NONCACHEABLE_SECTION(static caam_job_ring_interface_t s_jrif3);
-#else
 /*! @brief CAAM job ring interface 0 in system memory. */
 static caam_job_ring_interface_t s_jrif0;
 /*! @brief CAAM job ring interface 1 in system memory. */
@@ -230,7 +220,6 @@ static caam_job_ring_interface_t s_jrif1;
 static caam_job_ring_interface_t s_jrif2;
 /*! @brief CAAM job ring interface 3 in system memory. */
 static caam_job_ring_interface_t s_jrif3;
-#endif /* __DCACHE_PRESENT || FSL_FEATURE_HAS_L1CACHE */
 #endif /* __DCACHE_PRESENT || FSL_FEATURE_HAS_L1CACHE */
 
 #endif

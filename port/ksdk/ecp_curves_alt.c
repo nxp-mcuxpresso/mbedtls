@@ -86,6 +86,9 @@
 /*
  * Domain parameters for secp192r1
  */
+/*
+ * NXP: Our HW implementation requires the entire group (parameter A included) to be defined.
+ */
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
 static const mbedtls_mpi_uint secp192r1_p[] = {
     BYTES_TO_T_UINT_8( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
@@ -263,6 +266,17 @@ static const mbedtls_mpi_uint secp384r1_n[] = {
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
 static const mbedtls_mpi_uint secp521r1_p[] = {
     BYTES_TO_T_UINT_8( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
+    BYTES_TO_T_UINT_8( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
+    BYTES_TO_T_UINT_8( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
+    BYTES_TO_T_UINT_8( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
+    BYTES_TO_T_UINT_8( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
+    BYTES_TO_T_UINT_8( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
+    BYTES_TO_T_UINT_8( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
+    BYTES_TO_T_UINT_8( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
+    BYTES_TO_T_UINT_2( 0xFF, 0x01 ),
+};
+static const mbedtls_mpi_uint secp521r1_a[] = {
+    BYTES_TO_T_UINT_8( 0xFC, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
     BYTES_TO_T_UINT_8( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
     BYTES_TO_T_UINT_8( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
     BYTES_TO_T_UINT_8( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
@@ -789,6 +803,9 @@ cleanup:
 /*
  * Set a group using well-known domain parameters
  */
+/*
+ * NXP: Our HW implementation requires the entire group to be loaded using LOAD_GROUP_A macro.
+ */
 int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
 {
     ECP_VALIDATE_RET( grp != NULL );
@@ -801,31 +818,31 @@ int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
         case MBEDTLS_ECP_DP_SECP192R1:
             NIST_MODP( p192 );
-            return( LOAD_GROUP( secp192r1 ) );
+            return( LOAD_GROUP_A( secp192r1 ) );
 #endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
         case MBEDTLS_ECP_DP_SECP224R1:
             NIST_MODP( p224 );
-            return( LOAD_GROUP( secp224r1 ) );
+            return( LOAD_GROUP_A( secp224r1 ) );
 #endif /* MBEDTLS_ECP_DP_SECP224R1_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
         case MBEDTLS_ECP_DP_SECP256R1:
             NIST_MODP( p256 );
-            return( LOAD_GROUP( secp256r1 ) );
+            return( LOAD_GROUP_A( secp256r1 ) );
 #endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
         case MBEDTLS_ECP_DP_SECP384R1:
             NIST_MODP( p384 );
-            return( LOAD_GROUP( secp384r1 ) );
+            return( LOAD_GROUP_A( secp384r1 ) );
 #endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
         case MBEDTLS_ECP_DP_SECP521R1:
             NIST_MODP( p521 );
-            return( LOAD_GROUP( secp521r1 ) );
+            return( LOAD_GROUP_A( secp521r1 ) );
 #endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)

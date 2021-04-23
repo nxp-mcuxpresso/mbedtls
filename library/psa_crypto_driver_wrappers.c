@@ -19,7 +19,8 @@
  *  limitations under the License.
  */
 
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
+/* NXP added to avoid build issues */
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) 
 
 
 #include "psa_crypto_core.h"
@@ -1070,4 +1071,5 @@ psa_status_t psa_driver_wrapper_cipher_abort(
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */
+/* NXP added to avoid build issues  */
 /* End of automatically generated file. */

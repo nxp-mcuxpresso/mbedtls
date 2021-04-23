@@ -19,6 +19,8 @@
  *  limitations under the License.
  */
 
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
+
 
 #include "psa_crypto_core.h"
 #include "psa_crypto_driver_wrappers.h"
@@ -1067,4 +1069,5 @@ psa_status_t psa_driver_wrapper_cipher_abort(
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
+#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */
 /* End of automatically generated file. */

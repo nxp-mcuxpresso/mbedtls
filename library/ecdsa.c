@@ -18,6 +18,12 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
+/*
+ * Copyright 2021 NXP
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 /*
  * References:
@@ -222,6 +228,9 @@ static void ecdsa_restart_det_free( mbedtls_ecdsa_restart_det_ctx *ctx )
 
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
+/* nxf43554 Adding #ifdef to remove warning: "function "derive_mpi" was declared but never referenced" when alternative
+ * implementation of ECDSA sign and verify is used and not used Deterministic ECDSA.*/
+#if !defined(MBEDTLS_ECDSA_SIGN_ALT) || !defined(MBEDTLS_ECDSA_VERIFY_ALT) || defined(MBEDTLS_ECDSA_DETERMINISTIC)
 /*
  * Derive a suitable integer for group grp from a buffer of length len
  * SEC1 4.1.3 step 5 aka SEC1 4.1.4 step 3
@@ -244,6 +253,7 @@ static int derive_mpi( const mbedtls_ecp_group *grp, mbedtls_mpi *x,
 cleanup:
     return( ret );
 }
+#endif /* !defined(MBEDTLS_ECDSA_SIGN_ALT) || !defined(MBEDTLS_ECDSA_SIGN_ALT) || defined(MBEDTLS_ECDSA_DETERMINISTIC) */
 
 #if !defined(MBEDTLS_ECDSA_SIGN_ALT)
 /*

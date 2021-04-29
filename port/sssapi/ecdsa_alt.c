@@ -69,7 +69,7 @@
 #define MBEDTLS_ECDSA_MPI_S_HAVE_OBJECT (155u)
 #define MBEDTLS_ECDSA_MPI_N_HAVE_OBJECT (1u)
 
-#if defined(MBEDTLS_ECDSA_SIGN_ALT)
+#if defined(MBEDTLS_ECDSA_SIGN_ALT) || defined(MBEDTLS_ECDSA_VERIFY_ALT)
 static int mbedtls_ecdsa_verify_digest_len(const size_t blen, sss_algorithm_t *alg)
 {
     int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
@@ -106,7 +106,9 @@ static int mbedtls_ecdsa_verify_digest_allign(const size_t digestLen,
     }
     return 0;
 }
+#endif /* defined(MBEDTLS_ECDSA_SIGN_ALT) || defined(MBEDTLS_ECDSA_VERIFY_ALT) */
 
+#if defined(MBEDTLS_ECDSA_SIGN_ALT)
 /*
  * Compute ECDSA signature of a hashed message (SEC1 4.1.3)
  * Obviously, compared to SEC1 4.1.3, we skip step 4 (hash message)

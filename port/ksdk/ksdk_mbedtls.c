@@ -21,6 +21,10 @@
 #include "threading_alt.h"
 #endif
 
+#if !defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) && defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
+extern void CRYPTO_ConfigureThreading( void );
+#endif
+
 #include "fsl_common.h"
 
 #if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
@@ -4922,8 +4926,23 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 #include "FreeRTOS.h"
 #include "task.h"
 
-/*---------HEAP_3 calloc --------------------------------------------------*/
+/*---------HEAP_4 calloc --------------------------------------------------*/
+#if defined(configFRTOS_MEMORY_SCHEME) && (configFRTOS_MEMORY_SCHEME == 4)
+void *pvPortCalloc(size_t num, size_t size)
+{
+    void *ptr;
 
+    ptr = pvPortMalloc(num * size);
+    if (!ptr) {
+        extern void vApplicationMallocFailedHook(void);
+        vApplicationMallocFailedHook();
+    }
+    else {
+        memset(ptr, 0, num * size);
+    }
+    return ptr;
+}
+#else // HEAP_3
 void *pvPortCalloc(size_t num, size_t size)
 {
     void *pvReturn;
@@ -4947,6 +4966,7 @@ void *pvPortCalloc(size_t num, size_t size)
 
     return pvReturn;
 }
+#endif // configFRTOS_MEMORY_SCHEME
 #endif /* USE_RTOS && defined(SDK_OS_FREE_RTOS) && defined(MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT) */
 
 /*-----------------------------------------------------------*/
@@ -5046,3 +5066,5 @@ static void CRYPTO_ConfigureThreadingMcux(void)
                               mcux_mbedtls_mutex_unlock);
 }
 #endif /* defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) */
+
+

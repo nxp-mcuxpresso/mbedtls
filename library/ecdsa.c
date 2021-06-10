@@ -16,6 +16,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+/*
+ * Copyright 2021 NXP
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 /*
  * References:

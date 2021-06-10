@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 NXP
+ * Copyright 2019-2021 NXP
  * All rights reserved.
  *
  *
@@ -34,7 +34,6 @@ extern "C" {
 extern sss_sscp_key_store_t g_keyStore;
 extern sss_sscp_session_t g_sssSession;
 extern sscp_context_t g_sscpContext;
-extern uint32_t g_isCryptoHWInitialized;
 
 int fsl_mbedtls_printf(const char *fmt_s, ...);
 status_t CRYPTO_InitHardware(void);

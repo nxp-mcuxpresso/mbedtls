@@ -8,6 +8,14 @@
     - New features:
       - Ported mbedTLS 2.26.0 to SDK.
 
+ - 2.16.6_rev7
+    - Bug fixes:
+      - Corrected definition of global variable g_isCryptoHWInitialized to be only internal static variable in sssapi_mbedtls.c file.  
+
+  - 2.16.6_rev6
+    - Bug fixes:
+      - Adding #ifdef in ecdsa.c to remove warning: "function "derive_mpi" was declared but never referenced", when alternative implementation of ECDSA sign and verify is used and not used Deterministic ECDSA, then was derive_mpi function never used.*/
+
   - 2.16.6_rev5
     - New features:
       - Changed return type of CRYPTO_InitHardware() from void to status_t. Added check of this return value in selftest.c and benchmark.c files.

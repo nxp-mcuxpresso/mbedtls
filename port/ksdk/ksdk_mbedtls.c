@@ -91,7 +91,7 @@ uint32_t nonCacheSize  = (uint32_t)__NCACHE_REGION_SIZE;
 #endif
 
 /* Returns TRUE if in noncached, FALSE otherwise */
-bool static IS_IN_NONCACHED(uint32_t addr, uint32_t size)
+static bool IS_IN_NONCACHED(uint32_t addr, uint32_t size)
 {
     /* Check if data are in DTCM (non-cached) memory */
 #if defined(__DTCM_PRESENT) && (__DTCM_PRESENT == 1U)

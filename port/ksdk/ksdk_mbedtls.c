@@ -93,56 +93,7 @@ uint32_t nonCacheSize  = (uint32_t)__NCACHE_REGION_SIZE;
 /* Returns TRUE if in noncached, FALSE otherwise */
 static bool IS_IN_NONCACHED(uint32_t addr, uint32_t size)
 {
-    /* Check if data are in DTCM (non-cached) memory */
-#if defined(__DTCM_PRESENT) && (__DTCM_PRESENT == 1U)
-    uint8_t DTCMSZ     = 0U;
-    uint32_t DTCM_SIZE = 0, DTCM_END = 0U;
-    /* Get DTCM size configuration from GPR14 */
-    DTCMSZ =
-        (uint8_t)((IOMUXC_GPR_GPR14_CM7_CFGDTCMSZ_MASK & IOMUXC_GPR->GPR14) >> IOMUXC_GPR_GPR14_CM7_CFGDTCMSZ_SHIFT);
-
-    switch (DTCMSZ)
-    {
-        case 0x0: /* no DTCM */
-            DTCM_SIZE = 0U;
-            break;
-        case 0x3: /* 4KB */
-            DTCM_SIZE = 0x1000;
-            break;
-        case 0x4: /* 8KB */
-            DTCM_SIZE = 0x2000;
-            break;
-        case 0x5: /* 16KB */
-            DTCM_SIZE = 0x4000;
-            break;
-        case 0x6: /* 32KB */
-            DTCM_SIZE = 0x8000;
-            break;
-        case 0x7: /* 64KB */
-            DTCM_SIZE = 0x10000;
-            break;
-        case 0x8: /* 128KB */
-            DTCM_SIZE = 0x20000;
-            break;
-        case 0x9: /* 256KB */
-            DTCM_SIZE = 0x40000;
-            break;
-        case 0xA: /* 512KB */
-            DTCM_SIZE = 0x80000;
-            break;
-        default:
-            /* All the cases have been listed above, the default clause should not be reached. */
-            break;
-    }
-
-    DTCM_END = DTCM_START + DTCM_SIZE;
-
-    if ((addr >= DTCM_START) && (addr + size < DTCM_END))
-    {
-        return true;
-    }
-#endif /* __DTCM_PRESENT */
-    /* If not in DTCM, check non-cached section based linker file */
+ /* Check non-cached section based linker file */
     if ((addr >= nonCacheStart) && ((addr + size) < (nonCacheStart + nonCacheSize)))
     {
         return true;

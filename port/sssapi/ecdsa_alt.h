@@ -44,8 +44,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "ecp.h"
-#include "md.h"
+#include "mbedtls/ecp.h"
+#include "mbedtls/md.h"
 #include "sssapi_mbedtls.h"
 
 #if defined(MBEDTLS_ECDSA_ALT)

@@ -3639,7 +3639,7 @@ cleanup:
 
 static void reverse_array(uint8_t *src, size_t src_len)
 {
-    int i;
+    unsigned int i;
 
     for (i = 0; i < src_len / 2; i++)
     {

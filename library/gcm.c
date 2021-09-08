@@ -558,6 +558,14 @@ void mbedtls_gcm_free( mbedtls_gcm_context *ctx )
 static const int key_index_test_data[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 1 };
 
+#ifndef AT_NONCACHEABLE_SECTION_ALIGN_INIT
+#define AT_NONCACHEABLE_SECTION_ALIGN_INIT(var,alignbytes) var
+#endif // AT_NONCACHEABLE_SECTION_ALIGN_INIT
+
+#ifndef AT_NONCACHEABLE_SECTION_INIT
+#define AT_NONCACHEABLE_SECTION_INIT(var) var
+#endif // AT_NONCACHEABLE_SECTION_INIT
+
 /* NXP: AT_NONCACHEABLE_SECTION for DCACHE compatibility */
 AT_NONCACHEABLE_SECTION_ALIGN_INIT(static unsigned char key_test_data[MAX_TESTS][32],8U) =
 {

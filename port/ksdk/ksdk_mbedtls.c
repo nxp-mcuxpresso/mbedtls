@@ -4825,37 +4825,7 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
     result = CAAM_RNG_GetRandomData(CAAM_INSTANCE, &s_caamHandle, kCAAM_RngStateHandle0, output, len, kCAAM_RngDataAny,
                                     NULL);
 #elif defined(FSL_FEATURE_SOC_LPC_RNG_COUNT) && (FSL_FEATURE_SOC_LPC_RNG_COUNT > 0)
-    uint32_t rn;
-    size_t length;
-    int i;
-
-    length = len;
-
-    while (length > 0U)
-    {
-        rn = RNG_GetRandomData();
-
-        if (length >= sizeof(uint32_t))
-        {
-            (void)memcpy(output, (uint8_t *)&rn, sizeof(uint32_t));
-            length -= sizeof(uint32_t);
-            output += sizeof(uint32_t);
-        }
-        else
-        {
-            (void)memcpy(output, (uint8_t *)&rn, length);
-            output += length;
-            len = 0U;
-        }
-
-        /* Discard next 32 random words for better entropy */
-        for (i = 0; i < 32; i++)
-        {
-            (void)RNG_GetRandomData();
-        }
-    }
-
-    result = kStatus_Success;
+    result = RNG_GetRandomData(output, len);
 #elif defined(FSL_FEATURE_SOC_LPC_RNG1_COUNT) && (FSL_FEATURE_SOC_LPC_RNG1_COUNT > 0)
     status_t status = kStatus_Fail;
 

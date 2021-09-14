@@ -515,6 +515,7 @@ int mbedtls_sha1_self_test( int verbose )
 {
     int i, j, buflen, ret = 0;
     unsigned char buf[1024];
+    unsigned char sha1sum[20];
     mbedtls_sha1_context ctx;
 
     mbedtls_sha1_init( &ctx );

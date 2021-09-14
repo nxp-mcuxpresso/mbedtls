@@ -145,6 +145,7 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
 /*
  * Authenticated encryption or decryption
  */
+/* NXP added for HW accelerators support */ 
 #if !defined(MBEDTLS_CCM_CRYPT_ALT)
 /* CCM selftest fails on ARM Cortex M with IAR 8.11 with common subexpression elimination optimalization enabled */
 #if defined(__ICCARM__)

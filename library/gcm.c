@@ -459,6 +459,7 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
     return( 0 );
 }
 
+/* NXP added for HW accelerators support */
 #if !defined(MBEDTLS_GCM_CRYPT_ALT)
 int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
                        int mode,
@@ -536,6 +537,7 @@ int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
     return( 0 );
 }
 #endif /* !MBEDTLS_GCM_CRYPT_ALT */
+/* NXP added for HW accelerators support */
 
 void mbedtls_gcm_free( mbedtls_gcm_context *ctx )
 {

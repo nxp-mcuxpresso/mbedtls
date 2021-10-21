@@ -134,7 +134,11 @@ static int ecdsa_sign_restartable(mbedtls_ecp_group *grp,
 
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
     if (grp->N.p == NULL)
+    {
+        mbedtls_free(signature);
+        mbedtls_free(allignedDigest);
         return (MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
     if (CRYPTO_InitHardware() != kStatus_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -225,12 +229,16 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
     uint32_t keyOpt   = (uint32_t)kSSS_KeyGenMode_Ecc;
     if (CRYPTO_InitHardware() != kStatus_Success)
     {
+        mbedtls_platform_zeroize(pubKey, keySize);
+        mbedtls_free(pubKey);
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     if (ctx->isKeyInitialized == false)
     {
         if (sss_sscp_key_object_init(&ctx->key, &g_keyStore) != kStatus_SSS_Success)
         {
+            mbedtls_platform_zeroize(pubKey, keySize);
+            mbedtls_free(pubKey);
             sss_sscp_key_object_free(&ctx->key);
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
@@ -238,6 +246,8 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
         else if (sss_sscp_key_object_allocate_handle(&ctx->key, 0x0u, kSSS_KeyPart_Pair, kSSS_CipherType_EC_NIST_P,
                                                      keySize, SSS_PUBLIC_KEY_PART_EXPORTABLE) != kStatus_SSS_Success)
         {
+            mbedtls_platform_zeroize(pubKey, keySize);
+            mbedtls_free(pubKey);
             sss_sscp_key_object_free(&ctx->key);
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
@@ -277,17 +287,20 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
 }
 #endif /* MBEDTLS_ECDSA_GENKEY_ALT */
 
-int mbedtls_ecdsa_can_do( mbedtls_ecp_group_id gid )
+int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid)
 {
-    switch( gid )
+    switch (gid)
     {
 #ifdef MBEDTLS_ECP_DP_CURVE25519_ENABLED
-        case MBEDTLS_ECP_DP_CURVE25519: return 0;
+        case MBEDTLS_ECP_DP_CURVE25519:
+            return 0;
 #endif
 #ifdef MBEDTLS_ECP_DP_CURVE448_ENABLED
-        case MBEDTLS_ECP_DP_CURVE448: return 0;
+        case MBEDTLS_ECP_DP_CURVE448:
+            return 0;
 #endif
-    default: return 1;
+        default:
+            return 1;
     }
 }
 

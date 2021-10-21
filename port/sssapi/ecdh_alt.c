@@ -73,11 +73,11 @@ static mbedtls_ecp_group_id mbedtls_ecdh_grp_id(const mbedtls_ecdh_context *ctx)
 #endif
 }
 
-int mbedtls_ecdh_can_do( mbedtls_ecp_group_id gid )
+int mbedtls_ecdh_can_do(mbedtls_ecp_group_id gid)
 {
     /* At this time, all groups support ECDH. */
-    (void) gid;
-    return( 1 );
+    (void)gid;
+    return (1);
 }
 
 #if !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
@@ -465,12 +465,16 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
     uint32_t keyOpt          = (uint32_t)kSSS_KeyGenMode_Ecc;
     if (CRYPTO_InitHardware() != kStatus_Success)
     {
+        mbedtls_platform_zeroize(pubKey, keySize);
+        mbedtls_free(pubKey);
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     if (ctx->isKeyInitialized == false)
     {
         if (sss_sscp_key_object_init(&ctx->key, &g_keyStore) != kStatus_SSS_Success)
         {
+            mbedtls_platform_zeroize(pubKey, keySize);
+            mbedtls_free(pubKey);
             sss_sscp_key_object_free(&ctx->key);
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
@@ -479,6 +483,8 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
                                                      3 * coordinateLen,
                                                      SSS_PUBLIC_KEY_PART_EXPORTABLE) != kStatus_SSS_Success)
         {
+            mbedtls_platform_zeroize(pubKey, keySize);
+            mbedtls_free(pubKey);
             sss_sscp_key_object_free(&ctx->key);
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }

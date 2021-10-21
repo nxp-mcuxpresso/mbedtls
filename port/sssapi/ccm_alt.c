@@ -144,8 +144,8 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
 {
     int ret = -100;
     sss_sscp_aead_t aeadCtx;
-    size_t tlen = tag_len;
-    sss_mode_t sssMode;
+    size_t tlen        = tag_len;
+    sss_mode_t sssMode = kMode_SSS_Encrypt;
     if (CRYPTO_InitHardware() != kStatus_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;

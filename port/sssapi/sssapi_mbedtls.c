@@ -38,15 +38,14 @@ status_t CRYPTO_InitHardware(void)
     if (g_isCryptoHWInitialized == SSS_CRYPTOHW_NONINITIALIZED)
     {
         sss_sscp_rng_t rctx;
+        if (SNT_mu_wait_for_ready(S3MUA, SSS_MAX_SUBSYTEM_WAIT) != kStatus_Success)
+        {
+        }
 #if (defined(SNT_HAS_LOADABLE_FW) && SNT_HAS_LOADABLE_FW)
-        if (SNT_loadFwLocal(S3MUA) != kStatus_SNT_Success)
+        else if (SNT_loadFwLocal(S3MUA) != kStatus_SNT_Success)
         {
         }
-        else
 #endif /* SNT_HAS_LOADABLE_FW */
-            if (SNT_mu_wait_for_ready(S3MUA, SSS_MAX_SUBSYTEM_WAIT) != kStatus_Success)
-        {
-        }
         else if (sscp_mu_init(&g_sscpContext, (MU_Type *)S3MUA) != kStatus_SSCP_Success)
         {
         }

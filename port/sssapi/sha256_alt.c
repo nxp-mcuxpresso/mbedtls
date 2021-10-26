@@ -86,13 +86,15 @@ void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
 {
     SHA256_VALIDATE(ctx != NULL);
 
-    memset(ctx, 0, sizeof(mbedtls_sha256_context));
+    (void)memset(ctx, 0, sizeof(mbedtls_sha256_context));
 }
 
 void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
 {
     if (ctx == NULL)
+    {
         return;
+    }
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha256_context));
 }
 
@@ -113,7 +115,7 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
     SHA256_VALIDATE_RET(is224 == 0 || is224 == 1);
     int ret;
     sss_algorithm_t alg;
-    if (is224)
+    if (is224 == 1)
     {
         alg = kAlgorithm_SSS_SHA224;
     }
@@ -143,23 +145,23 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha256_starts(mbedtls_sha256_context *ctx, int is224)
 {
-    mbedtls_sha256_starts_ret(ctx, is224);
+    (void)mbedtls_sha256_starts_ret(ctx, is224);
 }
 #endif
 
 #if !defined(MBEDTLS_SHA256_PROCESS_ALT)
 static const uint32_t K[] = {
-    0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5, 0x3956C25B, 0x59F111F1, 0x923F82A4, 0xAB1C5ED5,
-    0xD807AA98, 0x12835B01, 0x243185BE, 0x550C7DC3, 0x72BE5D74, 0x80DEB1FE, 0x9BDC06A7, 0xC19BF174,
-    0xE49B69C1, 0xEFBE4786, 0x0FC19DC6, 0x240CA1CC, 0x2DE92C6F, 0x4A7484AA, 0x5CB0A9DC, 0x76F988DA,
-    0x983E5152, 0xA831C66D, 0xB00327C8, 0xBF597FC7, 0xC6E00BF3, 0xD5A79147, 0x06CA6351, 0x14292967,
-    0x27B70A85, 0x2E1B2138, 0x4D2C6DFC, 0x53380D13, 0x650A7354, 0x766A0ABB, 0x81C2C92E, 0x92722C85,
-    0xA2BFE8A1, 0xA81A664B, 0xC24B8B70, 0xC76C51A3, 0xD192E819, 0xD6990624, 0xF40E3585, 0x106AA070,
-    0x19A4C116, 0x1E376C08, 0x2748774C, 0x34B0BCB5, 0x391C0CB3, 0x4ED8AA4A, 0x5B9CCA4F, 0x682E6FF3,
-    0x748F82EE, 0x78A5636F, 0x84C87814, 0x8CC70208, 0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2,
+    0x428A2F98u, 0x71374491u, 0xB5C0FBCFu, 0xE9B5DBA5u, 0x3956C25Bu, 0x59F111F1u, 0x923F82A4u, 0xAB1C5ED5u,
+    0xD807AA98u, 0x12835B01u, 0x243185BEu, 0x550C7DC3u, 0x72BE5D74u, 0x80DEB1FEu, 0x9BDC06A7u, 0xC19BF174u,
+    0xE49B69C1u, 0xEFBE4786u, 0x0FC19DC6u, 0x240CA1CCu, 0x2DE92C6Fu, 0x4A7484AAu, 0x5CB0A9DCu, 0x76F988DAu,
+    0x983E5152u, 0xA831C66Du, 0xB00327C8u, 0xBF597FC7u, 0xC6E00BF3u, 0xD5A79147u, 0x06CA6351u, 0x14292967u,
+    0x27B70A85u, 0x2E1B2138u, 0x4D2C6DFCu, 0x53380D13u, 0x650A7354u, 0x766A0ABBu, 0x81C2C92Eu, 0x92722C85u,
+    0xA2BFE8A1u, 0xA81A664Bu, 0xC24B8B70u, 0xC76C51A3u, 0xD192E819u, 0xD6990624u, 0xF40E3585u, 0x106AA070u,
+    0x19A4C116u, 0x1E376C08u, 0x2748774Cu, 0x34B0BCB5u, 0x391C0CB3u, 0x4ED8AA4Au, 0x5B9CCA4Fu, 0x682E6FF3u,
+    0x748F82EEu, 0x78A5636Fu, 0x84C87814u, 0x8CC70208u, 0x90BEFFFAu, 0xA4506CEBu, 0xBEF9A3F7u, 0xC67178F2u,
 };
 
-#define SHR(x, n)  (((x)&0xFFFFFFFF) >> (n))
+#define SHR(x, n)  (((x)&0xFFFFFFFFU) >> (n))
 #define ROTR(x, n) (SHR(x, n) | ((x) << (32 - (n))))
 
 #define S0(x) (ROTR(x, 7) ^ ROTR(x, 18) ^ SHR(x, 3))
@@ -191,8 +193,10 @@ int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned 
     SHA256_VALIDATE_RET(ctx != NULL);
     SHA256_VALIDATE_RET((const unsigned char *)data != NULL);
 
-    for (i = 0; i < 8; i++)
+    for (i = 0; i < 8u; i++)
+    {
         A[i] = ctx->state[i];
+    }
 
 #if defined(MBEDTLS_SHA256_SMALLER)
     for (i = 0; i < 64; i++)
@@ -243,8 +247,10 @@ int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned 
     }
 #endif /* MBEDTLS_SHA256_SMALLER */
 
-    for (i = 0; i < 8; i++)
+    for (i = 0; i < 8u; i++)
+    {
         ctx->state[i] += A[i];
+    }
 
     return (0);
 }
@@ -252,7 +258,7 @@ int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
 {
-    mbedtls_internal_sha256_process(ctx, data);
+    (void)mbedtls_internal_sha256_process(ctx, data);
 }
 #endif
 #endif /* !MBEDTLS_SHA256_PROCESS_ALT */
@@ -267,7 +273,7 @@ int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    else if (sss_sscp_digest_update(&ctx->ctx, (uint8_t *)input, ilen) != kStatus_SSS_Success)
+    else if (sss_sscp_digest_update(&ctx->ctx, (uint8_t *)(uintptr_t)input, ilen) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -281,7 +287,7 @@ int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha256_update(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
 {
-    mbedtls_sha256_update_ret(ctx, input, ilen);
+    (void)mbedtls_sha256_update_ret(ctx, input, ilen);
 }
 #endif
 
@@ -304,14 +310,14 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
     {
         ret = 0;
     }
-    sss_sscp_digest_context_free(&ctx->ctx);
+    (void)sss_sscp_digest_context_free(&ctx->ctx);
     return ret;
 }
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha256_finish(mbedtls_sha256_context *ctx, unsigned char output[32])
 {
-    mbedtls_sha256_finish_ret(ctx, output);
+    (void)mbedtls_sha256_finish_ret(ctx, output);
 }
 #endif
 #endif /* MBEDTLS_SHA256_ALT */
@@ -326,7 +332,7 @@ int mbedtls_sha256_ret(const unsigned char *input, size_t ilen, unsigned char ou
     sss_algorithm_t alg;
     int ret;
     size_t size = 32u;
-    if (is224)
+    if (is224 == 1)
     {
         alg = kAlgorithm_SSS_SHA224;
     }
@@ -350,14 +356,14 @@ int mbedtls_sha256_ret(const unsigned char *input, size_t ilen, unsigned char ou
     {
         ret = 0;
     }
-    sss_sscp_digest_context_free(&dctx);
+    (void)sss_sscp_digest_context_free(&dctx);
     return ret;
 }
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha256(const unsigned char *input, size_t ilen, unsigned char output[32], int is224)
 {
-    mbedtls_sha256_ret(input, ilen, output, is224);
+    (void)mbedtls_sha256_ret(input, ilen, output, is224);
 }
 #endif
 #endif /* NXP_MBEDTLS_SHA256_ALT */

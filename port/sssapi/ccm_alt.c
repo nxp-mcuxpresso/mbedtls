@@ -70,7 +70,7 @@
 void mbedtls_ccm_init(mbedtls_ccm_context *ctx)
 {
     CCM_VALIDATE(ctx != NULL);
-    memset(ctx, 0, sizeof(mbedtls_ccm_context));
+    (void)memset(ctx, 0, sizeof(mbedtls_ccm_context));
 }
 
 int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
@@ -80,7 +80,7 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
 {
     int ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     uint8_t ramKey[32];
-    memcpy(ramKey, key, (keybits + 7u) / 8u);
+    (void)memcpy(ramKey, key, (keybits + 7u) / 8u);
     if (CRYPTO_InitHardware() != kStatus_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -112,12 +112,18 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
 void mbedtls_ccm_free(mbedtls_ccm_context *ctx)
 {
     if (ctx == NULL)
+    {
         return;
+    }
     if (CRYPTO_InitHardware() != kStatus_Success)
     {
     }
     else if (sss_sscp_key_object_free(&ctx->key) != kStatus_SSS_Success)
     {
+    }
+    else
+    {
+        /* Intentional empty */
     }
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_ccm_context));
 }
@@ -170,8 +176,8 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     /* RUN AEAD */
-    else if (sss_sscp_aead_one_go(&aeadCtx, input, output, length, (uint8_t *)iv, iv_len, add, add_len, tag, &tlen) !=
-             kStatus_SSS_Success)
+    else if (sss_sscp_aead_one_go(&aeadCtx, input, output, length, (uint8_t *)(uintptr_t)iv, iv_len, add, add_len, tag,
+                                  &tlen) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -227,8 +233,10 @@ int mbedtls_ccm_encrypt_and_tag(mbedtls_ccm_context *ctx,
     CCM_VALIDATE_RET(length == 0 || input != NULL);
     CCM_VALIDATE_RET(length == 0 || output != NULL);
     CCM_VALIDATE_RET(tag_len == 0 || tag != NULL);
-    if (tag_len == 0)
+    if (tag_len == 0u)
+    {
         return (MBEDTLS_ERR_CCM_BAD_INPUT);
+    }
 
     return (mbedtls_ccm_star_encrypt_and_tag(ctx, length, iv, iv_len, add, add_len, input, output, tag, tag_len));
 }
@@ -256,8 +264,9 @@ int mbedtls_ccm_star_auth_decrypt(mbedtls_ccm_context *ctx,
     CCM_VALIDATE_RET(length == 0 || output != NULL);
     CCM_VALIDATE_RET(tag_len == 0 || tag != NULL);
 
-    if ((ret = ccm_auth_crypt(ctx, CCM_DECRYPT, length, iv, iv_len, add, add_len, input, output, (unsigned char *)tag,
-                              tag_len)) != 0)
+    ret = ccm_auth_crypt(ctx, CCM_DECRYPT, length, iv, iv_len, add, add_len, input, output,
+                         (unsigned char *)(uintptr_t)tag, tag_len);
+    if (ret != 0)
     {
         return (ret);
     }
@@ -283,8 +292,10 @@ int mbedtls_ccm_auth_decrypt(mbedtls_ccm_context *ctx,
     CCM_VALIDATE_RET(length == 0 || output != NULL);
     CCM_VALIDATE_RET(tag_len == 0 || tag != NULL);
 
-    if (tag_len == 0)
+    if (tag_len == 0u)
+    {
         return (MBEDTLS_ERR_CCM_BAD_INPUT);
+    }
 
     return (mbedtls_ccm_star_auth_decrypt(ctx, length, iv, iv_len, add, add_len, input, output, tag, tag_len));
 }

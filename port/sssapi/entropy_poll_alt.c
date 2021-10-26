@@ -11,6 +11,7 @@
 #endif
 
 #include "sssapi_mbedtls.h"
+#include "mbedtls/platform.h"
 
 /* Entropy poll callback for a hardware source */
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
@@ -19,8 +20,10 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
     status_t result = kStatus_Fail;
     sss_sscp_rng_t ctx;
 
-    CRYPTO_InitHardware();
-
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+        result = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
     if (sss_sscp_rng_context_init(&g_sssSession, &ctx, 0u) != kStatus_SSS_Success)
     {
     }

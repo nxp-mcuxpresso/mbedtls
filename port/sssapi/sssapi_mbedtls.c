@@ -86,3 +86,19 @@ status_t CRYPTO_InitHardware(void)
     }
     return ret;
 }
+
+/*!
+ * @brief Application reinit for various Crypto blocks.
+ *
+ * This function is provided to be called after wake up from low power to reinit
+ * Crypto HW blocks when needed.
+ */
+status_t CRYPTO_ReinitHardware(void)
+{
+    status_t ret;
+
+    g_isCryptoHWInitialized = SSS_CRYPTOHW_NONINITIALIZED;
+    ret = CRYPTO_InitHardware();
+
+    return ret;
+}

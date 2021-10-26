@@ -90,8 +90,8 @@ status_t CRYPTO_InitHardware(void)
 /*!
  * @brief Application reinit for various Crypto blocks.
  *
- * This function is provided to be called after wake up from low power to reinit
- * Crypto HW blocks when needed.
+ * This function is provided to be called after wake up from low power Power Down
+ * or Deep Power Down modes to reinit Crypto HW blocks.
  */
 status_t CRYPTO_ReinitHardware(void)
 {

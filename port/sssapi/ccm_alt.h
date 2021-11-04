@@ -61,7 +61,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "cipher.h"
+#include "mbedtls/cipher.h"
 #include "fsl_sss_sscp.h"
 
 #ifdef __cplusplus

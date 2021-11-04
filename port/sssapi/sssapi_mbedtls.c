@@ -47,7 +47,7 @@ status_t CRYPTO_InitHardware(void)
             if (SNT_mu_wait_for_ready(S3MUA, SSS_MAX_SUBSYTEM_WAIT) != kStatus_Success)
         {
         }
-        else if (sscp_mu_init(&g_sscpContext, (MU_Type *)S3MUA) != kStatus_SSCP_Success)
+        else if (sscp_mu_init(&g_sscpContext, (MU_Type *)(uintptr_t)S3MUA) != kStatus_SSCP_Success)
         {
         }
         else if (sss_sscp_open_session(&g_sssSession, SSS_SUBSYSTEM, &g_sscpContext, 0u, NULL) != kStatus_SSS_Success)

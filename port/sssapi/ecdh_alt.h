@@ -47,7 +47,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "ecp.h"
+#include "mbedtls/ecp.h"
 #include "sssapi_mbedtls.h"
 
 #ifdef __cplusplus

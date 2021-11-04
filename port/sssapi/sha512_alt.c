@@ -89,13 +89,15 @@ void mbedtls_sha512_init(mbedtls_sha512_context *ctx)
 {
     SHA512_VALIDATE(ctx != NULL);
 
-    memset(ctx, 0, sizeof(mbedtls_sha512_context));
+    (void)memset(ctx, 0, sizeof(mbedtls_sha512_context));
 }
 
 void mbedtls_sha512_free(mbedtls_sha512_context *ctx)
 {
     if (ctx == NULL)
+    {
         return;
+    }
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha512_context));
 }
 
@@ -219,7 +221,7 @@ int mbedtls_internal_sha512_process(mbedtls_sha512_context *ctx, const unsigned 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha512_process(mbedtls_sha512_context *ctx, const unsigned char data[128])
 {
-    mbedtls_internal_sha512_process(ctx, data);
+    (void)mbedtls_internal_sha512_process(ctx, data);
 }
 
 #endif
@@ -235,7 +237,7 @@ int mbedtls_sha512_starts_ret(mbedtls_sha512_context *ctx, int is384)
 
     int ret;
     sss_algorithm_t alg;
-    if (is384)
+    if (is384 == 1)
     {
         alg = kAlgorithm_SSS_SHA384;
     }
@@ -265,7 +267,7 @@ int mbedtls_sha512_starts_ret(mbedtls_sha512_context *ctx, int is384)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha512_starts(mbedtls_sha512_context *ctx, int is384)
 {
-    mbedtls_sha512_starts_ret(ctx, is384);
+    (void)mbedtls_sha512_starts_ret(ctx, is384);
 }
 #endif
 
@@ -276,7 +278,7 @@ int mbedtls_sha512_update_ret(mbedtls_sha512_context *ctx, const unsigned char *
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    else if (sss_sscp_digest_update(&ctx->ctx, (uint8_t *)input, ilen) != kStatus_SSS_Success)
+    else if (sss_sscp_digest_update(&ctx->ctx, (uint8_t *)(uintptr_t)input, ilen) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -290,7 +292,7 @@ int mbedtls_sha512_update_ret(mbedtls_sha512_context *ctx, const unsigned char *
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha512_update(mbedtls_sha512_context *ctx, const unsigned char *input, size_t ilen)
 {
-    mbedtls_sha512_update_ret(ctx, input, ilen);
+    (void)mbedtls_sha512_update_ret(ctx, input, ilen);
 }
 #endif
 
@@ -313,14 +315,14 @@ int mbedtls_sha512_finish_ret(mbedtls_sha512_context *ctx, unsigned char output[
     {
         ret = 0;
     }
-    sss_sscp_digest_context_free(&ctx->ctx);
+    (void)sss_sscp_digest_context_free(&ctx->ctx);
     return ret;
 }
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha512_finish(mbedtls_sha512_context *ctx, unsigned char output[64])
 {
-    mbedtls_sha512_finish_ret(ctx, output);
+    (void)mbedtls_sha512_finish_ret(ctx, output);
 }
 #endif
 
@@ -336,7 +338,7 @@ int mbedtls_sha512_ret(const unsigned char *input, size_t ilen, unsigned char ou
     sss_algorithm_t alg;
     int ret;
     size_t size = 64u;
-    if (is384)
+    if (is384 == 1)
     {
         alg = kAlgorithm_SSS_SHA384;
     }
@@ -356,14 +358,14 @@ int mbedtls_sha512_ret(const unsigned char *input, size_t ilen, unsigned char ou
     {
         ret = 0;
     }
-    sss_sscp_digest_context_free(&dctx);
+    (void)sss_sscp_digest_context_free(&dctx);
     return ret;
 }
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha512(const unsigned char *input, size_t ilen, unsigned char output[64], int is384)
 {
-    mbedtls_sha512_ret(input, ilen, output, is384);
+    (void)mbedtls_sha512_ret(input, ilen, output, is384);
 }
 #endif
 #endif /* NXP_MBEDTLS_SHA512_ALT */

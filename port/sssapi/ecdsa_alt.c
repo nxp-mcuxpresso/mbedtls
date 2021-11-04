@@ -66,7 +66,7 @@
 #define ECDSA_RS_LEAVE(SUB) (void)rs_ctx
 
 /* Used as values s and n of mbedtls_mpi object to indicate that P contain pointer to key object. */
-#define MBEDTLS_ECDSA_MPI_S_HAVE_OBJECT (155u)
+#define MBEDTLS_ECDSA_MPI_S_HAVE_OBJECT (155)
 #define MBEDTLS_ECDSA_MPI_N_HAVE_OBJECT (1u)
 
 #if defined(MBEDTLS_ECDSA_SIGN_ALT) || defined(MBEDTLS_ECDSA_VERIFY_ALT)
@@ -98,11 +98,11 @@ static int mbedtls_ecdsa_verify_digest_allign(const size_t digestLen,
     if (digestLen < ecCoordinateSize)
     {
         size_t diff = ecCoordinateSize - digestLen;
-        memcpy(&allignedDigest[diff], digest, digestLen);
+        (void)memcpy(&allignedDigest[diff], digest, digestLen);
     }
     else
     {
-        memcpy(allignedDigest, digest, digestLen);
+        (void)memcpy(allignedDigest, digest, digestLen);
     }
     return 0;
 }
@@ -128,13 +128,17 @@ static int ecdsa_sign_restartable(mbedtls_ecp_group *grp,
     sss_algorithm_t alg;
     size_t bufLen           = (blen + 7u) / 8u;
     size_t coordinateLen    = (grp->pbits + 7u) / 8u;
-    size_t signatureSize    = 2 * coordinateLen;
+    size_t signatureSize    = 2u * coordinateLen;
     uint8_t *signature      = mbedtls_calloc(signatureSize, sizeof(uint8_t));
     uint8_t *allignedDigest = mbedtls_calloc(coordinateLen, sizeof(uint8_t));
 
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
     if (grp->N.p == NULL)
+    {
+        mbedtls_free(signature);
+        mbedtls_free(allignedDigest);
         return (MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
     if (CRYPTO_InitHardware() != kStatus_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -156,8 +160,8 @@ static int ecdsa_sign_restartable(mbedtls_ecp_group *grp,
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    else if (sss_sscp_asymmetric_context_init(&asyc, &g_sssSession, (sss_sscp_object_t *)d->p, alg, kMode_SSS_Sign) !=
-             kStatus_SSS_Success)
+    else if (sss_sscp_asymmetric_context_init(&asyc, &g_sssSession, (sss_sscp_object_t *)(uintptr_t)d->p, alg,
+                                              kMode_SSS_Sign) != kStatus_SSS_Success)
     {
     }
     else if (sss_sscp_asymmetric_sign_digest(&asyc, allignedDigest, coordinateLen, signature, &signatureSize) !=
@@ -174,7 +178,7 @@ static int ecdsa_sign_restartable(mbedtls_ecp_group *grp,
     {
         ret = 0;
     }
-    sss_sscp_asymmetric_context_free(&asyc);
+    (void)sss_sscp_asymmetric_context_free(&asyc);
     mbedtls_free(allignedDigest);
     mbedtls_free(signature);
     return (ret);
@@ -197,9 +201,13 @@ void mbedtls_ecdsa_init(mbedtls_ecdsa_context *ctx)
 void mbedtls_ecdsa_free(mbedtls_ecdsa_context *ctx)
 {
     if (ctx == NULL)
+    {
         return;
+    }
     if (ctx->isKeyInitialized)
-        sss_sscp_key_object_free(&ctx->key);
+    {
+        (void)sss_sscp_key_object_free(&ctx->key);
+    }
     mbedtls_ecp_keypair_free((mbedtls_ecp_keypair *)ctx);
 }
 #endif /* MBEDTLS_ECDSA_ALT */
@@ -217,28 +225,36 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
     ECDSA_VALIDATE_RET(ctx != NULL);
     ret = mbedtls_ecp_group_load(&ctx->grp, gid);
     if (ret != 0)
+    {
         return (ret);
+    }
     size_t keyLen     = (ctx->grp.pbits + 7u) / 8u;
     size_t keyBitsLen = ctx->grp.pbits;
-    size_t keySize    = 3 * keyLen;
+    size_t keySize    = 3u * keyLen;
     uint8_t *pubKey   = mbedtls_calloc(0x2u * keyLen, sizeof(uint8_t));
     uint32_t keyOpt   = (uint32_t)kSSS_KeyGenMode_Ecc;
     if (CRYPTO_InitHardware() != kStatus_Success)
     {
+        mbedtls_platform_zeroize(pubKey, keySize);
+        mbedtls_free(pubKey);
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     if (ctx->isKeyInitialized == false)
     {
         if (sss_sscp_key_object_init(&ctx->key, &g_keyStore) != kStatus_SSS_Success)
         {
-            sss_sscp_key_object_free(&ctx->key);
+            mbedtls_platform_zeroize(pubKey, keySize);
+            mbedtls_free(pubKey);
+            (void)sss_sscp_key_object_free(&ctx->key);
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
         /* Allocate key handle */
         else if (sss_sscp_key_object_allocate_handle(&ctx->key, 0x0u, kSSS_KeyPart_Pair, kSSS_CipherType_EC_NIST_P,
                                                      keySize, SSS_PUBLIC_KEY_PART_EXPORTABLE) != kStatus_SSS_Success)
         {
-            sss_sscp_key_object_free(&ctx->key);
+            mbedtls_platform_zeroize(pubKey, keySize);
+            mbedtls_free(pubKey);
+            (void)sss_sscp_key_object_free(&ctx->key);
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
         else
@@ -268,26 +284,29 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
     {
         ctx->d.s = MBEDTLS_ECDSA_MPI_S_HAVE_OBJECT;
         ctx->d.n = MBEDTLS_ECDSA_MPI_N_HAVE_OBJECT;
-        ctx->d.p = (mbedtls_mpi_uint *)&ctx->key;
+        ctx->d.p = (mbedtls_mpi_uint *)(uintptr_t)&ctx->key;
         ret      = 0;
     }
     mbedtls_platform_zeroize(pubKey, keySize);
     mbedtls_free(pubKey);
-    return 0;
+    return ret;
 }
 #endif /* MBEDTLS_ECDSA_GENKEY_ALT */
 
-int mbedtls_ecdsa_can_do( mbedtls_ecp_group_id gid )
+int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid)
 {
-    switch( gid )
+    switch (gid)
     {
 #ifdef MBEDTLS_ECP_DP_CURVE25519_ENABLED
-        case MBEDTLS_ECP_DP_CURVE25519: return 0;
+        case MBEDTLS_ECP_DP_CURVE25519:
+            return 0;
 #endif
 #ifdef MBEDTLS_ECP_DP_CURVE448_ENABLED
-        case MBEDTLS_ECP_DP_CURVE448: return 0;
+        case MBEDTLS_ECP_DP_CURVE448:
+            return 0;
 #endif
-    default: return 1;
+        default:
+            return 1;
     }
 }
 
@@ -330,10 +349,12 @@ static int ecdsa_verify_restartable(mbedtls_ecp_group *grp,
     int ret;
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
     if (grp->N.p == NULL)
+    {
         return (MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
     size_t coordinateLen     = (grp->pbits + 7u) / 8u;
     size_t coordinateBitsLen = grp->pbits;
-    size_t keySize           = 3 * coordinateLen;
+    size_t keySize           = 3u * coordinateLen;
     size_t bufLen            = (blen + 7u) / 8u;
     uint8_t *pubKey          = mbedtls_calloc(keySize, sizeof(uint8_t));
     sss_sscp_object_t ecdsaPublic;
@@ -392,8 +413,8 @@ static int ecdsa_verify_restartable(mbedtls_ecp_group *grp,
     {
         ret = 0;
     }
-    sss_sscp_key_object_free(&ecdsaPublic);
-    sss_sscp_asymmetric_context_free(&asyc);
+    (void)sss_sscp_key_object_free(&ecdsaPublic);
+    (void)sss_sscp_asymmetric_context_free(&asyc);
     mbedtls_platform_zeroize(pubKey, keySize);
     mbedtls_free(pubKey);
     mbedtls_platform_zeroize(allignedDigest, coordinateLen);

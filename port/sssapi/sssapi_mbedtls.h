@@ -20,8 +20,8 @@
 #define SSS_MAX_SUBSYTEM_WAIT          (0xFFFFFFFFu)
 #define SSS_PUBLIC_KEY_PART_EXPORTABLE (0xF0u)
 #define SSS_FULL_KEY_EXPORTABLE        (0xFFu)
-#define SSS_CRYPTOHW_INITIALIZED       (0xF0F0F0F0)
-#define SSS_CRYPTOHW_NONINITIALIZED    (0x0F0F0F0F)
+#define SSS_CRYPTOHW_INITIALIZED       (0xF0F0F0F0u)
+#define SSS_CRYPTOHW_NONINITIALIZED    (0x0F0F0F0Fu)
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,7 +35,6 @@ extern sss_sscp_key_store_t g_keyStore;
 extern sss_sscp_session_t g_sssSession;
 extern sscp_context_t g_sscpContext;
 
-int fsl_mbedtls_printf(const char *fmt_s, ...);
 status_t CRYPTO_InitHardware(void);
 
 #ifdef __cplusplus

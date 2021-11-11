@@ -125,6 +125,7 @@
 #include "fsl_hashcrypt.h"
 
 #define MBEDTLS_FREESCALE_HASHCRYPT_AES    /* Enable use of HASHCRYPT AES.*/
+#define MBEDTLS_CCM_ALT                    /* Enable use of HASHCRYPT AES CCM .*/
 /* Hashcrypt without context switch is not able to calculate SHA in parallel with AES.
  * HW acceleration of SHA is disabled by default in MbedTLS integration.
  * HW acceleration of SHA is enabled on chip with context switch.
@@ -248,14 +249,10 @@
 #define MBEDTLS_AES_ENCRYPT_ALT
 #define MBEDTLS_AES_DECRYPT_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
 #define MBEDTLS_AES_CRYPT_CBC_ALT
 #define MBEDTLS_AES_CRYPT_CTR_ALT
 #define MBEDTLS_CCM_CRYPT_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
-#define MBEDTLS_AES_CRYPT_CBC_ALT
-#define MBEDTLS_AES_CRYPT_CTR_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_AES_GCM) || defined(MBEDTLS_FREESCALE_LPC_AES_GCM) || \
     defined(MBEDTLS_FREESCALE_CAAM_AES_GCM)

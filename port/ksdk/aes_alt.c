@@ -1886,9 +1886,9 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
 int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, unsigned int keybits)
 {
     size_t key_size;
-	
-	AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( key != NULL );
+
+    AES_VALIDATE_RET(ctx != NULL);
+    AES_VALIDATE_RET(key != NULL);
 
     switch (keybits)
     {
@@ -1932,9 +1932,9 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
 int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, unsigned int keybits)
 {
     size_t key_size;
-	
-    AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( key != NULL );	
+
+    AES_VALIDATE_RET(ctx != NULL);
+    AES_VALIDATE_RET(key != NULL);
 
     switch (keybits)
     {
@@ -2024,15 +2024,13 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
                           const unsigned char *input,
                           unsigned char *output)
 {
-    
-	AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
-                      mode == MBEDTLS_AES_DECRYPT );
-    AES_VALIDATE_RET( iv != NULL );
-    AES_VALIDATE_RET( input != NULL );
-    AES_VALIDATE_RET( output != NULL );
-	
-	if (length % 16)
+    AES_VALIDATE_RET(ctx != NULL);
+    AES_VALIDATE_RET(mode == MBEDTLS_AES_ENCRYPT || mode == MBEDTLS_AES_DECRYPT);
+    AES_VALIDATE_RET(iv != NULL);
+    AES_VALIDATE_RET(input != NULL);
+    AES_VALIDATE_RET(output != NULL);
+
+    if (length % 16)
         return (MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH);
 
 #if defined(MBEDTLS_THREADING_C)
@@ -2082,14 +2080,13 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
                           const unsigned char *input,
                           unsigned char *output)
 {
-	
-	AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( nc_off != NULL );
-    AES_VALIDATE_RET( nonce_counter != NULL );
-    AES_VALIDATE_RET( stream_block != NULL );
-    AES_VALIDATE_RET( input != NULL );
-    AES_VALIDATE_RET( output != NULL );
-	
+    AES_VALIDATE_RET(ctx != NULL);
+    AES_VALIDATE_RET(nc_off != NULL);
+    AES_VALIDATE_RET(nonce_counter != NULL);
+    AES_VALIDATE_RET(stream_block != NULL);
+    AES_VALIDATE_RET(input != NULL);
+    AES_VALIDATE_RET(output != NULL);
+
 #if defined(MBEDTLS_THREADING_C)
     int ret;
     if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_hashcrypt_mutex)) != 0)
@@ -2106,6 +2103,303 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
     return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
+
+#if defined(MBEDTLS_CCM_C)
+
+#include "mbedtls/ccm.h"
+
+/*
+ * Initialize context
+ */
+void mbedtls_ccm_init(mbedtls_ccm_context *ctx)
+{
+    AES_VALIDATE_RET(ctx != NULL);
+    memset(ctx, 0, sizeof(mbedtls_ccm_context));
+}
+
+/*
+ * Free context
+ */
+void mbedtls_ccm_free(mbedtls_ccm_context *ctx)
+{
+    if (ctx == NULL)
+        return;
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_ccm_context));
+}
+
+int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
+                       mbedtls_cipher_id_t cipher,
+                       const unsigned char *key,
+                       unsigned int keybits)
+{
+    int ret = -11;
+    size_t key_size;
+
+    AES_VALIDATE_RET(ctx != NULL);
+    AES_VALIDATE_RET(key != NULL);
+
+    switch (keybits)
+    {
+        case 128:
+            key_size = 16;
+            break;
+        case 192:
+            key_size = 24;
+            break;
+        case 256:
+            key_size = 32;
+            break;
+        default:
+            return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
+    }
+
+    /* secret bus is marked as key address == HASHCRYPT base */
+    if ((uint32_t)key == (uint32_t)HASHCRYPT)
+    {
+        ctx->keyType = kHASHCRYPT_SecretKey;
+    }
+    else
+    {
+        ctx->keyType = kHASHCRYPT_UserKey;
+    }
+
+    status_t status = HASHCRYPT_AES_SetKey(HASHCRYPT, ctx, key, key_size);
+
+    return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
+}
+
+#define CCM_ENCRYPT 1
+#define CCM_DECRYPT 0
+
+/*
+ * Authenticated encryption or decryption
+ */
+
+static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
+                          int mode,
+                          size_t length,
+                          const unsigned char *iv,
+                          size_t iv_len,
+                          const unsigned char *add,
+                          size_t add_len,
+                          const unsigned char *input,
+                          unsigned char *output,
+                          unsigned char *tag,
+                          size_t tag_len)
+{
+    int ret = -11;
+    unsigned char i;
+    unsigned char q;
+    size_t len_left, olen;
+    unsigned char b[16];
+    unsigned char y[16];
+    unsigned char ctr[16];
+    const unsigned char *src;
+    unsigned char *dst;
+
+    /*
+     * Check length requirements: SP800-38C A.1
+     * Additional requirement: a < 2^16 - 2^8 to simplify the code.
+     * 'length' checked later (when writing it to the first block)
+     *
+     * Also, loosen the requirements to enable support for CCM* (IEEE 802.15.4).
+     */
+    if (tag_len == 2 || tag_len > 16 || tag_len % 2 != 0)
+        return (MBEDTLS_ERR_CCM_BAD_INPUT);
+
+    /* Also implies q is within bounds */
+    if (iv_len < 7 || iv_len > 13)
+        return (MBEDTLS_ERR_CCM_BAD_INPUT);
+
+    if (add_len >= 0xFF00)
+        return (MBEDTLS_ERR_CCM_BAD_INPUT);
+
+    q = 16 - 1 - (unsigned char)iv_len;
+
+    /*
+     * First block B_0:
+     * 0        .. 0        flags
+     * 1        .. iv_len   nonce (aka iv)
+     * iv_len+1 .. 15       length
+     *
+     * With flags as (bits):
+     * 7        0
+     * 6        add present?
+     * 5 .. 3   (t - 2) / 2
+     * 2 .. 0   q - 1
+     */
+    b[0] = 0;
+    b[0] |= (add_len > 0) << 6;
+    b[0] |= ((tag_len - 2) / 2) << 3;
+    b[0] |= q - 1;
+
+    memcpy(b + 1, iv, iv_len);
+
+    for (i = 0, len_left = length; i < q; i++, len_left >>= 8)
+        b[15 - i] = (unsigned char)(len_left & 0xFF);
+
+    if (len_left > 0)
+        return (MBEDTLS_ERR_CCM_BAD_INPUT);
+
+    /* Start CBC-MAC with first block */
+    memset(y, 0, 16);
+
+    if ((ret = mbedtls_aes_crypt_cbc(ctx, mode, 16, y, b, b)) != 0)
+    {
+        return (ret);
+    }
+
+    /*
+     * If there is additional data, update CBC-MAC with
+     * add_len, add, 0 (padding to a block boundary)
+     */
+    if (add_len > 0)
+    {
+        size_t use_len;
+        len_left = add_len;
+        src      = add;
+
+        memset(b, 0, 16);
+        b[0] = (unsigned char)((add_len >> 8) & 0xFF);
+        b[1] = (unsigned char)((add_len)&0xFF);
+
+        use_len = len_left < 16 - 2 ? len_left : 16 - 2;
+        memcpy(b + 2, src, use_len);
+        len_left -= use_len;
+        src += use_len;
+
+        if ((ret = mbedtls_aes_crypt_cbc(ctx, mode, 16, y, b, b)) != 0)
+        {
+            return (ret);
+        }
+
+        while (len_left > 0)
+        {
+            use_len = len_left > 16 ? 16 : len_left;
+
+            memset(b, 0, 16);
+            memcpy(b, src, use_len);
+            if ((ret = mbedtls_aes_crypt_cbc(ctx, mode, 16, y, b, b)) != 0)
+            {
+                return (ret);
+            }
+
+            len_left -= use_len;
+            src += use_len;
+        }
+    }
+
+    /*
+     * Prepare counter block for encryption:
+     * 0        .. 0        flags
+     * 1        .. iv_len   nonce (aka iv)
+     * iv_len+1 .. 15       counter (initially 1)
+     *
+     * With flags as (bits):
+     * 7 .. 3   0
+     * 2 .. 0   q - 1
+     */
+    ctr[0] = q - 1;
+    memcpy(ctr + 1, iv, iv_len);
+    memset(ctr + 1 + iv_len, 0, q);
+    ctr[15] = 1;
+
+    /*
+     * Authenticate and {en,de}crypt the message.
+     *
+     * The only difference between encryption and decryption is
+     * the respective order of authentication and {en,de}cryption.
+     */
+    len_left = length;
+    src      = input;
+    dst      = output;
+
+    while (len_left > 0)
+    {
+        size_t use_len = len_left > 16 ? 16 : len_left;
+
+        if (mode == CCM_ENCRYPT)
+        {
+            memset(b, 0, 16);
+            memcpy(b, src, use_len);
+            if ((ret = mbedtls_aes_crypt_cbc(ctx, mode, 16, y, b, b)) != 0)
+            {
+                return (ret);
+            }
+        }
+
+        size_t offset = 0;
+        mbedtls_aes_crypt_ctr(ctx, use_len, &offset, ctr, NULL, src, dst);
+
+        if (mode == CCM_DECRYPT)
+        {
+            memset(b, 0, 16);
+            memcpy(b, dst, use_len);
+            if ((ret = mbedtls_aes_crypt_cbc(ctx, mode, 16, y, b, b)) != 0)
+            {
+                return (ret);
+            }
+        }
+
+        dst += use_len;
+        src += use_len;
+        len_left -= use_len;
+    }
+
+    /*
+     * Authentication: reset counter and crypt/mask internal tag
+     */
+    for (i = 0; i < q; i++)
+        ctr[15 - i] = 0;
+
+    mbedtls_aes_crypt_ctr(ctx, 16, &olen, ctr, NULL, y, y);
+    memcpy(tag, y, tag_len);
+
+    return (0);
+}
+
+/*
+ * Authenticated encryption
+ */
+int mbedtls_ccm_encrypt_and_tag(mbedtls_ccm_context *ctx,
+                                size_t length,
+                                const unsigned char *iv,
+                                size_t iv_len,
+                                const unsigned char *add,
+                                size_t add_len,
+                                const unsigned char *input,
+                                unsigned char *output,
+                                unsigned char *tag,
+                                size_t tag_len)
+{
+    return (ccm_auth_crypt(ctx, CCM_ENCRYPT, length, iv, iv_len, add, add_len, input, output, tag, tag_len));
+}
+
+/*
+ * Authenticated decryption
+ */
+int mbedtls_ccm_auth_decrypt(mbedtls_ccm_context *ctx,
+                             size_t length,
+                             const unsigned char *iv,
+                             size_t iv_len,
+                             const unsigned char *add,
+                             size_t add_len,
+                             const unsigned char *input,
+                             unsigned char *output,
+                             const unsigned char *tag,
+                             size_t tag_len)
+{
+    unsigned char tagCopy[16];
+    unsigned char *actTag = NULL;
+    if (tag != NULL)
+    {
+        (void)memcpy(tagCopy, tag, tag_len);
+        actTag = tagCopy;
+    }
+    return (ccm_auth_crypt(ctx, CCM_DECRYPT, length, iv, iv_len, add, add_len, input, output, actTag, tag_len));
+}
+#endif /* CCM */
+
 #endif /* MBEDTLS_FREESCALE_HASHCRYPT_AES */
 #endif /* MBEDTLS_AES_ALT */
 #endif /* MBEDTLS_AES_C */

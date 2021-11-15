@@ -137,6 +137,12 @@ int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
     if( ( ret = mbedtls_md_hmac_starts( &ctx->md_ctx, ctx->V,
                                         mbedtls_md_get_size( md_info ) ) ) != 0 )
         return( ret );
+#if defined(MBEDTLS_NXP_SSSAPI)
+/* Adding to support security sub-system, whih needs to clear context before 
+   continuing of execution to avoid memory leak in comtext storage. */
+    if( ( ret = mbedtls_md_finish( &ctx->md_ctx, (unsigned char *) ctx->md_ctx.hmac_ctx ) ) != 0 )
+        return( ret );
+#endif
     memset( ctx->V, 0x01, mbedtls_md_get_size( md_info ) );
 
     if( ( ret = mbedtls_hmac_drbg_update_ret( ctx, data, data_len ) ) != 0 )

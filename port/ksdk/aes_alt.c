@@ -2114,7 +2114,7 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
 void mbedtls_ccm_init(mbedtls_ccm_context *ctx)
 {
     AES_VALIDATE_RET(ctx != NULL);
-    memset(ctx, 0, sizeof(mbedtls_ccm_context));
+    (void)memset(ctx, 0, sizeof(mbedtls_ccm_context));
 }
 
 /*
@@ -2123,7 +2123,9 @@ void mbedtls_ccm_init(mbedtls_ccm_context *ctx)
 void mbedtls_ccm_free(mbedtls_ccm_context *ctx)
 {
     if (ctx == NULL)
+    {
         return;
+    }
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_ccm_context));
 }
 
@@ -2132,7 +2134,6 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
                        const unsigned char *key,
                        unsigned int keybits)
 {
-    int ret = -11;
     size_t key_size;
 
     AES_VALIDATE_RET(ctx != NULL);
@@ -2204,15 +2205,21 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
      *
      * Also, loosen the requirements to enable support for CCM* (IEEE 802.15.4).
      */
-    if (tag_len == 2 || tag_len > 16 || tag_len % 2 != 0)
+    if (tag_len == 2u || tag_len > 16u || tag_len % 2u != 0u)
+    {
         return (MBEDTLS_ERR_CCM_BAD_INPUT);
+    }
 
     /* Also implies q is within bounds */
-    if (iv_len < 7 || iv_len > 13)
+    if (iv_len < 7u || iv_len > 13u)
+    {
         return (MBEDTLS_ERR_CCM_BAD_INPUT);
+    }
 
-    if (add_len >= 0xFF00)
+    if (add_len >= 0xFF00u)
+    {
         return (MBEDTLS_ERR_CCM_BAD_INPUT);
+    }
 
     q = 16 - 1 - (unsigned char)iv_len;
 
@@ -2229,20 +2236,24 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
      * 2 .. 0   q - 1
      */
     b[0] = 0;
-    b[0] |= (add_len > 0) << 6;
-    b[0] |= ((tag_len - 2) / 2) << 3;
-    b[0] |= q - 1;
+    b[0] |= (add_len > 0u) << 6u;
+    b[0] |= ((tag_len - 2u) / 2u) << 3u;
+    b[0] |= q - 1u;
 
-    memcpy(b + 1, iv, iv_len);
+    (void)memcpy(b + 1, iv, iv_len);
 
     for (i = 0, len_left = length; i < q; i++, len_left >>= 8)
-        b[15 - i] = (unsigned char)(len_left & 0xFF);
+    {
+        b[15u - i] = (unsigned char)(len_left & 0xFFu);
+    }
 
-    if (len_left > 0)
+    if (len_left > 0u)
+    {
         return (MBEDTLS_ERR_CCM_BAD_INPUT);
+    }
 
     /* Start CBC-MAC with first block */
-    memset(y, 0, 16);
+    (void)memset(y, 0, 16);
 
     if ((ret = mbedtls_aes_crypt_cbc(ctx, mode, 16, y, b, b)) != 0)
     {
@@ -2253,18 +2264,18 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
      * If there is additional data, update CBC-MAC with
      * add_len, add, 0 (padding to a block boundary)
      */
-    if (add_len > 0)
+    if (add_len > 0u)
     {
         size_t use_len;
         len_left = add_len;
         src      = add;
 
-        memset(b, 0, 16);
-        b[0] = (unsigned char)((add_len >> 8) & 0xFF);
-        b[1] = (unsigned char)((add_len)&0xFF);
+        (void)memset(b, 0, 16);
+        b[0] = (unsigned char)((add_len >> 8u) & 0xFFu);
+        b[1] = (unsigned char)((add_len)&0xFFu);
 
-        use_len = len_left < 16 - 2 ? len_left : 16 - 2;
-        memcpy(b + 2, src, use_len);
+        use_len = len_left < 16u - 2u ? len_left : 16u - 2u;
+        (void)memcpy(b + 2, src, use_len);
         len_left -= use_len;
         src += use_len;
 
@@ -2273,12 +2284,12 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
             return (ret);
         }
 
-        while (len_left > 0)
+        while (len_left > 0u)
         {
-            use_len = len_left > 16 ? 16 : len_left;
+            use_len = len_left > 16u ? 16u : len_left;
 
-            memset(b, 0, 16);
-            memcpy(b, src, use_len);
+            (void)memset(b, 0, 16);
+            (void)memcpy(b, src, use_len);
             if ((ret = mbedtls_aes_crypt_cbc(ctx, mode, 16, y, b, b)) != 0)
             {
                 return (ret);
@@ -2300,8 +2311,8 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
      * 2 .. 0   q - 1
      */
     ctr[0] = q - 1;
-    memcpy(ctr + 1, iv, iv_len);
-    memset(ctr + 1 + iv_len, 0, q);
+    (void)memcpy(ctr + 1, iv, iv_len);
+    (void)memset(ctr + 1 + iv_len, 0, q);
     ctr[15] = 1;
 
     /*
@@ -2314,14 +2325,14 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
     src      = input;
     dst      = output;
 
-    while (len_left > 0)
+    while (len_left > 0u)
     {
-        size_t use_len = len_left > 16 ? 16 : len_left;
+        size_t use_len = len_left > 16u ? 16u : len_left;
 
         if (mode == CCM_ENCRYPT)
         {
-            memset(b, 0, 16);
-            memcpy(b, src, use_len);
+            (void)memset(b, 0, 16);
+            (void)memcpy(b, src, use_len);
             if ((ret = mbedtls_aes_crypt_cbc(ctx, mode, 16, y, b, b)) != 0)
             {
                 return (ret);
@@ -2329,12 +2340,15 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
         }
 
         size_t offset = 0;
-        mbedtls_aes_crypt_ctr(ctx, use_len, &offset, ctr, NULL, src, dst);
+        if ((ret = mbedtls_aes_crypt_ctr(ctx, use_len, &offset, ctr, NULL, src, dst)) != 0)
+        {
+            return (ret);
+        }
 
         if (mode == CCM_DECRYPT)
         {
-            memset(b, 0, 16);
-            memcpy(b, dst, use_len);
+            (void)memset(b, 0, 16);
+            (void)memcpy(b, dst, use_len);
             if ((ret = mbedtls_aes_crypt_cbc(ctx, mode, 16, y, b, b)) != 0)
             {
                 return (ret);
@@ -2350,10 +2364,13 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
      * Authentication: reset counter and crypt/mask internal tag
      */
     for (i = 0; i < q; i++)
-        ctr[15 - i] = 0;
+        ctr[15 - i] = 0u;
 
-    mbedtls_aes_crypt_ctr(ctx, 16, &olen, ctr, NULL, y, y);
-    memcpy(tag, y, tag_len);
+    if ((ret = mbedtls_aes_crypt_ctr(ctx, 16, &olen, ctr, NULL, y, y)) != 0)
+    {
+        return (ret);
+    }
+    (void)memcpy(tag, y, tag_len);
 
     return (0);
 }

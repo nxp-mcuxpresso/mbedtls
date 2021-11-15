@@ -416,12 +416,13 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
                 ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             }
             else if ((sss_sscp_key_object_allocate_handle(&sssKey, 1u, kSSS_KeyPart_Default, kSSS_CipherType_AES,
-                                                          (keylen + 7u) / 8u, 0u)) != kStatus_SSS_Success)
+                                                          (keylen + 7u) / 8u, SSS_KEYPROP_OPERATION_MAC)) !=
+                     kStatus_SSS_Success)
             {
                 ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             }
-            else if ((sss_sscp_key_store_set_key(&g_keyStore, &sssKey, ramKey, (keylen + 7u) / 8u, keylen, NULL)) !=
-                     kStatus_SSS_Success)
+            else if ((sss_sscp_key_store_set_key(&g_keyStore, &sssKey, ramKey, (keylen + 7u) / 8u, keylen,
+                                                 kSSS_KeyPart_Default)) != kStatus_SSS_Success)
             {
                 ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             }
@@ -443,7 +444,7 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
             }
             /* CLEAN UP */
             /* KEYOBJECT FREE*/
-            (void)sss_sscp_key_object_free(&sssKey);
+            (void)sss_sscp_key_object_free(&sssKey, SSS_SSCP_KEY_OBJECT_FREE_DYNAMIC);
             /* CONTEXT FREE*/
             (void)sss_sscp_mac_context_free(&ctx);
             break;

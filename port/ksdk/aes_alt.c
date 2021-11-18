@@ -53,6 +53,14 @@
 #include "ksdk_mbedtls.h"
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#include <stdlib.h>
+#define mbedtls_calloc calloc
+#define mbedtls_free   free
+#endif
+
 #if defined(MBEDTLS_AES_ALT)
 /* clang-format off */
 /* Parameter validation macros based on platform_util.h */
@@ -2325,48 +2333,57 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
     src      = input;
     dst      = output;
 
-    while (len_left > 0u)
+    size_t use_len;
+
+    /* Check if length can be divided by 16 without rest */
+    /*Underlying used cipher need input size divisible 16 without rest or it will return error invalid input length */
+    if (0U != (len_left % 16u))
     {
-        size_t use_len = len_left > 16u ? 16u : len_left;
-
-        if (mode == CCM_ENCRYPT)
-        {
-            (void)memset(b, 0, 16);
-            (void)memcpy(b, src, use_len);
-            if ((ret = mbedtls_aes_crypt_cbc(ctx, mode, 16, y, b, b)) != 0)
-            {
-                return (ret);
-            }
-        }
-
-        size_t offset = 0;
-        if ((ret = mbedtls_aes_crypt_ctr(ctx, use_len, &offset, ctr, NULL, src, dst)) != 0)
-        {
-            return (ret);
-        }
-
-        if (mode == CCM_DECRYPT)
-        {
-            (void)memset(b, 0, 16);
-            (void)memcpy(b, dst, use_len);
-            if ((ret = mbedtls_aes_crypt_cbc(ctx, mode, 16, y, b, b)) != 0)
-            {
-                return (ret);
-            }
-        }
-
-        dst += use_len;
-        src += use_len;
-        len_left -= use_len;
+        /* length is not divisible by 16 without rest */
+        use_len = ((length / 16u) * 16u) + 16u; /* (number of full blocks) * (length of block) + last incomplete block*/
+    }
+    else
+    {
+        /* length is divisible by 16 without rest */
+        use_len = len_left;
     }
 
+    uint8_t *tmp = mbedtls_calloc(1, use_len);
+    (void)memcpy(tmp, dst, use_len);
+
+    if (mode == CCM_ENCRYPT)
+    {
+        if ((ret = mbedtls_aes_crypt_cbc(ctx, mode, use_len, y, src, tmp)) != 0)
+        {
+            mbedtls_free(tmp);
+            return (ret);
+        }
+    }
+
+    size_t offset = 0;
+    if ((ret = mbedtls_aes_crypt_ctr(ctx, use_len, &offset, ctr, b, src, dst)) != 0)
+    {
+        mbedtls_free(tmp);
+        return (ret);
+    }
+
+    if (mode == CCM_DECRYPT)
+    {
+        if ((ret = mbedtls_aes_crypt_cbc(ctx, mode, use_len, y, src, tmp)) != 0)
+        {
+            mbedtls_free(tmp);
+            return (ret);
+        }
+    }
+
+    mbedtls_free(tmp);
     /*
      * Authentication: reset counter and crypt/mask internal tag
      */
     for (i = 0; i < q; i++)
         ctr[15 - i] = 0u;
 
-    if ((ret = mbedtls_aes_crypt_ctr(ctx, 16, &olen, ctr, NULL, y, y)) != 0)
+    if ((ret = mbedtls_aes_crypt_ctr(ctx, 16, &offset, ctr, b, y, y)) != 0)
     {
         return (ret);
     }

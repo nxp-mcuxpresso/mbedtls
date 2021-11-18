@@ -2349,6 +2349,10 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
     }
 
     uint8_t *tmp = mbedtls_calloc(1, use_len);
+    if (tmp == NULL)
+    {
+        return (MBEDTLS_ERR_AES_HW_ACCEL_FAILED);
+    }
     (void)memcpy(tmp, dst, use_len);
 
     if (mode == CCM_ENCRYPT)

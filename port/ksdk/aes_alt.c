@@ -2199,7 +2199,7 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
     int ret = -11;
     unsigned char i;
     unsigned char q;
-    size_t len_left, olen;
+    size_t len_left;
     unsigned char b[16];
     unsigned char y[16];
     unsigned char ctr[16];

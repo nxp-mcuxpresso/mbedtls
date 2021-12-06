@@ -93,6 +93,20 @@ uint32_t nonCacheSize  = (uint32_t)__NCACHE_REGION_SIZE;
 /* Returns TRUE if in noncached, FALSE otherwise */
 static bool IS_IN_NONCACHED(uint32_t addr, uint32_t size)
 {
+  /* Check if data are in TCM (non-cached) memory */
+#if defined(__DTCM_PRESENT) && (__DTCM_PRESENT == 1U)
+    uint32_t DTCM_SIZE = 0, DTCM_END = 0U;
+    /* Get DTCM size configuration*/
+    DTCM_SIZE = FSL_FEATURE_FLEXRAM_INTERNAL_RAM_BANK_SIZE * FSL_FEATURE_FLEXRAM_INTERNAL_RAM_TOTAL_BANK_NUMBERS  ;
+   
+    DTCM_END = DTCM_START + DTCM_SIZE;
+
+    if ((addr >= DTCM_START) && (addr + size < DTCM_END))
+    {
+        return true;
+    }
+#endif /* __DTCM_PRESENT */
+    /* If not in DTCM, check non-cached section based linker file */
  /* Check non-cached section based linker file */
     if ((addr >= nonCacheStart) && ((addr + size) < (nonCacheStart + nonCacheSize)))
     {

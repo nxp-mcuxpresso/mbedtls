@@ -6,8 +6,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef CSS_PKC_MBEDTLS_H
-#define CSS_PKC_MBEDTLS_H
+#ifndef CSS_MBEDTLS_H
+#define CSS_MBEDTLS_H
 
 
 #ifdef __cplusplus
@@ -24,4 +24,4 @@ status_t CRYPTO_InitHardware(void);
 }
 #endif
 
-#endif /* CSS_PKC_MBEDTLS_H */
+#endif /* CSS_MBEDTLS_H */

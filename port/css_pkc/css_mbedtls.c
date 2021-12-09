@@ -13,9 +13,8 @@
 #endif
 
 #include "fsl_css.h"           // Power Down Wake-up Init
-#include "fsl_pkc.h"           // Power Down Wake-up Init
 #include "platform_hw_ip.h"
-#include "css_pkc_mbedtls.h"
+#include "css_mbedtls.h"
 #include "fsl_common.h"
 
 static uint32_t g_isCryptoHWInitialized = CSS_PKC_CRYPTOHW_NONINITIALIZED;
@@ -40,12 +39,6 @@ int mbedtls_hw_init(void)
             return status;
         }
 
-        /* Enable PKC related clocks without RAM zeroize */
-        status = PKC_InitNoZeroize(PKC);
-        if (status != kStatus_Success)
-        {
-            return status;
-        }
     }
     else
     {
@@ -70,13 +63,6 @@ status_t CRYPTO_InitHardware(void)
 
     /* Enable CSS and related clocks */
     status = CSS_PowerDownWakeupInit(CSS);
-    if (status != kStatus_Success)
-    {
-        return kStatus_Fail;
-    }
-
-    /* Enable PKC related clocks and RAM zeroize */
-    status = PKC_PowerDownWakeupInit(PKC);
     if (status != kStatus_Success)
     {
         return kStatus_Fail;

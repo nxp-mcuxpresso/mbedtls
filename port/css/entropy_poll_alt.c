@@ -12,7 +12,7 @@
 
 #include <mcuxClCss.h>               // Interface to the entire mcuxClCss component
 #include <mcuxCsslFlowProtection.h>  // Code flow protection
-#include <css_pkc_mbedtls.h>
+#include <css_mbedtls.h>
 #include <platform_hw_ip.h>
 
 /* Entropy poll callback for a hardware source */

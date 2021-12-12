@@ -17,6 +17,8 @@
 #include "css_mbedtls.h"
 #include "fsl_common.h"
 
+#if !defined(MBEDTLS_MCUX_CSS_PKC_API)
+
 static uint32_t g_isCryptoHWInitialized = CSS_PKC_CRYPTOHW_NONINITIALIZED;
 
 __WEAK uint32_t __stack_chk_guard;
@@ -48,6 +50,7 @@ int mbedtls_hw_init(void)
     return status;
 }
 
+
 /******************************************************************************/
 /******************** CRYPTO_InitHardware **************************************/
 /******************************************************************************/
@@ -72,3 +75,5 @@ status_t CRYPTO_InitHardware(void)
     
     return status;
 }
+
+#endif /* !defined(MBEDTLS_MCUX_CSS_PKC_API) */

@@ -36,6 +36,7 @@ extern sss_sscp_session_t g_sssSession;
 extern sscp_context_t g_sscpContext;
 
 status_t CRYPTO_InitHardware(void);
+status_t CRYPTO_ReinitHardware(void);
 
 #ifdef __cplusplus
 }

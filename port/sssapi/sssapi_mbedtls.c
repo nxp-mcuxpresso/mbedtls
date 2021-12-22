@@ -38,16 +38,15 @@ status_t CRYPTO_InitHardware(void)
     if (g_isCryptoHWInitialized == SSS_CRYPTOHW_NONINITIALIZED)
     {
         sss_sscp_rng_t rctx;
+        if (SNT_mu_wait_for_ready(ELEMUA, SSS_MAX_SUBSYTEM_WAIT) != kStatus_Success)
+        {
+        }
 #if (defined(SNT_HAS_LOADABLE_FW) && SNT_HAS_LOADABLE_FW)
-        if (SNT_loadFwLocal(S3MUA) != kStatus_SNT_Success)
+        else if (SNT_loadFwLocal(ELEMUA) != kStatus_SNT_Success)
         {
         }
-        else
 #endif /* SNT_HAS_LOADABLE_FW */
-            if (SNT_mu_wait_for_ready(S3MUA, SSS_MAX_SUBSYTEM_WAIT) != kStatus_Success)
-        {
-        }
-        else if (sscp_mu_init(&g_sscpContext, (MU_Type *)(uintptr_t)S3MUA) != kStatus_SSCP_Success)
+        else if (sscp_mu_init(&g_sscpContext, (MU_Type *)(uintptr_t)ELEMUA) != kStatus_SSCP_Success)
         {
         }
         else if (sss_sscp_open_session(&g_sssSession, SSS_SUBSYSTEM, &g_sscpContext, 0u, NULL) != kStatus_SSS_Success)
@@ -85,5 +84,21 @@ status_t CRYPTO_InitHardware(void)
             ret = kStatus_Success;
         }
     }
+    return ret;
+}
+
+/*!
+ * @brief Application reinit for various Crypto blocks.
+ *
+ * This function is provided to be called after wake up from low power Power Down
+ * or Deep Power Down modes to reinit Crypto HW blocks.
+ */
+status_t CRYPTO_ReinitHardware(void)
+{
+    status_t ret;
+
+    g_isCryptoHWInitialized = SSS_CRYPTOHW_NONINITIALIZED;
+    ret = CRYPTO_InitHardware();
+
     return ret;
 }

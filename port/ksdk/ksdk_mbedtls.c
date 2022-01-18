@@ -304,6 +304,10 @@ status_t CRYPTO_InitHardware(void)
     DCP_GetDefaultConfig(&dcpConfig);
     DCP_Init(DCP, &dcpConfig);
 #endif
+#if defined(FSL_FEATURE_SOC_SHA_COUNT) && (FSL_FEATURE_SOC_SHA_COUNT > 0)
+    /* Initialize SHA driver */
+    SHA_ClkInit(SHA_INSTANCE);
+#endif /* (FSL_FEATURE_SOC_SHA_COUNT) */   
 #if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
     /* Initialize CASPER */
     CASPER_Init(CASPER);

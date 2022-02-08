@@ -175,7 +175,6 @@
 #define SHA_INSTANCE SHA0            /* SHA base register.*/
 #define MBEDTLS_FREESCALE_LPC_SHA1   /* Enable use of LPC SHA.*/
 #define MBEDTLS_FREESCALE_LPC_SHA256 /* Enable use of LPC SHA256.*/
-#define MANUAL_LOAD_SHA_INPUT 1      /* 0 - use MEMADDR, MEMCRL (pseudo-DMA), 1 - manual load */
 #endif
 
 /* Enable CASPER use in library if there is CASPER on chip. */

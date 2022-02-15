@@ -49,10 +49,13 @@ status_t CRYPTO_InitHardware(void)
         else if (sscp_mu_init(&g_sscpContext, (MU_Type *)(uintptr_t)ELEMUA) != kStatus_SSCP_Success)
         {
         }
-        else if (sss_sscp_open_session(&g_sssSession, 0u, SSS_SUBSYSTEM, &g_sscpContext) != kStatus_SSS_Success)
+        else if (sss_sscp_open_session(&g_sssSession, SSS_SUBSYSTEM, &g_sscpContext, 0u, NULL) != kStatus_SSS_Success)
         {
         }
-        else if (sss_sscp_key_store_init(&g_keyStore, &g_sssSession) != kStatus_SSS_Success)
+        else if (sss_sscp_key_store_context_init(&g_keyStore, &g_sssSession) != kStatus_SSS_Success)
+        {
+        }
+        else if (sss_sscp_key_store_allocate(&g_keyStore, 0u) != kStatus_SSS_Success)
         {
         }
         /* RNG call used to init Sentinel TRNG required e.g. by sss_sscp_key_store_generate_key service

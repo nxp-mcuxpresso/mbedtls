@@ -90,8 +90,7 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     else if ((sss_sscp_key_object_allocate_handle(&ctx->key, 1u, kSSS_KeyPart_Default, kSSS_CipherType_AES,
-                                                  (keybits + 7u) / 8u, SSS_KEYPROP_OPERATION_AEAD)) !=
-             kStatus_SSS_Success)
+                                                  (keybits + 7u) / 8u, 0u)) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -119,7 +118,7 @@ void mbedtls_ccm_free(mbedtls_ccm_context *ctx)
     if (CRYPTO_InitHardware() != kStatus_Success)
     {
     }
-    else if (sss_sscp_key_object_free(&ctx->key, SSS_SSCP_KEY_OBJECT_FREE_DYNAMIC) != kStatus_SSS_Success)
+    else if (sss_sscp_key_object_free(&ctx->key) != kStatus_SSS_Success)
     {
     }
     else

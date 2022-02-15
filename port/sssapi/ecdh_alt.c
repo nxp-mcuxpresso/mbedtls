@@ -256,7 +256,7 @@ void mbedtls_ecdh_free(mbedtls_ecdh_context *ctx)
     }
     if (ctx->isKeyInitialized)
     {
-        (void)sss_sscp_key_object_free(&ctx->key, SSS_SSCP_KEY_OBJECT_FREE_DYNAMIC);
+        (void)sss_sscp_key_object_free(&ctx->key);
     }
 
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
@@ -489,6 +489,7 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
     size_t coordinateBitsLen = ctx->grp.pbits;
     size_t keySize           = 2u * coordinateLen;
     uint8_t *pubKey          = mbedtls_calloc(keySize, sizeof(uint8_t));
+    uint32_t keyOpt          = (uint32_t)kSSS_KeyGenMode_Ecc;
     if (CRYPTO_InitHardware() != kStatus_Success)
     {
         mbedtls_platform_zeroize(pubKey, keySize);
@@ -499,15 +500,19 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
     {
         if (sss_sscp_key_object_init(&ctx->key, &g_keyStore) != kStatus_SSS_Success)
         {
-            sss_sscp_key_object_free(&ctx->key, SSS_SSCP_KEY_OBJECT_FREE_DYNAMIC);
+            mbedtls_platform_zeroize(pubKey, keySize);
+            mbedtls_free(pubKey);
+            (void)sss_sscp_key_object_free(&ctx->key);
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
         /* Allocate key handle */
         else if (sss_sscp_key_object_allocate_handle(&ctx->key, 0u, kSSS_KeyPart_Pair, kSSS_CipherType_EC_NIST_P,
                                                      3u * coordinateLen,
-                                                     SSS_KEYPROP_OPERATION_KDF) != kStatus_SSS_Success)
+                                                     SSS_PUBLIC_KEY_PART_EXPORTABLE) != kStatus_SSS_Success)
         {
-            (void)sss_sscp_key_object_free(&ctx->key, SSS_SSCP_KEY_OBJECT_FREE_DYNAMIC);
+            mbedtls_platform_zeroize(pubKey, keySize);
+            mbedtls_free(pubKey);
+            (void)sss_sscp_key_object_free(&ctx->key);
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
         else
@@ -515,12 +520,12 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
             ctx->isKeyInitialized = true;
         }
     }
-    if (sss_sscp_key_store_generate_key(&g_keyStore, &ctx->key, coordinateBitsLen, NULL) != kStatus_SSS_Success)
+    if (sss_sscp_key_store_generate_key(&g_keyStore, &ctx->key, coordinateBitsLen, &keyOpt) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    else if (sss_sscp_key_store_get_key(&g_keyStore, &ctx->key, pubKey, &keySize, &coordinateBitsLen,
-                                        kSSS_KeyPart_Public) != kStatus_SSS_Success)
+    else if (sss_sscp_key_store_get_key(&g_keyStore, &ctx->key, pubKey, &keySize, &coordinateBitsLen, NULL) !=
+             kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -597,7 +602,7 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx,
     sss_sscp_derive_key_t dCtx;
     size_t coordinateLen     = (ctx->grp.pbits + 7u) / 8u;
     size_t coordinateBitsLen = ctx->grp.pbits;
-    size_t keySize           = 2 * coordinateLen;
+    size_t keySize           = 3u * coordinateLen;
     uint8_t *pubKey          = mbedtls_calloc(keySize, sizeof(uint8_t));
     if (CRYPTO_InitHardware() != kStatus_Success)
     {
@@ -607,9 +612,8 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx,
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    else if (sss_sscp_key_object_allocate_handle(&ctx->peerPublicKey, 1u, kSSS_KeyPart_Public,
-                                                 kSSS_CipherType_EC_NIST_P, keySize,
-                                                 SSS_KEYPROP_OPERATION_KDF) != kStatus_SSS_Success)
+    else if (sss_sscp_key_object_allocate_handle(&ctx->peerPublicKey, 1u, kSSS_KeyPart_Pair, kSSS_CipherType_EC_NIST_P,
+                                                 keySize, SSS_PUBLIC_KEY_PART_EXPORTABLE) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -620,7 +624,7 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx,
     {
     }
     else if (sss_sscp_key_store_set_key(&g_keyStore, &ctx->peerPublicKey, (const uint8_t *)pubKey, keySize,
-                                        coordinateBitsLen, kSSS_KeyPart_Public) != kStatus_SSS_Success)
+                                        coordinateBitsLen, NULL) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -629,7 +633,7 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx,
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     else if (sss_sscp_key_object_allocate_handle(&ctx->sharedSecret, 2u, kSSS_KeyPart_Default, kSSS_CipherType_AES,
-                                                 coordinateLen, SSS_KEYPROP_OPERATION_NONE) != kStatus_SSS_Success)
+                                                 coordinateLen, SSS_FULL_KEY_EXPORTABLE) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -643,7 +647,7 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx,
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     else if (sss_sscp_key_store_get_key(&g_keyStore, &ctx->sharedSecret, pubKey, &coordinateLen, &coordinateBitsLen,
-                                        kSSS_KeyPart_Private) != kStatus_SSS_Success)
+                                        NULL) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -655,8 +659,8 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx,
         ret = 0;
     }
     (void)sss_sscp_derive_key_context_free(&dCtx);
-    (void)sss_sscp_key_object_free(&ctx->peerPublicKey, SSS_SSCP_KEY_OBJECT_FREE_DYNAMIC);
-    (void)sss_sscp_key_object_free(&ctx->sharedSecret, SSS_SSCP_KEY_OBJECT_FREE_DYNAMIC);
+    (void)sss_sscp_key_object_free(&ctx->peerPublicKey);
+    (void)sss_sscp_key_object_free(&ctx->sharedSecret);
 
     mbedtls_platform_zeroize(pubKey, keySize);
     mbedtls_free(pubKey);
@@ -797,13 +801,13 @@ static int myrand(void *rng_state, unsigned char *output, size_t len)
 
 int mbedtls_ecdh_self_test(int verbose)
 {
-    int ret = -1;
+    int ret = 0;
     uint8_t buf[100];
     mbedtls_ecdh_context ecdhClient, ecdhServer;
     const mbedtls_ecp_curve_info *curve_info = mbedtls_ecp_curve_list();
     size_t olen;
 
-    for (uint32_t i = 0u; curve_info->grp_id != MBEDTLS_ECP_DP_NONE; curve_info++, i++)
+    for (uint32_t i = 0; curve_info->grp_id != MBEDTLS_ECP_DP_NONE; curve_info++, i++)
     {
         if (verbose != 0)
         {
@@ -812,8 +816,8 @@ int mbedtls_ecdh_self_test(int verbose)
         mbedtls_ecdh_init(&ecdhClient);
         mbedtls_ecdh_init(&ecdhServer);
 
-        if ((ret = mbedtls_ecp_group_load(&ecdhClient.grp, curve_info->grp_id)) != 0u ||
-            (ret = mbedtls_ecdh_make_public(&ecdhClient, &olen, buf, sizeof(buf), myrand, NULL)) != 0u)
+        if ((ret = mbedtls_ecp_group_load(&ecdhClient.grp, curve_info->grp_id)) != 0 ||
+            (ret = mbedtls_ecdh_make_public(&ecdhClient, &olen, buf, sizeof(buf), myrand, NULL)) != 0)
         {
             if (verbose != 0)
             {
@@ -821,8 +825,8 @@ int mbedtls_ecdh_self_test(int verbose)
             }
             return ret;
         }
-        if ((ret = mbedtls_ecp_group_load(&ecdhServer.grp, curve_info->grp_id)) != 0u ||
-            (ret = mbedtls_ecdh_make_public_sw(&ecdhServer, &olen, buf, sizeof(buf), myrand, NULL)) != 0u)
+        if ((ret = mbedtls_ecp_group_load(&ecdhServer.grp, curve_info->grp_id)) != 0 ||
+            (ret = mbedtls_ecdh_make_public_sw(&ecdhServer, &olen, buf, sizeof(buf), myrand, NULL)) != 0)
         {
             if (verbose != 0)
             {
@@ -835,36 +839,16 @@ int mbedtls_ecdh_self_test(int verbose)
         (void)mbedtls_ecp_copy(&ecdhClient.Qp, &ecdhServer.Q);
 
         ret = mbedtls_ecdh_calc_secret(&ecdhClient, &olen, buf, sizeof(buf), myrand, NULL);
-        if (ret != 0u)
-        {
-            if (verbose != 0)
-                mbedtls_printf("mbedtls_ecdh_calc_secret failed\n");
-
-            return ret;
-        }
         ret = mbedtls_ecdh_calc_secret_sw(&ecdhServer, &olen, buf, sizeof(buf), myrand, NULL);
-        if (ret != 0u)
-        {
-            if (verbose != 0)
-                mbedtls_printf("mbedtls_ecdh_calc_secret_sw failed\n");
 
-            return ret;
-        }
-        if (ecdhClient.z.n != ecdhServer.z.n)
-        {
-            if (verbose != 0)
-                mbedtls_printf("shared secrets sizes are different\n");
-
-            return -1;
-        }
-        if (memcmp(ecdhClient.z.p, ecdhServer.z.p, sizeof(mbedtls_mpi_uint) * ecdhClient.z.n) != 0u)
+        if (ret != 0 || (ret = memcmp(ecdhClient.z.p, ecdhServer.z.p, sizeof(mbedtls_mpi_uint) * ecdhClient.z.n)) != 0)
         {
             if (verbose != 0)
             {
                 (void)mbedtls_printf("failed\n");
             }
 
-            return -1;
+            return ret;
         }
         mbedtls_ecdh_free(&ecdhServer);
         mbedtls_ecdh_free(&ecdhClient);

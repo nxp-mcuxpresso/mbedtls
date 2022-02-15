@@ -206,7 +206,7 @@ void mbedtls_ecdsa_free(mbedtls_ecdsa_context *ctx)
     }
     if (ctx->isKeyInitialized)
     {
-        (void)sss_sscp_key_object_free(&ctx->key, SSS_SSCP_KEY_OBJECT_FREE_DYNAMIC);
+        (void)sss_sscp_key_object_free(&ctx->key);
     }
     mbedtls_ecp_keypair_free((mbedtls_ecp_keypair *)ctx);
 }
@@ -230,11 +230,12 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
     }
     size_t keyLen     = (ctx->grp.pbits + 7u) / 8u;
     size_t keyBitsLen = ctx->grp.pbits;
-    size_t pubKeySize = 2 * keyLen;
+    size_t keySize    = 3u * keyLen;
     uint8_t *pubKey   = mbedtls_calloc(0x2u * keyLen, sizeof(uint8_t));
+    uint32_t keyOpt   = (uint32_t)kSSS_KeyGenMode_Ecc;
     if (CRYPTO_InitHardware() != kStatus_Success)
     {
-        mbedtls_platform_zeroize(pubKey, pubKeySize);
+        mbedtls_platform_zeroize(pubKey, keySize);
         mbedtls_free(pubKey);
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -242,14 +243,18 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
     {
         if (sss_sscp_key_object_init(&ctx->key, &g_keyStore) != kStatus_SSS_Success)
         {
-            (void)sss_sscp_key_object_free(&ctx->key, SSS_SSCP_KEY_OBJECT_FREE_DYNAMIC);
+            mbedtls_platform_zeroize(pubKey, keySize);
+            mbedtls_free(pubKey);
+            (void)sss_sscp_key_object_free(&ctx->key);
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
         /* Allocate key handle */
         else if (sss_sscp_key_object_allocate_handle(&ctx->key, 0x0u, kSSS_KeyPart_Pair, kSSS_CipherType_EC_NIST_P,
-                                                     3 * keyLen, SSS_KEYPROP_OPERATION_ASYM) != kStatus_SSS_Success)
+                                                     keySize, SSS_PUBLIC_KEY_PART_EXPORTABLE) != kStatus_SSS_Success)
         {
-            (void)sss_sscp_key_object_free(&ctx->key, SSS_SSCP_KEY_OBJECT_FREE_DYNAMIC);
+            mbedtls_platform_zeroize(pubKey, keySize);
+            mbedtls_free(pubKey);
+            (void)sss_sscp_key_object_free(&ctx->key);
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
         else
@@ -257,12 +262,12 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
             ctx->isKeyInitialized = true;
         }
     }
-    if (sss_sscp_key_store_generate_key(&g_keyStore, &ctx->key, keyBitsLen, NULL) != kStatus_SSS_Success)
+    if (sss_sscp_key_store_generate_key(&g_keyStore, &ctx->key, keyBitsLen, &keyOpt) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    else if (sss_sscp_key_store_get_key(&g_keyStore, &ctx->key, pubKey, &pubKeySize, &keyBitsLen,
-                                        kSSS_KeyPart_Public) != kStatus_SSS_Success)
+    else if (sss_sscp_key_store_get_key(&g_keyStore, &ctx->key, pubKey, &keySize, &keyBitsLen, NULL) !=
+             kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -282,7 +287,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
         ctx->d.p = (mbedtls_mpi_uint *)(uintptr_t)&ctx->key;
         ret      = 0;
     }
-    mbedtls_platform_zeroize(pubKey, pubKeySize);
+    mbedtls_platform_zeroize(pubKey, keySize);
     mbedtls_free(pubKey);
     return ret;
 }
@@ -349,7 +354,7 @@ static int ecdsa_verify_restartable(mbedtls_ecp_group *grp,
     }
     size_t coordinateLen     = (grp->pbits + 7u) / 8u;
     size_t coordinateBitsLen = grp->pbits;
-    size_t keySize           = 2u * coordinateLen;
+    size_t keySize           = 3u * coordinateLen;
     size_t bufLen            = (blen + 7u) / 8u;
     uint8_t *pubKey          = mbedtls_calloc(keySize, sizeof(uint8_t));
     sss_sscp_object_t ecdsaPublic;
@@ -378,13 +383,13 @@ static int ecdsa_verify_restartable(mbedtls_ecp_group *grp,
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     /* Allocate key handle */
-    else if (sss_sscp_key_object_allocate_handle(&ecdsaPublic, 0u, kSSS_KeyPart_Public, kSSS_CipherType_EC_NIST_P,
-                                                 keySize, SSS_KEYPROP_OPERATION_ASYM) != kStatus_SSS_Success)
+    else if (sss_sscp_key_object_allocate_handle(&ecdsaPublic, 0u, kSSS_KeyPart_Pair, kSSS_CipherType_EC_NIST_P,
+                                                 keySize, SSS_PUBLIC_KEY_PART_EXPORTABLE) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     else if (sss_sscp_key_store_set_key(&g_keyStore, &ecdsaPublic, (const uint8_t *)pubKey, keySize, coordinateBitsLen,
-                                        kSSS_KeyPart_Public) != kStatus_SSS_Success)
+                                        NULL) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -408,7 +413,7 @@ static int ecdsa_verify_restartable(mbedtls_ecp_group *grp,
     {
         ret = 0;
     }
-    (void)sss_sscp_key_object_free(&ecdsaPublic, SSS_SSCP_KEY_OBJECT_FREE_DYNAMIC);
+    (void)sss_sscp_key_object_free(&ecdsaPublic);
     (void)sss_sscp_asymmetric_context_free(&asyc);
     mbedtls_platform_zeroize(pubKey, keySize);
     mbedtls_free(pubKey);

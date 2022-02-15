@@ -52,6 +52,8 @@ extern void CRYPTO_ConfigureThreading(void);
 #include "fsl_rnga.h"
 #elif defined(FSL_FEATURE_SOC_LPC_RNG1_COUNT) && (FSL_FEATURE_SOC_LPC_RNG1_COUNT > 0)
 #include "fsl_rng.h"
+#elif defined(FSL_FEATURE_EDGELOCK) && (FSL_FEATURE_EDGELOCK > 0)
+#include "fsl_sentinel.h"
 #endif
 
 #define CLEAN_RETURN(value) \
@@ -4964,6 +4966,8 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
                                     NULL);
 #elif defined(FSL_FEATURE_SOC_LPC_RNG_COUNT) && (FSL_FEATURE_SOC_LPC_RNG_COUNT > 0)
     result = RNG_GetRandomData(output, len);
+#elif defined(FSL_FEATURE_EDGELOCK) && (FSL_FEATURE_EDGELOCK  > 0)
+    result = SENTINEL_RNG_GetRandomData((uint32_t)output, len);
 #elif defined(FSL_FEATURE_SOC_LPC_RNG1_COUNT) && (FSL_FEATURE_SOC_LPC_RNG1_COUNT > 0)
     status_t status = kStatus_Fail;
 

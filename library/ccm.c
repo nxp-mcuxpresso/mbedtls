@@ -34,6 +34,13 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
+/* NXP added */
+#if defined(MBEDTLS_CCM_USE_AES_CBC_MAC)
+#include "mbedtls/cipher_internal.h"
+#include "mbedtls/aes.h"
+#include "cbc_mac_alt.h"
+#endif /* MBEDTLS_CCM_USE_AES_CBC_MAC */
+
 #include <string.h>
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
@@ -237,6 +244,18 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 
         UPDATE_CBC_MAC;
 
+/* NXP added */
+#if defined(MBEDTLS_CCM_USE_AES_CBC_MAC)
+        if( MBEDTLS_CIPHER_ID_AES == ctx->cipher_ctx.cipher_info->base->cipher )
+        {
+            if( ( ret = mbedtls_aes_cbc_mac((mbedtls_aes_context*) ctx->cipher_ctx.cipher_ctx, len_left, y, src) ) != 0 )
+            {
+                return( ret );
+            }
+        }
+        else
+#endif /* MBEDTLS_CCM_USE_AES_CBC_MAC */
+
         while( len_left > 0 )
         {
             use_len = len_left > 16 ? 16 : len_left;
@@ -274,6 +293,36 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     len_left = length;
     src = input;
     dst = output;
+
+/* NXP added */
+#if defined(MBEDTLS_CCM_USE_AES_CBC_MAC)
+    if( MBEDTLS_CIPHER_ID_AES == ctx->cipher_ctx.cipher_info->base->cipher )
+    {
+        if( mode == CCM_ENCRYPT )
+        {
+            if( ( ret = mbedtls_aes_cbc_mac((mbedtls_aes_context*) ctx->cipher_ctx.cipher_ctx, len_left, y, src) ) != 0 )
+            {
+                return( ret );
+            }
+        }
+
+        size_t offset = 0;
+        if( ( ret = mbedtls_aes_crypt_ctr((mbedtls_aes_context*) ctx->cipher_ctx.cipher_ctx, len_left,
+                                          &offset, ctr, b, src, dst) ) != 0 )
+        {
+            return( ret );
+        }
+
+        if( mode == CCM_DECRYPT )
+        {
+            if( ( ret = mbedtls_aes_cbc_mac((mbedtls_aes_context*) ctx->cipher_ctx.cipher_ctx, len_left, y, dst) ) != 0 )
+            {
+                return( ret );
+            }
+        }
+    }
+    else
+#endif /* MBEDTLS_CCM_USE_AES_CBC_MAC */
 
     while( len_left > 0 )
     {

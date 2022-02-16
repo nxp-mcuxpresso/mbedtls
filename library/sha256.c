@@ -97,6 +97,8 @@ void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
     *dst = *src;
 }
 
+/* NXP added */
+#if !defined(MBEDTLS_SHA256_STARTS_ALT)
 /*
  * SHA-256 context setup
  */
@@ -137,6 +139,7 @@ int mbedtls_sha256_starts_ret( mbedtls_sha256_context *ctx, int is224 )
 
     return( 0 );
 }
+#endif /* MBEDTLS_SHA256_STARTS_ALT NXP added */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha256_starts( mbedtls_sha256_context *ctx,
@@ -290,6 +293,8 @@ void mbedtls_sha256_process( mbedtls_sha256_context *ctx,
 #endif
 #endif /* !MBEDTLS_SHA256_PROCESS_ALT */
 
+/* NXP added */
+#if !defined(MBEDTLS_SHA256_UPDATE_ALT)
 /*
  * SHA-256 process buffer
  */
@@ -342,6 +347,7 @@ int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
 
     return( 0 );
 }
+#endif /* MBEDTLS_SHA256_UPDATE_ALT NXP added */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha256_update( mbedtls_sha256_context *ctx,
@@ -352,6 +358,8 @@ void mbedtls_sha256_update( mbedtls_sha256_context *ctx,
 }
 #endif
 
+/* NXP added */
+#if !defined(MBEDTLS_SHA256_FINISH_ALT)
 /*
  * SHA-256 final digest
  */
@@ -417,6 +425,7 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
 
     return( 0 );
 }
+#endif /* MBEDTLS_SHA256_FINISH_ALT NXP added */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha256_finish( mbedtls_sha256_context *ctx,
@@ -428,8 +437,8 @@ void mbedtls_sha256_finish( mbedtls_sha256_context *ctx,
 
 #endif /* !MBEDTLS_SHA256_ALT */
 
-/* NXP adding for SSS API support */
-#if !defined(NXP_MBEDTLS_SHA256_ALT)
+/* NXP added for API support */
+#if !defined(NXP_MBEDTLS_SHA256_ALT) && !defined(MBEDTLS_SHA256_FULL_ALT)
 /*
  * output = SHA-256( input buffer )
  */
@@ -461,6 +470,7 @@ exit:
 
     return( ret );
 }
+#endif /* !MBEDTLS_SHA256_FULL_ALT  NXP added */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha256( const unsigned char *input,
@@ -470,8 +480,8 @@ void mbedtls_sha256( const unsigned char *input,
 {
     mbedtls_sha256_ret( input, ilen, output, is224 );
 }
-#endif
-#endif /* !NXP_MBEDTLS_SHA256_ALT */
+
+#endif /* !NXP_MBEDTLS_SHA256_ALT NXP added */
 
 #if defined(MBEDTLS_SELF_TEST)
 /*

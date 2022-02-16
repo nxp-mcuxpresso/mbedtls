@@ -89,6 +89,8 @@ static int aes_padlock_ace = -1;
 /*
  * Forward S-box
  */
+/* NXP added */
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT) && !defined(MBEDTLS_AES_SETKEY_DEC_ALT) && !defined(MBEDTLS_AES_ENCRYPT_ALT)
 static const unsigned char FSb[256] =
 {
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5,
@@ -124,10 +126,13 @@ static const unsigned char FSb[256] =
     0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68,
     0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
 };
+#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT && !MBEDTLS_AES_SETKEY_DEC_ALT && !MBEDTLS_AES_ENCRYPT_ALT */
 
 /*
  * Forward tables
  */
+/* NXP added */
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT) && !defined(MBEDTLS_AES_ENCRYPT_ALT)
 #define FT \
 \
     V(A5,63,63,C6), V(84,7C,7C,F8), V(99,77,77,EE), V(8D,7B,7B,F6), \
@@ -216,10 +221,13 @@ static const uint32_t FT3[256] = { FT };
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
 
 #undef FT
+#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT && !MBEDTLS_AES_ENCRYPT_ALT */
 
 /*
  * Reverse S-box
  */
+/* NXP added */
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT) && !defined(MBEDTLS_AES_DECRYPT_ALT)
 static const unsigned char RSb[256] =
 {
     0x52, 0x09, 0x6A, 0xD5, 0x30, 0x36, 0xA5, 0x38,
@@ -255,10 +263,13 @@ static const unsigned char RSb[256] =
     0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26,
     0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D
 };
+#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT && !MBEDTLS_AES_DECRYPT_ALT */
 
 /*
  * Reverse tables
  */
+/* NXP added */
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT) && !defined(MBEDTLS_AES_SETKEY_DEC_ALT) && !defined(MBEDTLS_AES_DECRYPT_ALT)
 #define RT \
 \
     V(50,A7,F4,51), V(53,65,41,7E), V(C3,A4,17,1A), V(96,5E,27,3A), \
@@ -347,45 +358,64 @@ static const uint32_t RT3[256] = { RT };
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
 
 #undef RT
+#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT && !MBEDTLS_AES_SETKEY_DEC_ALT && !MBEDTLS_AES_DECRYPT_ALT */
 
 /*
  * Round constants
  */
+/* NXP added */
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 static const uint32_t RCON[10] =
 {
     0x00000001, 0x00000002, 0x00000004, 0x00000008,
     0x00000010, 0x00000020, 0x00000040, 0x00000080,
     0x0000001B, 0x00000036
 };
+#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT */
 
 #else /* MBEDTLS_AES_ROM_TABLES */
 
 /*
  * Forward S-box & tables
  */
+/* NXP added */
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT) && !defined(MBEDTLS_AES_SETKEY_DEC_ALT) && !defined(MBEDTLS_AES_ENCRYPT_ALT)
 static unsigned char FSb[256];
+#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT && !MBEDTLS_AES_SETKEY_DEC_ALT && !MBEDTLS_AES_ENCRYPT_ALT */
+/* NXP added */
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT) && !defined(MBEDTLS_AES_ENCRYPT_ALT)
 static uint32_t FT0[256];
 #if !defined(MBEDTLS_AES_FEWER_TABLES)
 static uint32_t FT1[256];
 static uint32_t FT2[256];
 static uint32_t FT3[256];
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
+#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT && !MBEDTLS_AES_ENCRYPT_ALT */
 
 /*
  * Reverse S-box & tables
  */
+/* NXP added */
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT) && !defined(MBEDTLS_AES_DECRYPT_ALT)
 static unsigned char RSb[256];
+#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT && !MBEDTLS_AES_DECRYPT_ALT */
+/* NXP added */
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT) && !defined(MBEDTLS_AES_SETKEY_DEC_ALT) && !defined(MBEDTLS_AES_DECRYPT_ALT)
 static uint32_t RT0[256];
 #if !defined(MBEDTLS_AES_FEWER_TABLES)
 static uint32_t RT1[256];
 static uint32_t RT2[256];
 static uint32_t RT3[256];
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
+#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT && !MBEDTLS_AES_SETKEY_DEC_ALT && !MBEDTLS_AES_DECRYPT_ALT */
 
 /*
  * Round constants
  */
+/* NXP added */
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 static uint32_t RCON[10];
+#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT */
 
 /*
  * Tables generation code
@@ -393,9 +423,12 @@ static uint32_t RCON[10];
 #define ROTL8(x) ( ( (x) << 8 ) & 0xFFFFFFFF ) | ( (x) >> 24 )
 #define XTIME(x) ( ( (x) << 1 ) ^ ( ( (x) & 0x80 ) ? 0x1B : 0x00 ) )
 #define MUL(x,y) ( ( (x) && (y) ) ? pow[(log[(x)]+log[(y)]) % 255] : 0 )
-
+/* NXP added */
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 static int aes_init_done = 0;
-
+#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT */
+/* NXP added */
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 static void aes_gen_tables( void )
 {
     int i, x, y, z;
@@ -475,6 +508,7 @@ static void aes_gen_tables( void )
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
     }
 }
+#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT */
 
 #undef ROTL8
 
@@ -1039,8 +1073,8 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
     else
         return( mbedtls_internal_aes_decrypt( ctx, input, output ) );
 }
-
-#if defined(MBEDTLS_CIPHER_MODE_CBC)
+/* NXP added MBEDTLS_AES_CBC_ALT */
+#if defined(MBEDTLS_CIPHER_MODE_CBC) && !defined(MBEDTLS_AES_CBC_ALT)
 /*
  * AES-CBC buffer encryption/decryption
  */
@@ -1111,9 +1145,9 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
 
     return( 0 );
 }
-#endif /* MBEDTLS_CIPHER_MODE_CBC */
-
-#if defined(MBEDTLS_CIPHER_MODE_XTS)
+#endif /* MBEDTLS_CIPHER_MODE_CBC && MBEDTLS_AES_CBC_ALT */
+/* NXP added MBEDTLS_AES_XTS_ALT */
+#if defined(MBEDTLS_CIPHER_MODE_XTS) && !defined(MBEDTLS_AES_XTS_ALT)
 
 /* Endianess with 64 bits values */
 #ifndef GET_UINT64_LE
@@ -1278,8 +1312,8 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
     return( 0 );
 }
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
-
-#if defined(MBEDTLS_CIPHER_MODE_CFB)
+/* NXP added MBEDTLS_AES_CFB_ALT */
+#if defined(MBEDTLS_CIPHER_MODE_CFB) && !defined(MBEDTLS_AES_CFB_ALT)
 /*
  * AES-CFB128 buffer encryption/decryption
  */
@@ -1376,9 +1410,9 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
 
     return( 0 );
 }
-#endif /* MBEDTLS_CIPHER_MODE_CFB */
-
-#if defined(MBEDTLS_CIPHER_MODE_OFB)
+#endif /* MBEDTLS_CIPHER_MODE_CFB && MBEDTLS_AES_CFB_ALT */
+/* NXP added MBEDTLS_AES_OFB_ALT */
+#if defined(MBEDTLS_CIPHER_MODE_OFB) && !defined(MBEDTLS_AES_OFB_ALT)
 /*
  * AES-OFB (Output Feedback Mode) buffer encryption/decryption
  */
@@ -1421,9 +1455,9 @@ int mbedtls_aes_crypt_ofb( mbedtls_aes_context *ctx,
 exit:
     return( ret );
 }
-#endif /* MBEDTLS_CIPHER_MODE_OFB */
-
-#if defined(MBEDTLS_CIPHER_MODE_CTR)
+#endif /* MBEDTLS_CIPHER_MODE_OFB && MBEDTLS_AES_OFB_ALT */
+/* NXP added MBEDTLS_AES_CTR_ALT */
+#if defined(MBEDTLS_CIPHER_MODE_CTR) && !defined(MBEDTLS_AES_CTR_ALT)
 /*
  * AES-CTR buffer encryption/decryption
  */
@@ -1469,7 +1503,7 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
 
     return( 0 );
 }
-#endif /* MBEDTLS_CIPHER_MODE_CTR */
+#endif /* MBEDTLS_CIPHER_MODE_CTR && MBEDTLS_AES_CTR_ALT */
 
 #endif /* !MBEDTLS_AES_ALT */
 

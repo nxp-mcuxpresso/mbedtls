@@ -152,8 +152,7 @@ cleanup:
  * that the RSA primitives will be able to execute without error.
  * It does *not* make guarantees for consistency of the parameters.
  */
-/* NXP remove static */
-int rsa_check_context( mbedtls_rsa_context const *ctx, int is_priv,
+static int rsa_check_context( mbedtls_rsa_context const *ctx, int is_priv,
                               int blinding_needed )
 {
 #if !defined(MBEDTLS_RSA_NO_CRT)
@@ -781,8 +780,6 @@ cleanup:
 #endif /* MBEDTLS_RSA_PUBLIC_ALT */
 /* NXP added for HW accelerators support */
 
-/* NXP added */
-#if !defined(MBEDTLS_RSA_PRIVATE_ALT)
 /*
  * Generate or update blinding values, see section 10 of:
  *  KOCHER, Paul C. Timing attacks on implementations of Diffie-Hellman, RSA,
@@ -1098,7 +1095,6 @@ cleanup:
 
     return( ret );
 }
-#endif /* MBEDTLS_RSA_PRIVATE_ALT NXP added */
 
 #if defined(MBEDTLS_PKCS1_V21)
 /**

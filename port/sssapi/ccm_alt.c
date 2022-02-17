@@ -153,11 +153,7 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
     sss_sscp_aead_t aeadCtx;
     size_t tlen        = tag_len;
     sss_mode_t sssMode = kMode_SSS_Encrypt;
-    if (CRYPTO_InitHardware() != kStatus_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    else if (mode == CCM_ENCRYPT)
+    if (mode == CCM_ENCRYPT)
     {
         sssMode = kMode_SSS_Encrypt;
     }
@@ -169,27 +165,35 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
     {
         return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
-
-    /* AEAD OPERATION INIT */
-    if (sss_sscp_aead_context_init(&aeadCtx, &g_sssSession, &ctx->key, kAlgorithm_SSS_AES_CCM, sssMode) !=
-        kStatus_SSS_Success)
+    if (CRYPTO_InitHardware() != kStatus_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    /* RUN AEAD */
-    else if (sss_sscp_aead_one_go(&aeadCtx, input, output, length, (uint8_t *)(uintptr_t)iv, iv_len, add, add_len, tag,
-                                  &tlen) != kStatus_SSS_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    /* FREE AEAD CONTEXT */
-    else if (sss_sscp_aead_context_free(&aeadCtx) != kStatus_SSS_Success)
+    else  if (sss_sscp_aead_context_init(&aeadCtx, &g_sssSession, &ctx->key, kAlgorithm_SSS_AES_CCM, sssMode) !=
+              kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     else
     {
-        ret = 0;
+        /* RUN AEAD */
+        if (sss_sscp_aead_one_go(&aeadCtx, 
+                                 input, output, length,
+                                 (uint8_t *)(uintptr_t)iv, iv_len, 
+                                 add, add_len, 
+                                 tag, &tlen) != kStatus_SSS_Success)
+        {
+            ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        }
+        /* Free AEAD context it its init worked whether AEAD operation succeeded or not */
+        if (sss_sscp_aead_context_free(&aeadCtx) != kStatus_SSS_Success)
+        {
+            ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        }
+        else
+        {
+            ret = 0;
+        }
     }
     return ret;
 }
@@ -459,11 +463,7 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
     sss_sscp_aead_t aeadCtx;
     size_t tlen        = tag_len;
     sss_mode_t sssMode = kMode_SSS_Encrypt;
-    if (CRYPTO_InitHardware() != kStatus_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    else if (mode == CCM_ENCRYPT)
+    if (mode == CCM_ENCRYPT)
     {
         sssMode = kMode_SSS_Encrypt;
     }
@@ -476,26 +476,35 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
         return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
 
-    /* AEAD OPERATION INIT */
-    if (sss_sscp_aead_context_init(&aeadCtx, &g_sssSession, &ctx->key, kAlgorithm_SSS_AES_CCM, sssMode) !=
-        kStatus_SSS_Success)
+    if (CRYPTO_InitHardware() != kStatus_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    /* RUN AEAD */
-    else if (sss_sscp_aead_one_go(&aeadCtx, input, output, length, (uint8_t *)(uintptr_t)iv, iv_len, add, add_len, tag,
-                                  &tlen) != kStatus_SSS_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    /* FREE AEAD CONTEXT */
-    else if (sss_sscp_aead_context_free(&aeadCtx) != kStatus_SSS_Success)
+    else /* AEAD OPERATION INIT */
+        if (sss_sscp_aead_context_init(&aeadCtx, &g_sssSession, &ctx->key, kAlgorithm_SSS_AES_CCM, sssMode) !=
+              kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     else
     {
-        ret = 0;
+        /* RUN AEAD */
+        if (sss_sscp_aead_one_go(&aeadCtx, input, output, length, 
+                                 (uint8_t *)(uintptr_t)iv, iv_len,
+                                 add, add_len, 
+                                 tag, &tlen) != kStatus_SSS_Success)
+        {
+            ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        }
+        /* FREE AEAD CONTEXT */
+        if (sss_sscp_aead_context_free(&aeadCtx) != kStatus_SSS_Success)
+        {
+            ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        }
+        else
+        {
+            ret = 0;
+        }
     }
     return ret;
 }

@@ -433,20 +433,24 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
                 ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             }
             /* RUN CMAC ONE GO */
-            else if (sss_sscp_mac_one_go(&ctx, (const uint8_t *)input, ilen, (uint8_t *)output, &macSize) !=
-                     kStatus_SSS_Success)
-            {
-                ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-            }
             else
             {
-                ret = 0;
+                if (sss_sscp_mac_one_go(&ctx, (const uint8_t *)input, ilen, (uint8_t *)output, &macSize) !=
+                     kStatus_SSS_Success)
+                {
+                    ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+                }
+                else
+                {
+                    ret = 0;
+                }
+                /* Free MAC context only if its init has been successful */
+                (void)sss_sscp_mac_context_free(&ctx);
             }
             /* CLEAN UP */
             /* KEYOBJECT FREE*/
             (void)sss_sscp_key_object_free(&sssKey);
-            /* CONTEXT FREE*/
-            (void)sss_sscp_mac_context_free(&ctx);
+
             break;
         case MBEDTLS_CIPHER_DES_EDE3_ECB:
             mbedtls_cipher_init(&mbedctx);
@@ -962,20 +966,24 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
                 ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             }
             /* RUN CMAC ONE GO */
-            else if (sss_sscp_mac_one_go(&ctx, (const uint8_t *)input, ilen, (uint8_t *)output, &macSize) !=
-                     kStatus_SSS_Success)
-            {
-                ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-            }
             else
             {
-                ret = 0;
+                if (sss_sscp_mac_one_go(&ctx, (const uint8_t *)input, ilen, (uint8_t *)output, &macSize) !=
+                      kStatus_SSS_Success)
+                {
+                    ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+                }
+                else
+                {
+                    ret = 0;
+                }
+                /* Free MAC context only if its init has been successful */
+                (void)sss_sscp_mac_context_free(&ctx);
             }
             /* CLEAN UP */
             /* KEYOBJECT FREE*/
             (void)sss_sscp_key_object_free(&sssKey, SSS_SSCP_KEY_OBJECT_FREE_DYNAMIC);
             /* CONTEXT FREE*/
-            (void)sss_sscp_mac_context_free(&ctx);
             break;
         case MBEDTLS_CIPHER_DES_EDE3_ECB:
             mbedtls_cipher_init(&mbedctx);

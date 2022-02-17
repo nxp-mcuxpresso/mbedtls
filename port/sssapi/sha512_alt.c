@@ -347,19 +347,21 @@ int mbedtls_sha512_ret(const unsigned char *input, size_t ilen, unsigned char ou
     {
         alg = kAlgorithm_SSS_SHA512;
     }
-    if (sss_sscp_digest_context_init(&dctx, &g_sssSession, alg, kMode_SSS_Digest) != kStatus_SSS_Success)
+    if (CRYPTO_InitHardware() != kStatus_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    else if (sss_sscp_digest_one_go(&dctx, input, ilen, output, &size) != kStatus_SSS_Success)
+    else if (sss_sscp_digest_context_init(&dctx, &g_sssSession, alg, kMode_SSS_Digest) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     else
     {
-        ret = 0;
+         sss_status_t st;
+         st = sss_sscp_digest_one_go(&dctx, input, ilen, output, &size);
+         ret = (st == kStatus_SSS_Success) ? 0 : MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+         (void)sss_sscp_digest_context_free(&dctx);
     }
-    (void)sss_sscp_digest_context_free(&dctx);
     return ret;
 }
 
@@ -721,19 +723,21 @@ int mbedtls_sha512_ret(const unsigned char *input, size_t ilen, unsigned char ou
     {
         alg = kAlgorithm_SSS_SHA512;
     }
-    if (sss_sscp_digest_context_init(&dctx, &g_sssSession, alg, kMode_SSS_Digest) != kStatus_SSS_Success)
+    if (CRYPTO_InitHardware() != kStatus_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    else if (sss_sscp_digest_one_go(&dctx, input, ilen, output, &size) != kStatus_SSS_Success)
+    else if (sss_sscp_digest_context_init(&dctx, &g_sssSession, alg, kMode_SSS_Digest) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     else
     {
-        ret = 0;
+         sss_status_t st;
+         st = sss_sscp_digest_one_go(&dctx, input, ilen, output, &size);
+         ret = (st == kStatus_SSS_Success) ? 0 : MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+         (void)sss_sscp_digest_context_free(&dctx);
     }
-    (void)sss_sscp_digest_context_free(&dctx);
     return ret;
 }
 

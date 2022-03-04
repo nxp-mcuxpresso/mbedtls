@@ -46,7 +46,7 @@ extern void CRYPTO_ConfigureThreading(void);
 #if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
 #include "fsl_casper.h"
 #endif
-#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0) && !defined(RW610_SERIES)
 #include "fsl_trng.h"
 #elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
 #include "fsl_rnga.h"
@@ -323,7 +323,7 @@ status_t CRYPTO_InitHardware(void)
 #endif /* (MBEDTLS_THREADING_C) */
 #endif /* (FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0) */
     {  /* Init RNG module.*/
-#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0) && !defined(RW610_SERIES)
 #if defined(TRNG)
 #define TRNG0 TRNG
 #endif
@@ -4938,7 +4938,7 @@ void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char dat
 /* Entropy poll callback for a hardware source */
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
 
-#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0) && !defined(RW610_SERIES)
 #include "fsl_trng.h"
 #elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
 #include "fsl_rnga.h"
@@ -4952,7 +4952,7 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 {
     status_t result = kStatus_Fail;
 
-#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0) && !defined(RW610_SERIES)
 #ifndef TRNG0
 #define TRNG0 TRNG
 #endif

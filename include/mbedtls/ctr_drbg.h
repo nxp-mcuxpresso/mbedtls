@@ -163,6 +163,8 @@ extern "C" {
 #define MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN ( MBEDTLS_CTR_DRBG_ENTROPY_LEN + 1 ) / 2
 #endif
 
+/* NXP added */
+#if !defined(MBEDTLS_CTR_DRBG_ALT)
 /**
  * \brief          The CTR_DRBG context structure.
  */
@@ -211,6 +213,10 @@ typedef struct mbedtls_ctr_drbg_context
 #endif
 }
 mbedtls_ctr_drbg_context;
+/* NXP added */
+#else
+#include "ctr_drbg_alt.h"
+#endif /* MBEDTLS_CTR_DRBG_ALT */
 
 /**
  * \brief               This function initializes the CTR_DRBG context,

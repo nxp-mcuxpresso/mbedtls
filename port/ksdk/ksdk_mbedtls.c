@@ -93,48 +93,12 @@ uint32_t nonCacheSize  = (uint32_t)__NCACHE_REGION_SIZE;
 /* Returns TRUE if in noncached, FALSE otherwise */
 static bool IS_IN_NONCACHED(uint32_t addr, uint32_t size)
 {
-    /* Check if data are in DTCM (non-cached) memory */
+  /* Check if data are in TCM (non-cached) memory */
 #if defined(__DTCM_PRESENT) && (__DTCM_PRESENT == 1U)
-    uint8_t DTCMSZ     = 0U;
     uint32_t DTCM_SIZE = 0, DTCM_END = 0U;
-    /* Get DTCM size configuration from GPR14 */
-    DTCMSZ =
-        (uint8_t)((IOMUXC_GPR_GPR14_CM7_CFGDTCMSZ_MASK & IOMUXC_GPR->GPR14) >> IOMUXC_GPR_GPR14_CM7_CFGDTCMSZ_SHIFT);
-
-    switch (DTCMSZ)
-    {
-        case 0x0: /* no DTCM */
-            DTCM_SIZE = 0U;
-            break;
-        case 0x3: /* 4KB */
-            DTCM_SIZE = 0x1000;
-            break;
-        case 0x4: /* 8KB */
-            DTCM_SIZE = 0x2000;
-            break;
-        case 0x5: /* 16KB */
-            DTCM_SIZE = 0x4000;
-            break;
-        case 0x6: /* 32KB */
-            DTCM_SIZE = 0x8000;
-            break;
-        case 0x7: /* 64KB */
-            DTCM_SIZE = 0x10000;
-            break;
-        case 0x8: /* 128KB */
-            DTCM_SIZE = 0x20000;
-            break;
-        case 0x9: /* 256KB */
-            DTCM_SIZE = 0x40000;
-            break;
-        case 0xA: /* 512KB */
-            DTCM_SIZE = 0x80000;
-            break;
-        default:
-            /* All the cases have been listed above, the default clause should not be reached. */
-            break;
-    }
-
+    /* Get DTCM size configuration*/
+    DTCM_SIZE = FSL_FEATURE_FLEXRAM_INTERNAL_RAM_BANK_SIZE * FSL_FEATURE_FLEXRAM_INTERNAL_RAM_TOTAL_BANK_NUMBERS  ;
+   
     DTCM_END = DTCM_START + DTCM_SIZE;
 
     if ((addr >= DTCM_START) && (addr + size < DTCM_END))
@@ -143,6 +107,7 @@ static bool IS_IN_NONCACHED(uint32_t addr, uint32_t size)
     }
 #endif /* __DTCM_PRESENT */
     /* If not in DTCM, check non-cached section based linker file */
+ /* Check non-cached section based linker file */
     if ((addr >= nonCacheStart) && ((addr + size) < (nonCacheStart + nonCacheSize)))
     {
         return true;
@@ -339,6 +304,10 @@ status_t CRYPTO_InitHardware(void)
     DCP_GetDefaultConfig(&dcpConfig);
     DCP_Init(DCP, &dcpConfig);
 #endif
+#if defined(FSL_FEATURE_SOC_SHA_COUNT) && (FSL_FEATURE_SOC_SHA_COUNT > 0)
+    /* Initialize SHA driver */
+    SHA_ClkInit(SHA_INSTANCE);
+#endif /* (FSL_FEATURE_SOC_SHA_COUNT) */   
 #if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
     /* Initialize CASPER */
     CASPER_Init(CASPER);
@@ -3688,7 +3657,7 @@ cleanup:
 
 static void reverse_array(uint8_t *src, size_t src_len)
 {
-    int i;
+    unsigned int i;
 
     for (i = 0; i < src_len / 2; i++)
     {
@@ -3954,7 +3923,7 @@ int mbedtls_sha1_starts_ret(mbedtls_sha1_context *ctx)
 int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
 {
     status_t ret = kStatus_Fail;
-    ret          = SHA_Update(SHA_INSTANCE, ctx, data, 64, MANUAL_LOAD_SHA_INPUT);
+    ret          = SHA_Update(SHA_INSTANCE, ctx, data, 64);
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
@@ -3968,7 +3937,7 @@ int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char
 int mbedtls_sha1_update_ret(mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen)
 {
     status_t ret = kStatus_Fail;
-    ret          = SHA_Update(SHA_INSTANCE, ctx, input, ilen, MANUAL_LOAD_SHA_INPUT);
+    ret          = SHA_Update(SHA_INSTANCE, ctx, input, ilen);
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
@@ -4542,7 +4511,7 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
 int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
 {
     status_t ret = kStatus_Fail;
-    ret          = SHA_Update(SHA_INSTANCE, ctx, data, 64, MANUAL_LOAD_SHA_INPUT);
+    ret          = SHA_Update(SHA_INSTANCE, ctx, data, 64);
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
@@ -4556,7 +4525,7 @@ int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned 
 int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
 {
     status_t ret = kStatus_Fail;
-    ret          = SHA_Update(SHA_INSTANCE, ctx, input, ilen, MANUAL_LOAD_SHA_INPUT);
+    ret          = SHA_Update(SHA_INSTANCE, ctx, input, ilen);
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
@@ -4874,37 +4843,7 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
     result = CAAM_RNG_GetRandomData(CAAM_INSTANCE, &s_caamHandle, kCAAM_RngStateHandle0, output, len, kCAAM_RngDataAny,
                                     NULL);
 #elif defined(FSL_FEATURE_SOC_LPC_RNG_COUNT) && (FSL_FEATURE_SOC_LPC_RNG_COUNT > 0)
-    uint32_t rn;
-    size_t length;
-    int i;
-
-    length = len;
-
-    while (length > 0U)
-    {
-        rn = RNG_GetRandomData();
-
-        if (length >= sizeof(uint32_t))
-        {
-            (void)memcpy(output, (uint8_t *)&rn, sizeof(uint32_t));
-            length -= sizeof(uint32_t);
-            output += sizeof(uint32_t);
-        }
-        else
-        {
-            (void)memcpy(output, (uint8_t *)&rn, length);
-            output += length;
-            len = 0U;
-        }
-
-        /* Discard next 32 random words for better entropy */
-        for (i = 0; i < 32; i++)
-        {
-            (void)RNG_GetRandomData();
-        }
-    }
-
-    result = kStatus_Success;
+    result = RNG_GetRandomData(output, len);
 #elif defined(FSL_FEATURE_SOC_LPC_RNG1_COUNT) && (FSL_FEATURE_SOC_LPC_RNG1_COUNT > 0)
     status_t status = kStatus_Fail;
 

@@ -45,6 +45,9 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
+/* NXP added */
+#if !defined(MBEDTLS_CTR_DRBG_ALT)
+
 /*
  * CTR_DRBG context initialization
  */
@@ -682,6 +685,9 @@ exit:
 }
 #endif /* MBEDTLS_FS_IO */
 
+/* NXP added */
+#endif /* MBEDTLS_CTR_DRBG_ALT */
+
 #if defined(MBEDTLS_SELF_TEST)
 
 /* The CTR_DRBG NIST test vectors used here are available at
@@ -842,7 +848,6 @@ int mbedtls_ctr_drbg_self_test( int verbose )
     unsigned char buf[ sizeof( result_pr ) ];
 
     mbedtls_ctr_drbg_init( &ctx );
-
     /*
      * Based on a NIST CTR_DRBG test vector (PR = True)
      */

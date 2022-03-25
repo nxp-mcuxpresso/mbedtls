@@ -3798,18 +3798,28 @@ int mbedtls_internal_md5_process(mbedtls_md5_context *ctx, const unsigned char d
 
 #if defined(MBEDTLS_FREESCALE_LTC_SHA1)
 #include "mbedtls/sha1.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
-void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
+
+#define SHA1_VALIDATE_RET(cond)                             \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
+
+#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+
+void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
 {
-    memset(ctx, 0, sizeof(mbedtls_sha1_context));
+    SHA1_VALIDATE( ctx != NULL );
+
+    memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
 }
 
-void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
+void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
 {
-    if (ctx == NULL)
+    if( ctx == NULL )
         return;
 
-    mbedtls_zeroize(ctx, sizeof(mbedtls_sha1_context));
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
 }
 
 void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
@@ -3873,6 +3883,14 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 #elif defined(MBEDTLS_FREESCALE_MMCAU_SHA1)
 
 #include "mbedtls/sha1.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
+
+
+#define SHA1_VALIDATE_RET(cond)                             \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
+
+#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
 
 int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
 {
@@ -3887,18 +3905,28 @@ int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char
 
 #elif defined(MBEDTLS_FREESCALE_LPC_SHA1)
 #include "mbedtls/sha1.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
-void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
+
+#define SHA1_VALIDATE_RET(cond)                             \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
+
+#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+
+void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
 {
-    memset(ctx, 0, sizeof(mbedtls_sha1_context));
+    SHA1_VALIDATE( ctx != NULL );
+
+    memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
 }
 
-void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
+void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
 {
-    if (ctx == NULL)
+    if( ctx == NULL )
         return;
 
-    mbedtls_zeroize(ctx, sizeof(mbedtls_sha1_context));
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
 }
 
 void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
@@ -3961,20 +3989,28 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 }
 #elif defined(MBEDTLS_FREESCALE_CAAM_SHA1)
 #include "mbedtls/sha1.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
-void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
+
+#define SHA1_VALIDATE_RET(cond)                             \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
+
+#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+
+void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
 {
-    (void)memset(ctx, 0, sizeof(mbedtls_sha1_context));
+    SHA1_VALIDATE( ctx != NULL );
+
+    memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
 }
 
-void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
+void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
 {
-    if (ctx == NULL)
-    {
+    if( ctx == NULL )
         return;
-    }
 
-    mbedtls_zeroize(ctx, sizeof(mbedtls_sha1_context));
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
 }
 
 void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
@@ -4037,18 +4073,28 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 
 #elif defined(MBEDTLS_FREESCALE_CAU3_SHA1)
 #include "mbedtls/sha1.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
-void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
+
+#define SHA1_VALIDATE_RET(cond)                             \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
+
+#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+
+void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
 {
-    memset(ctx, 0, sizeof(mbedtls_sha1_context));
+    SHA1_VALIDATE( ctx != NULL );
+
+    memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
 }
 
-void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
+void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
 {
-    if (ctx == NULL)
+    if( ctx == NULL )
         return;
 
-    mbedtls_zeroize(ctx, sizeof(mbedtls_sha1_context));
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
 }
 
 void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
@@ -4111,18 +4157,28 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 
 #elif defined(MBEDTLS_FREESCALE_DCP_SHA1)
 #include "mbedtls/sha1.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
-void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
+
+#define SHA1_VALIDATE_RET(cond)                             \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
+
+#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+
+void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
 {
-    (void)memset(ctx, 0, sizeof(mbedtls_sha1_context));
+    SHA1_VALIDATE( ctx != NULL );
+
+    memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
 }
 
-void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
+void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
 {
-    if (ctx == NULL)
+    if( ctx == NULL )
         return;
 
-    mbedtls_zeroize(ctx, sizeof(mbedtls_sha1_context));
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
 }
 
 void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
@@ -4191,18 +4247,28 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 
 #elif defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA1)
 #include "mbedtls/sha1.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
-void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
+
+#define SHA1_VALIDATE_RET(cond)                             \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
+
+#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+
+void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
 {
-    memset(ctx, 0, sizeof(mbedtls_sha1_context));
+    SHA1_VALIDATE( ctx != NULL );
+
+    memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
 }
 
-void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
+void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
 {
-    if (ctx == NULL)
+    if( ctx == NULL )
         return;
 
-    mbedtls_zeroize(ctx, sizeof(mbedtls_sha1_context));
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
 }
 
 void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
@@ -4297,18 +4363,27 @@ void mbedtls_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64
 
 #if defined(MBEDTLS_FREESCALE_LTC_SHA256)
 #include "mbedtls/sha256.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
-void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
+#define SHA256_VALIDATE_RET(cond)                           \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
+#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+
+
+void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 {
-    memset(ctx, 0, sizeof(mbedtls_sha256_context));
+    SHA256_VALIDATE( ctx != NULL );
+
+    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
 }
 
-void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
+void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
 {
-    if (ctx == NULL)
+    if( ctx == NULL )
         return;
 
-    mbedtls_zeroize(ctx, sizeof(mbedtls_sha256_context));
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
 }
 
 void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
@@ -4395,18 +4470,27 @@ int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned 
 #elif defined(MBEDTLS_FREESCALE_CAU3_SHA256)
 
 #include "mbedtls/sha256.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
-void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
+#define SHA256_VALIDATE_RET(cond)                           \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
+#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+
+
+void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 {
-    memset(ctx, 0, sizeof(mbedtls_sha256_context));
+    SHA256_VALIDATE( ctx != NULL );
+
+    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
 }
 
-void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
+void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
 {
-    if (ctx == NULL)
+    if( ctx == NULL )
         return;
 
-    mbedtls_zeroize(ctx, sizeof(mbedtls_sha256_context));
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
 }
 
 void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
@@ -4472,18 +4556,27 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
 
 #elif defined(MBEDTLS_FREESCALE_LPC_SHA256)
 #include "mbedtls/sha256.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
-void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
+#define SHA256_VALIDATE_RET(cond)                           \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
+#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+
+
+void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 {
-    memset(ctx, 0, sizeof(mbedtls_sha256_context));
+    SHA256_VALIDATE( ctx != NULL );
+
+    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
 }
 
-void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
+void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
 {
-    if (ctx == NULL)
+    if( ctx == NULL )
         return;
 
-    mbedtls_zeroize(ctx, sizeof(mbedtls_sha256_context));
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
 }
 
 void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
@@ -4550,18 +4643,27 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
 
 #elif defined(MBEDTLS_FREESCALE_CAAM_SHA256)
 #include "mbedtls/sha256.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
-void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
+#define SHA256_VALIDATE_RET(cond)                           \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
+#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+
+
+void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 {
-    (void)memset(ctx, 0, sizeof(mbedtls_sha256_context));
+    SHA256_VALIDATE( ctx != NULL );
+
+    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
 }
 
-void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
+void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
 {
-    if (ctx == NULL)
+    if( ctx == NULL )
         return;
 
-    mbedtls_zeroize(ctx, sizeof(mbedtls_sha256_context));
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
 }
 
 void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
@@ -4631,18 +4733,27 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
 
 #elif defined(MBEDTLS_FREESCALE_DCP_SHA256)
 #include "mbedtls/sha256.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
-void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
+#define SHA256_VALIDATE_RET(cond)                           \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
+#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+
+
+void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 {
-    (void)memset(ctx, 0, sizeof(mbedtls_sha256_context));
+    SHA256_VALIDATE( ctx != NULL );
+
+    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
 }
 
-void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
+void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
 {
-    if (ctx == NULL)
+    if( ctx == NULL )
         return;
 
-    mbedtls_zeroize(ctx, sizeof(mbedtls_sha256_context));
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
 }
 
 void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
@@ -4714,18 +4825,27 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
 
 #elif defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA256)
 #include "mbedtls/sha256.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
-void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
+#define SHA256_VALIDATE_RET(cond)                           \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
+#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+
+
+void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 {
-    memset(ctx, 0, sizeof(mbedtls_sha256_context));
+    SHA256_VALIDATE( ctx != NULL );
+
+    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
 }
 
-void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
+void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
 {
-    if (ctx == NULL)
+    if( ctx == NULL )
         return;
 
-    mbedtls_zeroize(ctx, sizeof(mbedtls_sha256_context));
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
 }
 
 void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
@@ -4789,7 +4909,7 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
     }
     return 0;
 }
-#endif /* MBEDTLS_FREESCALE_LTC_SHA256 */
+#endif /* MBEDTLS_FREESCALE_HASHCRYPT_SHA256 */
 #if !defined(MBEDTLS_DEPRECATED_REMOVED) && defined(MBEDTLS_SHA256_ALT)
 #include "mbedtls/sha256.h"
 

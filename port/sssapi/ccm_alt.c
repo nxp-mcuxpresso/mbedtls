@@ -2,7 +2,7 @@
 /*
  *  NIST SP800-38C compliant CCM implementation
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -16,8 +16,6 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 /*
  * Copyright 2019-2020 NXP
@@ -34,16 +32,13 @@
  * RFC 5116 "An Interface and Algorithms for Authenticated Encryption"
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_CCM_C)
 
 #include "mbedtls/ccm.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include "sssapi_mbedtls.h"
 #include <string.h>
@@ -59,8 +54,10 @@
 
 #if defined(MBEDTLS_CCM_ALT)
 
-#define CCM_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_CCM_BAD_INPUT)
-#define CCM_VALIDATE(cond)     MBEDTLS_INTERNAL_VALIDATE(cond)
+#define CCM_VALIDATE_RET( cond ) \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_CCM_BAD_INPUT )
+#define CCM_VALIDATE( cond ) \
+    MBEDTLS_INTERNAL_VALIDATE( cond )
 
 #define CCM_ENCRYPT 0
 #define CCM_DECRYPT 1
@@ -79,7 +76,7 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
                        const unsigned char *key,
                        unsigned int keybits)
 {
-    int ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     uint8_t ramKey[32];
     (void)memcpy(ramKey, key, (keybits + 7u) / 8u);
     if (CRYPTO_InitHardware() != kStatus_Success)
@@ -149,7 +146,7 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
                           unsigned char *tag,
                           size_t tag_len)
 {
-    int ret = -100;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     sss_sscp_aead_t aeadCtx;
     size_t tlen        = tag_len;
     sss_mode_t sssMode = kMode_SSS_Encrypt;
@@ -307,7 +304,7 @@ int mbedtls_ccm_auth_decrypt(mbedtls_ccm_context *ctx,
 /*
  *  NIST SP800-38C compliant CCM implementation
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -321,8 +318,6 @@ int mbedtls_ccm_auth_decrypt(mbedtls_ccm_context *ctx,
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 /*
  * Copyright 2019-2020 NXP
@@ -339,16 +334,13 @@ int mbedtls_ccm_auth_decrypt(mbedtls_ccm_context *ctx,
  * RFC 5116 "An Interface and Algorithms for Authenticated Encryption"
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_CCM_C)
 
 #include "mbedtls/ccm.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include "sssapi_mbedtls.h"
 #include <string.h>
@@ -384,7 +376,7 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
                        const unsigned char *key,
                        unsigned int keybits)
 {
-    int ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     uint8_t ramKey[32];
     (void)memcpy(ramKey, key, (keybits + 7u) / 8u);
     if (CRYPTO_InitHardware() != kStatus_Success)
@@ -455,7 +447,7 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
                           unsigned char *tag,
                           size_t tag_len)
 {
-    int ret = -100;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     sss_sscp_aead_t aeadCtx;
     size_t tlen        = tag_len;
     sss_mode_t sssMode = kMode_SSS_Encrypt;

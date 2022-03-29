@@ -4,7 +4,7 @@
  *
  * \brief NIST SP800-38B compliant CMAC implementation for AES and 3DES
  *
- *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -47,16 +47,15 @@
  *
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_CMAC_C)
 #if defined(MBEDTLS_CMAC_ALT)
 
 #include "mbedtls/cmac.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
+
 #include "sssapi_mbedtls.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -67,7 +66,21 @@
 #define mbedtls_free   free
 #endif /* MBEDTLS_PLATFORM_C */
 
-static int cmac_multiply_by_u(unsigned char *output, const unsigned char *input, size_t blocksize)
+/*
+ * Multiplication by u in the Galois field of GF(2^n)
+ *
+ * As explained in NIST SP 800-38B, this can be computed:
+ *
+ *   If MSB(p) = 0, then p = (p << 1)
+ *   If MSB(p) = 1, then p = (p << 1) ^ R_n
+ *   with R_64 = 0x1B and  R_128 = 0x87
+ *
+ * Input and output MUST NOT point to the same buffer
+ * Block size must be 8 bytes or 16 bytes - the block sizes for DES and AES.
+ */
+static int cmac_multiply_by_u( unsigned char *output,
+                               const unsigned char *input,
+                               size_t blocksize )
 {
     const unsigned char R_128 = 0x87;
     const unsigned char R_64  = 0x1B;
@@ -120,7 +133,7 @@ static int cmac_multiply_by_u(unsigned char *output, const unsigned char *input,
  */
 static int cmac_generate_subkeys(mbedtls_cipher_context_t *ctx, unsigned char *K1, unsigned char *K2)
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char L[MBEDTLS_CIPHER_BLKSIZE_MAX];
     size_t olen, block_size;
 
@@ -311,7 +324,7 @@ int mbedtls_cipher_cmac_finish(mbedtls_cipher_context_t *ctx, unsigned char *out
     unsigned char K1[MBEDTLS_CIPHER_BLKSIZE_MAX];
     unsigned char K2[MBEDTLS_CIPHER_BLKSIZE_MAX];
     unsigned char M_last[MBEDTLS_CIPHER_BLKSIZE_MAX];
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t olen, block_size;
 
     if (ctx == NULL || ctx->cipher_info == NULL || ctx->cmac_ctx == NULL || output == NULL)
@@ -392,7 +405,7 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
     mbedtls_cipher_context_t mbedctx;
     size_t macSize = 16u;
     sss_sscp_object_t sssKey;
-    int ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_cipher_type_t type;
     type = cipher_info->type;
     sss_algorithm_t sssType;
@@ -479,10 +492,11 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
 /*
  * Implementation of AES-CMAC-PRF-128 defined in RFC 4615
  */
-int mbedtls_aes_cmac_prf_128(
-    const unsigned char *key, size_t key_len, const unsigned char *input, size_t in_len, unsigned char output[16])
+int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
+                              const unsigned char *input, size_t in_len,
+                              unsigned char output[16] )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_cipher_info_t *cipher_info;
     unsigned char zero_key[MBEDTLS_AES_BLOCK_SIZE];
     unsigned char int_key[MBEDTLS_AES_BLOCK_SIZE];
@@ -500,7 +514,7 @@ int mbedtls_aes_cmac_prf_128(
         goto exit;
     }
 
-    if (key_len == MBEDTLS_AES_BLOCK_SIZE)
+    if( key_length == MBEDTLS_AES_BLOCK_SIZE )
     {
         /* Use key as is */
         (void)memcpy(int_key, key, MBEDTLS_AES_BLOCK_SIZE);
@@ -509,11 +523,11 @@ int mbedtls_aes_cmac_prf_128(
     {
         (void)memset(zero_key, 0, MBEDTLS_AES_BLOCK_SIZE);
 
-        ret = mbedtls_cipher_cmac(cipher_info, zero_key, 128, key, key_len, int_key);
-        if (ret != 0)
-        {
+        ret = mbedtls_cipher_cmac( cipher_info, zero_key, 128, key,
+                                   key_length, int_key );
+        if( ret != 0 )
             goto exit;
-        }
+        
     }
 
     ret = mbedtls_cipher_cmac(cipher_info, int_key, 128, input, in_len, output);
@@ -532,7 +546,7 @@ exit:
  *
  * \brief NIST SP800-38B compliant CMAC implementation for AES and 3DES
  *
- *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -575,16 +589,15 @@ exit:
  *
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_CMAC_C)
 #if defined(MBEDTLS_CMAC_ALT)
 
 #include "mbedtls/cmac.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
+
 #include "sssapi_mbedtls.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -595,7 +608,21 @@ exit:
 #define mbedtls_free   free
 #endif /* MBEDTLS_PLATFORM_C */
 
-static int cmac_multiply_by_u(unsigned char *output, const unsigned char *input, size_t blocksize)
+/*
+ * Multiplication by u in the Galois field of GF(2^n)
+ *
+ * As explained in NIST SP 800-38B, this can be computed:
+ *
+ *   If MSB(p) = 0, then p = (p << 1)
+ *   If MSB(p) = 1, then p = (p << 1) ^ R_n
+ *   with R_64 = 0x1B and  R_128 = 0x87
+ *
+ * Input and output MUST NOT point to the same buffer
+ * Block size must be 8 bytes or 16 bytes - the block sizes for DES and AES.
+ */
+static int cmac_multiply_by_u( unsigned char *output,
+                               const unsigned char *input,
+                               size_t blocksize )
 {
     const unsigned char R_128 = 0x87;
     const unsigned char R_64  = 0x1B;
@@ -648,7 +675,7 @@ static int cmac_multiply_by_u(unsigned char *output, const unsigned char *input,
  */
 static int cmac_generate_subkeys(mbedtls_cipher_context_t *ctx, unsigned char *K1, unsigned char *K2)
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char L[MBEDTLS_CIPHER_BLKSIZE_MAX];
     size_t olen, block_size;
 
@@ -839,7 +866,7 @@ int mbedtls_cipher_cmac_finish(mbedtls_cipher_context_t *ctx, unsigned char *out
     unsigned char K1[MBEDTLS_CIPHER_BLKSIZE_MAX];
     unsigned char K2[MBEDTLS_CIPHER_BLKSIZE_MAX];
     unsigned char M_last[MBEDTLS_CIPHER_BLKSIZE_MAX];
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t olen, block_size;
 
     if (ctx == NULL || ctx->cipher_info == NULL || ctx->cmac_ctx == NULL || output == NULL)
@@ -920,7 +947,7 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
     mbedtls_cipher_context_t mbedctx;
     size_t macSize = 16u;
     sss_sscp_object_t sssKey;
-    int ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_cipher_type_t type;
     type = cipher_info->type;
     sss_algorithm_t sssType;
@@ -1008,10 +1035,11 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
 /*
  * Implementation of AES-CMAC-PRF-128 defined in RFC 4615
  */
-int mbedtls_aes_cmac_prf_128(
-    const unsigned char *key, size_t key_len, const unsigned char *input, size_t in_len, unsigned char output[16])
+int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
+                              const unsigned char *input, size_t in_len,
+                              unsigned char output[16] )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_cipher_info_t *cipher_info;
     unsigned char zero_key[MBEDTLS_AES_BLOCK_SIZE];
     unsigned char int_key[MBEDTLS_AES_BLOCK_SIZE];
@@ -1029,7 +1057,7 @@ int mbedtls_aes_cmac_prf_128(
         goto exit;
     }
 
-    if (key_len == MBEDTLS_AES_BLOCK_SIZE)
+    if( key_length == MBEDTLS_AES_BLOCK_SIZE )
     {
         /* Use key as is */
         (void)memcpy(int_key, key, MBEDTLS_AES_BLOCK_SIZE);
@@ -1038,7 +1066,8 @@ int mbedtls_aes_cmac_prf_128(
     {
         (void)memset(zero_key, 0, MBEDTLS_AES_BLOCK_SIZE);
 
-        ret = mbedtls_cipher_cmac(cipher_info, zero_key, 128, key, key_len, int_key);
+        ret = mbedtls_cipher_cmac( cipher_info, zero_key, 128, key,
+                                   key_length, int_key );
         if (ret != 0)
         {
             goto exit;

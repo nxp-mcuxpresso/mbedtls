@@ -447,7 +447,7 @@ exit:
 
     return( ret );
 }
-#endif /* !MBEDTLS_SHA256_FULL_ALT  NXP added */
+
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha256( const unsigned char *input,
@@ -457,7 +457,7 @@ void mbedtls_sha256( const unsigned char *input,
 {
     mbedtls_sha256_ret( input, ilen, output, is224 );
 }
-
+#endif
 #endif /* !NXP_MBEDTLS_SHA256_ALT NXP added */
 
 #if defined(MBEDTLS_SELF_TEST)

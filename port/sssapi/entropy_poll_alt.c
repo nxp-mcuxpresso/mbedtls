@@ -5,11 +5,8 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
+
 
 #include "sssapi_mbedtls.h"
 #include "mbedtls/platform.h"
@@ -57,11 +54,7 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #include "sssapi_mbedtls.h"
 #include "mbedtls/platform.h"

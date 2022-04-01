@@ -568,7 +568,7 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
     size_t coordinateBitsLen = ctx->grp.pbits;
     size_t keySize           = 2u * coordinateLen;
     uint8_t *pubKey          = mbedtls_calloc(keySize, sizeof(uint8_t));
-    uint32_t keyOpt          = (uint32_t)1;
+    uint32_t keyOpt          = (uint32_t)kSSS_KeyGenMode_Ecc;
     if (CRYPTO_InitHardware() != kStatus_Success)
     {
         mbedtls_platform_zeroize(pubKey, keySize);

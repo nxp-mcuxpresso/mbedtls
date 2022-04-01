@@ -233,7 +233,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
     size_t keyBitsLen = ctx->grp.pbits;
     size_t keySize    = 3u * keyLen;
     uint8_t *pubKey   = mbedtls_calloc(0x2u * keyLen, sizeof(uint8_t));
-    uint32_t keyOpt   = (uint32_t)1;
+    uint32_t keyOpt   = (uint32_t)kSSS_KeyGenMode_Ecc;
     if (CRYPTO_InitHardware() != kStatus_Success)
     {
         mbedtls_platform_zeroize(pubKey, keySize);

@@ -1371,6 +1371,8 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
     {
         if (sss_sscp_key_object_init(&ctx->key, &g_keyStore) != kStatus_SSS_Success)
         {
+            mbedtls_platform_zeroize(pubKey, keySize);
+            mbedtls_free(pubKey);
             sss_sscp_key_object_free(&ctx->key, SSS_SSCP_KEY_OBJECT_FREE_DYNAMIC);
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
@@ -1378,7 +1380,9 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
         else if (sss_sscp_key_object_allocate_handle(&ctx->key, 0u, kSSS_KeyPart_Pair, kSSS_CipherType_EC_NIST_P,
                                                      3u * coordinateLen,
                                                      SSS_KEYPROP_OPERATION_KDF) != kStatus_SSS_Success)
-        {
+        {   
+            mbedtls_platform_zeroize(pubKey, keySize);
+            mbedtls_free(pubKey);
             (void)sss_sscp_key_object_free(&ctx->key, SSS_SSCP_KEY_OBJECT_FREE_DYNAMIC);
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }

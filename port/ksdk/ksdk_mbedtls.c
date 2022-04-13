@@ -280,6 +280,9 @@ status_t CRYPTO_InitHardware(void)
      * This enables clocking and resets the module to a known state. */
     LTC_Init(LTC0);
 #endif
+#if defined(FSL_FEATURE_EDGELOCK) && (FSL_FEATURE_EDGELOCK > 0)
+    SENTINEL_Init();
+#endif
 #if defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0) && defined(CRYPTO_USE_DRIVER_CAAM)
     /* Initialize CAAM driver. */
     caam_config_t caamConfig;
@@ -4966,7 +4969,7 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
                                     NULL);
 #elif defined(FSL_FEATURE_SOC_LPC_RNG_COUNT) && (FSL_FEATURE_SOC_LPC_RNG_COUNT > 0)
     result = RNG_GetRandomData(output, len);
-#elif defined(FSL_FEATURE_EDGELOCK) && (FSL_FEATURE_EDGELOCK  > 0)
+#elif defined(FSL_FEATURE_EDGELOCK) && (FSL_FEATURE_EDGELOCK > 0)
     result = SENTINEL_RNG_GetRandomData((uint32_t)output, len);
 #elif defined(FSL_FEATURE_SOC_LPC_RNG1_COUNT) && (FSL_FEATURE_SOC_LPC_RNG1_COUNT > 0)
     status_t status = kStatus_Fail;

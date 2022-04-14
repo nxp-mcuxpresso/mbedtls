@@ -326,8 +326,6 @@ status_t CRYPTO_InitHardware(void)
 #if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
 #if defined(TRNG)
 #define TRNG0 TRNG
-#elif defined(TRNG1)
-#define TRNG0 TRNG1
 #endif
         trng_config_t trngConfig;
 
@@ -4956,11 +4954,7 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 
 #if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
 #ifndef TRNG0
-#if defined(TRNG)
 #define TRNG0 TRNG
-#elif defined(TRNG1)
-#define TRNG0 TRNG1
-#endif
 #endif
     result = TRNG_GetRandomData(TRNG0, output, len);
 #elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)

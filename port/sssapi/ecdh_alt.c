@@ -541,6 +541,7 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
     }
     else
     {
+        mbedtls_ecp_tls_write_point(&ctx->grp, &ctx->Q, ctx->point_format, olen, buf, blen);
         ret = 0;
     }
     mbedtls_platform_zeroize(pubKey, keySize);

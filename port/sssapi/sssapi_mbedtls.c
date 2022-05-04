@@ -1,3 +1,5 @@
+#if 0
+#ifdef USE_MBEDTLS
 #if (defined(KW45_A0_SUPPORT) && KW45_A0_SUPPORT)
 /*
  * Copyright 2019-2020 NXP
@@ -206,3 +208,5 @@ status_t CRYPTO_ReinitHardware(void)
     return ret;
 }
 #endif /* KW45_A0_SUPPORT */
+#endif
+#endif

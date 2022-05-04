@@ -1,3 +1,4 @@
+#if 0
 #if (defined(KW45_A0_SUPPORT) && KW45_A0_SUPPORT)
 /*
  * Copyright 2019-2021 NXP
@@ -91,9 +92,13 @@ extern sscp_context_t g_sscpContext;
 status_t CRYPTO_InitHardware(void);
 status_t CRYPTO_ReinitHardware(void);
 
+
+
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* SSSAPI_MBEDTLS_H */
 #endif /* KW45_A0_SUPPORT */
+#endif

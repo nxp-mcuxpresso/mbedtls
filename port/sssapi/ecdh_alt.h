@@ -192,6 +192,7 @@ int mbedtls_ecdh_self_test(int verbose);
 
 #include "mbedtls/ecp.h"
 #include "sssapi_mbedtls.h"
+#include "sss_crypto.h"
 
 #ifdef __cplusplus
 extern "C" {

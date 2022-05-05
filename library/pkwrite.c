@@ -104,6 +104,59 @@ end_of_export:
 }
 #endif /* MBEDTLS_RSA_C */
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+static int pk_write_ec_pubkey( unsigned char **p, unsigned char *start,
+                               mbedtls_pk_context const *key )
+{
+    size_t const len = 1 + 2 * NUM_ECC_BYTES;
+    mbedtls_uecc_keypair const * const uecc = mbedtls_pk_uecc( *key );
+
+    if( *p < start || (size_t)( *p - start ) < len )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+    *p -= len;
+    (*p)[0] = 0x04;
+    mbedtls_platform_memcpy( *p + 1, uecc->public_key, 2 * NUM_ECC_BYTES );
+
+    return( (int) len );
+}
+
+/*
+ * privateKey  OCTET STRING -- always of length ceil(log2(n)/8)
+ */
+static int pk_write_ec_privkey( unsigned char **p, unsigned char *start,
+                                mbedtls_pk_context const *key )
+{
+    mbedtls_uecc_keypair const * const uecc = mbedtls_pk_uecc( *key );
+    return( mbedtls_asn1_write_octet_string(
+                p, start,
+                uecc->private_key,
+                NUM_ECC_BYTES ) );
+}
+
+/*
+ * ECParameters ::= CHOICE {
+ *   namedCurve         OBJECT IDENTIFIER
+ * }
+ */
+static int pk_write_ec_param( unsigned char **p, unsigned char *start,
+                              mbedtls_pk_context const *key )
+{
+    int ret;
+    size_t len = 0;
+    const char *oid;
+    size_t oid_len;
+    ((void) key);
+
+    if( ( ret = mbedtls_oid_get_oid_by_ec_grp( MBEDTLS_UECC_DP_SECP256R1,
+                                               &oid, &oid_len ) ) != 0 )
+        return( ret );
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_oid( p, start, oid, oid_len ) );
+
+    return( (int) len );
+}
+#else /* MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_ECP_C)
 /*
  * EC public key is an EC point
@@ -172,6 +225,7 @@ exit:
     return( ret );
 }
 #endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
 int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
                              const mbedtls_pk_context *key )
@@ -189,9 +243,13 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
         MBEDTLS_ASN1_CHK_ADD( len, pk_write_rsa_pubkey( p, start, mbedtls_pk_rsa( *key ) ) );
     else
 #endif
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY )
-        MBEDTLS_ASN1_CHK_ADD( len, pk_write_ec_pubkey( p, start, mbedtls_pk_ec( *key ) ) );
+#if defined(MBEDTLS_USE_TINYCRYPT)
+        MBEDTLS_ASN1_CHK_ADD( len, pk_write_ec_pubkey( p, start, key ) );
+#else
+    	MBEDTLS_ASN1_CHK_ADD( len, pk_write_ec_pubkey( p, start, mbedtls_pk_ec( *key ) ) );
+#endif
     else
 #endif
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -254,10 +312,14 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_BIT_STRING ) );
 
     pk_type = mbedtls_pk_get_type( key );
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_USE_TINYCRYPT)
     if( pk_type == MBEDTLS_PK_ECKEY )
     {
+#if defined(MBEDTLS_USE_TINYCRYPT)
+        MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_ec_param( &c, buf, key ) );
+#else
         MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_ec_param( &c, buf, mbedtls_pk_ec( *key ) ) );
+#endif
     }
 #endif
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -402,10 +464,9 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
     }
     else
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY )
     {
-        mbedtls_ecp_keypair *ec = mbedtls_pk_ec( *key );
         size_t pub_len = 0, par_len = 0;
 
         /*
@@ -420,7 +481,11 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
          */
 
         /* publicKey */
-        MBEDTLS_ASN1_CHK_ADD( pub_len, pk_write_ec_pubkey( &c, buf, ec ) );
+#if defined(MBEDTLS_USE_TINYCRYPT)
+        MBEDTLS_ASN1_CHK_ADD( pub_len, pk_write_ec_pubkey( &c, buf, key ) );
+#else
+        MBEDTLS_ASN1_CHK_ADD( pub_len, pk_write_ec_pubkey( &c, buf, mbedtls_pk_ec( *key ) ) );
+#endif
 
         if( c - buf < 1 )
             return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
@@ -436,7 +501,11 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
         len += pub_len;
 
         /* parameters */
-        MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_ec_param( &c, buf, ec ) );
+#if defined(MBEDTLS_USE_TINYCRYPT)
+        MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_ec_param( &c, buf, key ) );
+#else
+        MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_ec_param( &c, buf, mbedtls_pk_ec( *key ) ) );
+#endif
 
         MBEDTLS_ASN1_CHK_ADD( par_len, mbedtls_asn1_write_len( &c, buf, par_len ) );
         MBEDTLS_ASN1_CHK_ADD( par_len, mbedtls_asn1_write_tag( &c, buf,
@@ -444,7 +513,11 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
         len += par_len;
 
         /* privateKey */
-        MBEDTLS_ASN1_CHK_ADD( len, pk_write_ec_private( &c, buf, ec ) );
+#if defined(MBEDTLS_USE_TINYCRYPT)
+        MBEDTLS_ASN1_CHK_ADD( len, pk_write_ec_privkey( &c, buf, key ) );
+#else
+        MBEDTLS_ASN1_CHK_ADD( len, pk_write_ec_private( &c, buf, mbedtls_pk_ec( *key ) ) );
+#endif
 
         /* version */
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_int( &c, buf, 1 ) );
@@ -454,7 +527,7 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
                                                     MBEDTLS_ASN1_SEQUENCE ) );
     }
     else
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_C || MBEDTLS_USE_TINYCRYPT */
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 
     return( (int) len );
@@ -543,8 +616,18 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
 
 #else /* MBEDTLS_ECP_C */
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+
+/* see above, replacing ECP_MAX_BYTES with 32 (256-bit) */
+#define ECP_PUB_DER_MAX_BYTES   30 + 2 * 32
+#define ECP_PRV_DER_MAX_BYTES   29 + 3 * 32
+
+#else /* MBEDTLS_USE_TINYCRYPT */
+
 #define ECP_PUB_DER_MAX_BYTES   0
 #define ECP_PRV_DER_MAX_BYTES   0
+
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
 #endif /* MBEDTLS_ECP_C */
 
@@ -598,15 +681,15 @@ int mbedtls_pk_write_key_pem( mbedtls_pk_context *key, unsigned char *buf, size_
         end = PEM_END_PRIVATE_KEY_RSA;
     }
     else
-#endif
-#if defined(MBEDTLS_ECP_C)
+#endif /* MBEDTLS_RSA_C */
+#if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY )
     {
         begin = PEM_BEGIN_PRIVATE_KEY_EC;
         end = PEM_END_PRIVATE_KEY_EC;
     }
     else
-#endif
+#endif /* MBEDTLS_ECP_C || MBEDTLS_USE_TINYCRYPT */
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 
     if( ( ret = mbedtls_pem_write_buffer( begin, end,

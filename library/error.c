@@ -210,6 +210,10 @@
 #include "mbedtls/xtea.h"
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+#include "tinycrypt/ecc.h"
+#endif
+
 
 const char * mbedtls_high_level_strerr( int error_code )
 {
@@ -884,6 +888,13 @@ const char * mbedtls_low_level_strerr( int error_code )
         case -(MBEDTLS_ERR_XTEA_HW_ACCEL_FAILED):
             return( "XTEA - XTEA hardware accelerator failed" );
 #endif /* MBEDTLS_XTEA_C */
+
+#if defined(MBEDTLS_USE_TINYCRYPT)
+        case UECC_FAILURE:
+            return( "TinyCrypt - uECC failure" );
+        case UECC_FAULT_DETECTED:
+            return( "TinyCrypt - uECC fault detected" );
+#endif /* MBEDTLS_USE_TINYCRYPT */
         /* End Auto-Generated Code. */
 
         default:

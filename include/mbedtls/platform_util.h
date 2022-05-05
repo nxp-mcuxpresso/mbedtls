@@ -132,6 +132,178 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
 #endif /* MBEDTLS_DEPRECATED_WARNING */
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+/**
+ * \brief       Securely zeroize a buffer
+ *
+ *              The function is meant to wipe the data contained in a buffer so
+ *              that it can no longer be recovered even if the program memory
+ *              is later compromised. Call this function on sensitive data
+ *              stored on the stack before returning from a function, and on
+ *              sensitive data stored on the heap before freeing the heap
+ *              object.
+ *
+ *              It is extremely difficult to guarantee that calls to
+ *              mbedtls_platform_zeroize() are not removed by aggressive
+ *              compiler optimizations in a portable way. For this reason, Mbed
+ *              TLS provides the configuration option
+ *              MBEDTLS_PLATFORM_ZEROIZE_ALT, which allows users to configure
+ *              mbedtls_platform_zeroize() to use a suitable implementation for
+ *              their platform and needs
+ *
+ * \param buf   Buffer to be zeroized
+ * \param len   Length of the buffer in bytes
+ *
+ * \return      The value of \p buf if the operation was successful.
+ * \return      NULL if a potential FI attack was detected or input parameters
+ *              are not valid.
+ */
+void *mbedtls_platform_zeroize( void *buf, size_t len );
+
+/**
+ * \brief       Secure memset
+ *
+ *              This is a constant-time version of memset(). The buffer is
+ *              initialised with random data and the order is also randomised
+ *              using the RNG in order to further harden against side-channel
+ *              attacks.
+ *
+ * \param ptr   Buffer to be set.
+ * \param value Value to be used when setting the buffer.
+ * \param num   The length of the buffer in bytes.
+ *
+ * \return      The value of \p ptr if the operation was successful.
+ * \return      NULL if a potential FI attack was detected.
+ */
+void *mbedtls_platform_memset( void *ptr, int value, size_t num );
+
+/**
+ * \brief       Secure memcpy
+ *
+ *              This is a constant-time version of memcpy(). The buffer is
+ *              initialised with random data and the order is also randomised
+ *              using the RNG in order to further harden against side-channel
+ *              attacks.
+ *
+ * \param dst   Destination buffer where the data is being copied to.
+ * \param src   Source buffer where the data is being copied from.
+ * \param num   The length of the buffers in bytes.
+ *
+ * \return      The value of \p dst.
+ * \return      NULL if a potential FI attack was detected.
+ */
+void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num );
+
+/**
+ * \brief       Secure memmove
+ *
+ *              This is a constant-time version of memmove(). It is based on
+ *              the double use of the mbedtls_platform_memcpy() function secured
+ *              against side-channel attacks.
+ *
+ * \param dst   Destination buffer where the data is being moved to.
+ * \param src   Source buffer where the data is being moved from.
+ * \param num   The length of the buffers in bytes.
+ *
+ * \return      0 if the operation was successful
+ * \return      #MBEDTLS_ERR_PLATFORM_ALLOC_FAILED if a memory allocation failed
+ */
+int mbedtls_platform_memmove( void *dst, const void *src, size_t num );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
+/**
+ * \brief       Secure memcmp
+ *
+ *              This is a constant-time version of memcmp(), but without checking
+ *              if the bytes are greater or lower. The order is also randomised
+ *              using the RNG in order to further harden against side-channel attacks.
+ *
+ * \param buf1  First buffer to compare.
+ * \param buf2  Second buffer to compare against.
+ * \param num   The length of the buffers in bytes.
+ *
+ * \deprecated  Superseded by mbedtls_platform_memequal(), and is only an alias to it.
+ *
+ * \return      0 if the buffers were equal or an unspecified non-zero value
+ *              otherwise.
+ */
+int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num );
+
+#endif
+/**
+ * \brief       Secure check if the buffers have the same data.
+ *
+ *              This is a constant-time version of memcmp(), but without checking
+ *              if the bytes are greater or lower. The order is also randomised
+ *              using the RNG in order to further harden against side-channel attacks.
+ *
+ * \param buf1  First buffer to compare.
+ * \param buf2  Second buffer to compare against.
+ * \param num   The length of the buffers in bytes.
+ *
+ * \return      0 if the buffers were equal or an unspecified non-zero value
+ *              otherwise.
+ */
+int mbedtls_platform_memequal( const void *buf1, const void *buf2, size_t num );
+
+/**
+ * \brief       RNG-function for getting a random 32-bit integer.
+ *
+ * \return      The generated random number.
+ */
+uint32_t mbedtls_platform_random_uint32( void );
+
+/**
+ * \brief       RNG-function for getting a random in given range.
+ *
+ *              This function is meant to provide a global RNG to be used
+ *              throughout Mbed TLS for hardening the library. It is used
+ *              for generating a random delay, random data or random offset
+ *              for utility functions. It is not meant to be a
+ *              cryptographically secure RNG, but provide an RNG for utility
+ *              functions.
+ *
+ * \param num   Max-value for the generated random number, exclusive.
+ *              Must be greater than zero, otherwise an undefined behavior
+ *              will occur on "num % 0".
+ *              The generated number will be on range [0, num).
+ *
+ * \return      The generated random number.
+ */
+uint32_t mbedtls_platform_random_in_range( uint32_t num );
+
+/**
+ * \brief       Random delay function.
+ *
+ *              Function implements a random delay by incrementing a local
+ *              variable randomized number of times (busy-looping).
+ *
+ *              Duration of the delay is random as number of variable increments
+ *              is randomized.
+ *
+ * \note        This function works only if the MBEDTLS_FI_COUNTERMEASURES flag
+ *              is defined in the configuration. Otherwise, the function does
+ *              nothing.
+ */
+void mbedtls_platform_random_delay( void );
+
+/**
+ * \brief       RNG-function for getting a random buffer.
+ *
+ * \param buf   Buffer for random data
+ * \param len   Length of the buffer in bytes
+ *
+ */
+void mbedtls_platform_random_buf( uint8_t *buf, size_t len);
+
+#else
+
 /**
  * \brief       Securely zeroize a buffer
  *
@@ -155,6 +327,8 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  *
  */
 void mbedtls_platform_zeroize( void *buf, size_t len );
+
+#endif
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /**

@@ -40,6 +40,7 @@
  * Macro to automatically add the size of #define'd OIDs
  */
 #define ADD_LEN(s)      s, MBEDTLS_OID_SIZE(s)
+#define NULL_OID_DESCRIPTOR                   { NULL, 0 }
 
 /*
  * Macro to generate an internal function for oid_XXX_from_asn1() (used by
@@ -372,7 +373,7 @@ static const oid_sig_alg_t oid_sig_alg[] =
     },
 #endif /* MBEDTLS_SHA1_C */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
 #if defined(MBEDTLS_SHA1_C)
     {
         { ADD_LEN( MBEDTLS_OID_ECDSA_SHA1 ),       "ecdsa-with-SHA1",      "ECDSA with SHA1" },
@@ -399,7 +400,7 @@ static const oid_sig_alg_t oid_sig_alg[] =
         MBEDTLS_MD_SHA512,   MBEDTLS_PK_ECDSA,
     },
 #endif /* MBEDTLS_SHA512_C */
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_RSA_C)
     {
         { ADD_LEN( MBEDTLS_OID_RSASSA_PSS ),        "RSASSA-PSS",           "RSASSA-PSS" },
@@ -450,6 +451,12 @@ FN_OID_TYPED_FROM_ASN1(oid_pk_alg_t, pk_alg, oid_pk_alg)
 FN_OID_GET_ATTR1(mbedtls_oid_get_pk_alg, oid_pk_alg_t, pk_alg, mbedtls_pk_type_t, pk_alg)
 FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_pk_alg, oid_pk_alg_t, oid_pk_alg, mbedtls_pk_type_t, pk_alg)
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+typedef struct {
+    mbedtls_oid_descriptor_t    descriptor;
+    mbedtls_uecc_group_id       grp_id;
+} oid_ecp_grp_t;
+#else
 #if defined(MBEDTLS_ECP_C)
 /*
  * For namedCurve (RFC 5480)
@@ -458,7 +465,26 @@ typedef struct {
     mbedtls_oid_descriptor_t    descriptor;
     mbedtls_ecp_group_id        grp_id;
 } oid_ecp_grp_t;
+#endif
+#endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+static const oid_ecp_grp_t oid_ecp_grp[] =
+{
+    {
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_SECP256R1 ), "secp256r1", "secp256r1" },
+        MBEDTLS_UECC_DP_SECP256R1,
+    },
+    {
+        NULL_OID_DESCRIPTOR,
+        MBEDTLS_UECC_DP_NONE,
+    },
+};
+FN_OID_TYPED_FROM_ASN1(oid_ecp_grp_t, grp_id, oid_ecp_grp)
+FN_OID_GET_ATTR1(mbedtls_oid_get_ec_grp, oid_ecp_grp_t, grp_id, mbedtls_uecc_group_id, grp_id)
+FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_ec_grp, oid_ecp_grp_t, oid_ecp_grp, mbedtls_uecc_group_id, grp_id)
+#else
+#if defined(MBEDTLS_ECP_C)
 static const oid_ecp_grp_t oid_ecp_grp[] =
 {
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
@@ -537,6 +563,7 @@ FN_OID_TYPED_FROM_ASN1(oid_ecp_grp_t, grp_id, oid_ecp_grp)
 FN_OID_GET_ATTR1(mbedtls_oid_get_ec_grp, oid_ecp_grp_t, grp_id, mbedtls_ecp_group_id, grp_id)
 FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_ec_grp, oid_ecp_grp_t, oid_ecp_grp, mbedtls_ecp_group_id, grp_id)
 #endif /* MBEDTLS_ECP_C */
+#endif
 
 #if defined(MBEDTLS_CIPHER_C)
 /*

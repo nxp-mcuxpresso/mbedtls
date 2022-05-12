@@ -471,7 +471,7 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  */
 
 #define NB_TESTS 3
-#define CCM_SELFTEST_PT_MAX_LEN 24
+#define CCM_SELFTEST_PT_MAX_LEN 32
 #define CCM_SELFTEST_CT_MAX_LEN 32
 
 #ifndef AT_NONCACHEABLE_SECTION_INIT

@@ -39,6 +39,8 @@
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
 
+#define __BYTE_ORDER__ __ORDER_LITTLE_ENDIAN__
+
 /* Define ALT functions for MBEDTLS_NXP_SSSAPI and SENTINEL unit. */
 #if defined(MBEDTLS_NXP_SSSAPI)
 #if defined(MBEDTLS_NXP_SENTINEL200) || defined(MBEDTLS_NXP_SENTINEL300)

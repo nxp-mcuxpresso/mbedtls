@@ -1,4 +1,3 @@
-#if defined USE_MBEDTLS
 /**
  * \file cmac.c
  *
@@ -55,10 +54,7 @@
 
 #if defined(MBEDTLS_CMAC_C)
 #if defined(MBEDTLS_CMAC_ALT)
-
-
 #include "mbedtls/cmac.h"
-
 #include "sss_crypto.h"
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -80,10 +76,12 @@ static int cmac_multiply_by_u(unsigned char *output, const unsigned char *input,
     {
         R_n = R_128;
     }
+#if defined MBEDTLS_DES_C
     else if (blocksize == MBEDTLS_DES3_BLOCK_SIZE)
     {
         R_n = R_64;
     }
+#endif
     else
     {
         return (MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA);
@@ -220,7 +218,9 @@ int mbedtls_cipher_cmac_starts(mbedtls_cipher_context_t *ctx, const unsigned cha
         case MBEDTLS_CIPHER_AES_128_ECB:
         case MBEDTLS_CIPHER_AES_192_ECB:
         case MBEDTLS_CIPHER_AES_256_ECB:
+#if defined MBEDTLS_DES_C
         case MBEDTLS_CIPHER_DES_EDE3_ECB:
+#endif
             break;
         default:
             return (MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA);
@@ -496,4 +496,3 @@ exit:
 #endif /* MBEDTLS_AES_C */
 #endif /* MBEDTLS_CMAC_ALT */
 #endif /* MBEDTLS_CMAC_C */
-#endif

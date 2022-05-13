@@ -322,28 +322,28 @@ static int ecdh_make_params_internal(mbedtls_ecdh_context_mbed *ctx,
     }
 
     *olen = grp_len + pt_len;
-    return (0);
+    return( 0 );
 }
 
 /*
- * Setup and write the ServerKeyExhange parameters (RFC 4492)
+ * Setup and write the ServerKeyExchange parameters (RFC 4492)
  *      struct {
  *          ECParameters    curve_params;
  *          ECPoint         public;
  *      } ServerECDHParams;
  */
-int mbedtls_ecdh_make_params(mbedtls_ecdh_context *ctx,
-                             size_t *olen,
-                             unsigned char *buf,
-                             size_t blen,
-                             int (*f_rng)(void *, unsigned char *, size_t),
-                             void *p_rng)
+int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx,
+                              size_t *olen,
+                              unsigned char *buf,
+                              size_t blen,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng )
 {
     int restart_enabled = 0;
-    ECDH_VALIDATE_RET(ctx != NULL);
-    ECDH_VALIDATE_RET(olen != NULL);
-    ECDH_VALIDATE_RET(buf != NULL);
-    ECDH_VALIDATE_RET(f_rng != NULL);
+    ECDH_VALIDATE_RET( ctx != NULL );
+    ECDH_VALIDATE_RET( olen != NULL );
+    ECDH_VALIDATE_RET( buf != NULL );
+    ECDH_VALIDATE_RET( f_rng != NULL );
 
     (void)restart_enabled;
 
@@ -361,11 +361,14 @@ int mbedtls_ecdh_make_params(mbedtls_ecdh_context *ctx,
 #endif
 }
 
-static int ecdh_read_params_internal(mbedtls_ecdh_context_mbed *ctx,
-                                     const unsigned char **buf,
-                                     const unsigned char *end)
+static int ecdh_read_params_internal( mbedtls_ecdh_context_mbed *ctx,
+                                      const unsigned char **buf,
+                                      const unsigned char *end )
 {
-    return (mbedtls_ecp_tls_read_point(&ctx->grp, &ctx->Qp, buf, end - *buf));
+    return( mbedtls_ecp_tls_read_point( &ctx->grp,
+                                        &ctx->Qp,
+                                        buf,
+                                        end - *buf ) );
 }
 
 /*
@@ -375,14 +378,16 @@ static int ecdh_read_params_internal(mbedtls_ecdh_context_mbed *ctx,
  *          ECPoint         public;
  *      } ServerECDHParams;
  */
-int mbedtls_ecdh_read_params(mbedtls_ecdh_context *ctx, const unsigned char **buf, const unsigned char *end)
+int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
+                              const unsigned char **buf,
+                              const unsigned char *end )
 {
     int ret;
     mbedtls_ecp_group_id grp_id;
-    ECDH_VALIDATE_RET(ctx != NULL);
-    ECDH_VALIDATE_RET(buf != NULL);
-    ECDH_VALIDATE_RET(*buf != NULL);
-    ECDH_VALIDATE_RET(end != NULL);
+    ECDH_VALIDATE_RET( ctx != NULL );
+    ECDH_VALIDATE_RET( buf != NULL );
+    ECDH_VALIDATE_RET( *buf != NULL );
+    ECDH_VALIDATE_RET( end != NULL );
 
     if ((ret = mbedtls_ecp_tls_read_group_id(&grp_id, buf, end - *buf)) != 0)
     {
@@ -400,7 +405,7 @@ int mbedtls_ecdh_read_params(mbedtls_ecdh_context *ctx, const unsigned char **bu
     switch (ctx->var)
     {
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
-            return (ecdh_read_params_internal(&ctx->ctx.mbed_ecdh, buf, end));
+            return( ecdh_read_params_internal(&ctx->ctx.mbed_ecdh, buf, end));
         default:
             return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
@@ -414,7 +419,7 @@ static int ecdh_get_params_internal(mbedtls_ecdh_context_mbed *ctx,
     int ret;
 
     /* If it's not our key, just import the public part as Qp */
-    if (side == MBEDTLS_ECDH_THEIRS)
+    if(side == MBEDTLS_ECDH_THEIRS)
     {
         return (mbedtls_ecp_copy(&ctx->Qp, &key->Q));
     }
@@ -425,7 +430,8 @@ static int ecdh_get_params_internal(mbedtls_ecdh_context_mbed *ctx,
         return (MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
     }
 
-    if ((ret = mbedtls_ecp_copy(&ctx->Q, &key->Q)) != 0 || (ret = mbedtls_mpi_copy(&ctx->d, &key->d)) != 0)
+    if (((ret = mbedtls_ecp_copy(&ctx->Q, &key->Q)) != 0) ||
+        ((ret = mbedtls_mpi_copy(&ctx->d, &key->d)) != 0) )
     {
         return (ret);
     }
@@ -491,77 +497,81 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
     size_t coordinateLen     = (ctx->grp.pbits + 7u) / 8u;
     size_t coordinateBitsLen = ctx->grp.pbits;
     size_t keySize           = 2u * coordinateLen;
-    uint8_t *pubKey          = mbedtls_calloc(keySize, sizeof(uint8_t));
-
-    if (CRYPTO_InitHardware() != kStatus_Success)
-    {
-        mbedtls_platform_zeroize(pubKey, keySize);
-        mbedtls_free(pubKey);
-        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    if (ctx->isKeyInitialized == false)
-    {
-        if (sss_sscp_key_object_init(&ctx->key, &g_keyStore) != kStatus_SSS_Success)
+    uint8_t *pubKey = NULL;
+    do {
+        pubKey= mbedtls_calloc(keySize, sizeof(uint8_t));
+        if (pubKey == NULL)
+        {
+            break;
+        }
+        if (CRYPTO_InitHardware() != kStatus_Success)
         {
             mbedtls_platform_zeroize(pubKey, keySize);
             mbedtls_free(pubKey);
-            (void)SSS_KEY_OBJ_FREE(&ctx->key);
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            break;
         }
+        if (ctx->isKeyInitialized == false)
+        {
+            if (sss_sscp_key_object_init(&ctx->key, &g_keyStore) != kStatus_SSS_Success)
+            {
+                (void)SSS_KEY_OBJ_FREE(&ctx->key);
+                break;\
+            }
         /* Allocate key handle */
 #if (defined(KW45_A0_SUPPORT) && KW45_A0_SUPPORT)
-    else if (sss_sscp_key_object_allocate_handle(&ctx->key,
+            if (sss_sscp_key_object_allocate_handle(&ctx->key,
                                                  0u,
                                                  kSSS_KeyPart_Pair,
                                                  kSSS_CipherType_EC_NIST_P,
                                                  3u * coordinateLen,
                                                  SSS_PUBLIC_KEY_PART_EXPORTABLE) != kStatus_SSS_Success)
 #else
-    else if (sss_sscp_key_object_allocate_handle(&ctx->key,
+            if (sss_sscp_key_object_allocate_handle(&ctx->key,
                                                  0u,
                                                  kSSS_KeyPart_Pair,
                                                  kSSS_CipherType_EC_NIST_P,
                                                  3u * coordinateLen,
                                                  SSS_KEYPROP_OPERATION_KDF) != kStatus_SSS_Success)
 #endif
-        {
-            mbedtls_platform_zeroize(pubKey, keySize);
-            mbedtls_free(pubKey);
-            (void)SSS_KEY_OBJ_FREE(&ctx->key);
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            {
+                (void)SSS_KEY_OBJ_FREE(&ctx->key);
+                break;;
+            }
+                ctx->isKeyInitialized = true;
         }
-        else
+        if (SSS_ECP_GENERATE_KEY(&ctx->key, coordinateBitsLen) != kStatus_SSS_Success)
         {
-            ctx->isKeyInitialized = true;
+            break;
         }
-    }
-    if (SSS_ECP_GENERATE_KEY(&ctx->key, coordinateBitsLen) != kStatus_SSS_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    else if (SSS_KEY_STORE_GET_PUBKEY(&ctx->key,
+        if (SSS_KEY_STORE_GET_PUBKEY(&ctx->key,
                                       pubKey,
                                       &keySize,
                                       &coordinateBitsLen) != kStatus_SSS_Success)
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-    else if ((ret = mbedtls_mpi_read_binary(&ctx->Q.X, pubKey, coordinateLen)) != 0)
-    {
-    }
-    else if ((ret = mbedtls_mpi_read_binary(&ctx->Q.Y, &pubKey[coordinateLen], coordinateLen)) != 0)
-    {
-    }
-    else if ((ret = mbedtls_mpi_lset(&ctx->Q.Z, 1)) != 0)
-    {
-    }
-    else
-    {
+        {
+            break;
+        }
+        if ((ret = mbedtls_mpi_read_binary(&ctx->Q.X, pubKey, coordinateLen)) != 0)
+        {
+            break;
+        }
+        if ((ret = mbedtls_mpi_read_binary(&ctx->Q.Y, &pubKey[coordinateLen], coordinateLen)) != 0)
+        {
+            break;
+        }
+        if ((ret = mbedtls_mpi_lset(&ctx->Q.Z, 1)) != 0)
+        {
+            break;
+        }
+
         mbedtls_ecp_tls_write_point(&ctx->grp, &ctx->Q, ctx->point_format, olen, buf, blen);
         ret = 0;
+    } while (0);
+
+    if (pubKey != NULL)
+    {
+        mbedtls_platform_zeroize(pubKey, keySize);
+        mbedtls_free(pubKey);
     }
-    mbedtls_platform_zeroize(pubKey, keySize);
-    mbedtls_free(pubKey);
     return ret;
 }
 

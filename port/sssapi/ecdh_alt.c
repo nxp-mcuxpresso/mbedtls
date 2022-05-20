@@ -700,7 +700,7 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx,
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     else if (sss_sscp_key_store_get_key(&g_keyStore, &ctx->sharedSecret, pubKey, &coordinateLen, &coordinateBitsLen,
-                                        NULL) != kStatus_SSS_Success)
+                                        (sss_key_part_t)NULL) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }

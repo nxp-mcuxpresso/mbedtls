@@ -5026,7 +5026,7 @@ void *pvPortCalloc(size_t num, size_t size)
     vTaskSuspendAll();
     {
         pvReturn = calloc(num, size);
-        traceMALLOC(pvReturn, xWantedSize);
+        traceMALLOC(pvReturn, size);
     }
     (void)xTaskResumeAll();
 

@@ -36,6 +36,23 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+#include "tinycrypt/ecc.h"
+#include "tinycrypt/ecc_dsa.h"
+#include "mbedtls/asn1.h"
+#include "mbedtls/asn1write.h"
+#include "mbedtls/platform_util.h"
+#include "mbedtls/platform.h"
+#include "mbedtls/pk.h"
+
+#if !defined(MBEDTLS_PLATFORM_C)
+#include <stdlib.h>
+#define mbedtls_calloc    calloc
+#define mbedtls_free       free
+#endif
+
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "mbedtls/asn1write.h"
 #endif
@@ -380,6 +397,296 @@ cleanup:
 }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 #endif /* MBEDTLS_ECDSA_C */
+
+/*
+ * Internal wrappers around ECC functions - based on TinyCrypt
+ */
+#if defined(MBEDTLS_USE_TINYCRYPT)
+/*
+ * An ASN.1 encoded signature is a sequence of two ASN.1 integers. Parse one of
+ * those integers and convert it to the fixed-length encoding.
+ */
+static int extract_ecdsa_sig_int( unsigned char **from, const unsigned char *end,
+                                  unsigned char *to, size_t to_len )
+{
+    int ret;
+    size_t unpadded_len, padding_len;
+
+    if( ( ret = mbedtls_asn1_get_tag( from, end, &unpadded_len,
+                                      MBEDTLS_ASN1_INTEGER ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    while( unpadded_len > 0 && **from == 0x00 )
+    {
+        ( *from )++;
+        unpadded_len--;
+    }
+
+    if( unpadded_len > to_len || unpadded_len == 0 )
+        return( MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    padding_len = to_len - unpadded_len;
+    memset( to, 0x00, padding_len );
+    mbedtls_platform_memcpy( to + padding_len, *from, unpadded_len );
+    ( *from ) += unpadded_len;
+
+    return( 0 );
+}
+
+/*
+ * Convert a signature from an ASN.1 sequence of two integers
+ * to a raw {r,s} buffer. Note: the provided sig buffer must be at least
+ * twice as big as int_size.
+ */
+static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
+                              unsigned char *sig, size_t int_size )
+{
+    int ret;
+    size_t tmp_size;
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &tmp_size,
+                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+        return( ret );
+
+    /* Extract r */
+    if( ( ret = extract_ecdsa_sig_int( p, end, sig, int_size ) ) != 0 )
+        return( ret );
+    /* Extract s */
+    if( ( ret = extract_ecdsa_sig_int( p, end, sig + int_size, int_size ) ) != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
+static size_t uecc_eckey_get_bitlen( const void *ctx )
+{
+    (void) ctx;
+    return( (size_t) ( NUM_ECC_BYTES * 8 ) );
+}
+
+/* This function compares public keys of two keypairs */
+static int uecc_eckey_check_pair( const void *pub, const void *prv )
+{
+    const mbedtls_uecc_keypair *uecc_pub =
+        (const mbedtls_uecc_keypair *) pub;
+    const mbedtls_uecc_keypair *uecc_prv =
+        (const mbedtls_uecc_keypair *) prv;
+
+    if( mbedtls_platform_memequal( uecc_pub->public_key,
+                uecc_prv->public_key,
+                2 * NUM_ECC_BYTES ) == 0 )
+    {
+        return( 0 );
+    }
+
+    return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+}
+
+static int uecc_eckey_can_do( mbedtls_pk_type_t type )
+{
+    return( type == MBEDTLS_PK_ECDSA ||
+            type == MBEDTLS_PK_ECKEY );
+}
+
+static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                       const unsigned char *hash, size_t hash_len,
+                       const unsigned char *sig, size_t sig_len )
+{
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    volatile int ret_fi = UECC_FAULT_DETECTED;
+    uint8_t signature[2*NUM_ECC_BYTES];
+    unsigned char *p;
+    const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
+
+    ((void) md_alg);
+    p = (unsigned char*) sig;
+
+    ret = extract_ecdsa_sig( &p, sig + sig_len, signature, NUM_ECC_BYTES );
+    if( ret != 0 )
+        return( ret );
+
+    ret_fi = uECC_verify( keypair->public_key, hash,
+                          (unsigned) hash_len, signature );
+
+    if( ret_fi == UECC_FAULT_DETECTED )
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+
+    if( ret_fi == UECC_SUCCESS )
+    {
+        mbedtls_platform_random_delay();
+        if( ret_fi == UECC_SUCCESS )
+            return( 0 );
+        else
+            return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    }
+
+    return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+}
+
+/*
+ * Simultaneously convert and move raw MPI from the beginning of a buffer
+ * to an ASN.1 MPI at the end of the buffer.
+ * See also mbedtls_asn1_write_mpi().
+ *
+ * p: pointer to the end of the output buffer
+ * start: start of the output buffer, and also of the mpi to write at the end
+ * n_len: length of the mpi to read from start
+ *
+ * Warning:
+ * The total length of the output buffer must be smaller than 128 Bytes.
+ */
+static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
+                              size_t n_len )
+{
+    size_t len = n_len;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+
+    if( (size_t)( *p - start ) < len )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+    *p -= len;
+    ret = mbedtls_platform_memmove( *p, start, len );
+    if( ret != 0 )
+    {
+        return( ret );
+    }
+
+    /* ASN.1 DER encoding requires minimal length, so skip leading 0s.
+     * Neither r nor s should be 0, but as a failsafe measure, still detect
+     * that rather than overflowing the buffer in case of an error. */
+    while( len > 0 && **p == 0x00 )
+    {
+        ++(*p);
+        --len;
+    }
+
+    /* this is only reached if the signature was invalid */
+    if( len == 0 )
+        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+
+    /* if the msb is 1, ASN.1 requires that we prepend a 0.
+     * Neither r nor s can be 0, so we can assume len > 0 at all times. */
+    if( **p & 0x80 )
+    {
+        if( *p - start < 1 )
+            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+        *--(*p) = 0x00;
+        len += 1;
+    }
+
+    /* Ensure that there is still space for len and ASN1_INTEGER */
+    if( ( *p - start ) < 2 )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+    /* The ASN.1 length encoding is just a single Byte containing the length,
+     * as we assume that the total buffer length is smaller than 128 Bytes. */
+    *--(*p) = len;
+    *--(*p) = MBEDTLS_ASN1_INTEGER;
+    len += 2;
+
+    return( (int) len );
+}
+
+/* Transcode signature from uECC format to ASN.1 sequence.
+ * See ecdsa_signature_to_asn1 in ecdsa.c, but with byte buffers instead of
+ * MPIs, and in-place.
+ *
+ * [in/out] sig: the signature pre- and post-transcoding
+ * [in/out] sig_len: signature length pre- and post-transcoding
+ * [in] buf_len: the available size the in/out buffer
+ *
+ * Warning: buf_len must be smaller than 128 Bytes.
+ */
+static int pk_ecdsa_sig_asn1_from_uecc( unsigned char *sig, size_t *sig_len,
+                                        size_t buf_len )
+{
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    size_t len = 0;
+    const size_t rs_len = *sig_len / 2;
+    unsigned char *p = sig + buf_len;
+
+    MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig + rs_len, rs_len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig, rs_len ) );
+
+    if( p - sig < 2 )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+    /* The ASN.1 length encoding is just a single Byte containing the length,
+     * as we assume that the total buffer length is smaller than 128 Bytes. */
+    *--p = len;
+    *--p = MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE;
+    len += 2;
+
+    ret = mbedtls_platform_memmove( sig, p, len );
+    if( ret != 0 )
+    {
+        return( ret );
+    }
+    *sig_len = len;
+
+    return( ret );
+}
+
+static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
+    int ret;
+
+    /*
+     * RFC-4492 page 20:
+     *
+     *     Ecdsa-Sig-Value ::= SEQUENCE {
+     *         r       INTEGER,
+     *         s       INTEGER
+     *     }
+     *
+     * Size is at most
+     *    1 (tag) + 1 (len) + 1 (initial 0) + NUM_ECC_BYTES for each of r and s,
+     *    twice that + 1 (tag) + 2 (len) for the sequence
+     *
+     * (The ASN.1 length encodings are all 1-Byte encodings because
+     *  the total size is smaller than 128 Bytes).
+     */
+     #define MAX_SECP256R1_ECDSA_SIG_LEN ( 3 + 2 * ( 3 + NUM_ECC_BYTES ) )
+
+    ret = uECC_sign( keypair->private_key, hash, hash_len, sig );
+    if( ret == UECC_FAULT_DETECTED )
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    if( ret != UECC_SUCCESS )
+        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+
+    *sig_len = 2 * NUM_ECC_BYTES;
+
+    /* uECC owns its rng function pointer */
+    (void) f_rng;
+    (void) p_rng;
+    (void) md_alg;
+
+    return( pk_ecdsa_sig_asn1_from_uecc( sig, sig_len,
+                                         MAX_SECP256R1_ECDSA_SIG_LEN ) );
+
+    #undef MAX_SECP256R1_ECDSA_SIG_LEN
+}
+static void *uecc_eckey_alloc_wrap( void )
+{
+    return( mbedtls_calloc( 1, sizeof( mbedtls_uecc_keypair ) ) );
+}
+
+static void uecc_eckey_free_wrap( void *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_uecc_keypair ) );
+    mbedtls_free( ctx );
+}
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
 static int eckey_check_pair( const void *pub, const void *prv )
 {
@@ -736,6 +1043,31 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     eckey_debug,        /* Compatible key structures */
 };
 #endif /* MBEDTLS_ECDSA_C */
+
+#if defined(MBEDTLS_USE_TINYCRYPT)
+const mbedtls_pk_info_t mbedtls_uecc_eckey_info = {
+	MBEDTLS_PK_ECKEY,
+    "EC",
+	uecc_eckey_get_bitlen,     /* Compatible key structures */
+	uecc_eckey_can_do,
+	uecc_eckey_verify_wrap,
+	uecc_eckey_sign_wrap,
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    NULL,
+    NULL,
+#endif
+    NULL,
+    NULL,
+	uecc_eckey_check_pair,   /* Compatible key structures */
+	uecc_eckey_alloc_wrap,
+	uecc_eckey_free_wrap,
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    NULL,
+    NULL,
+#endif
+    NULL,        /* Compatible key structures */
+};
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /*

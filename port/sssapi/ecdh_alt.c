@@ -508,7 +508,7 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
         {
             mbedtls_platform_zeroize(pubKey, keySize);
             mbedtls_free(pubKey);
-            break;
+            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
         if (ctx->isKeyInitialized == false)
         {

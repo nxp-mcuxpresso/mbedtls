@@ -407,7 +407,7 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
         case MBEDTLS_CIPHER_AES_256_ECB:
         {
             cmac_aes_context_t ctx;
-            if (SSS_aes_cmac(&ctx, key, keylen, input, ilen, output) == kStatus_SSS_Success)
+            if (SSS_aes_cmac(&ctx, key, keylen, input, ilen, output) == kStatus_Success)
             {
                 ret = 0;
             }

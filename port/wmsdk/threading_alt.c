@@ -61,8 +61,10 @@ static int wmos_wrap_mutex_unlock(mbedtls_threading_mutex_t *mutex)
 
 void wm_mbedtls_set_threading_alt()
 {
+#if defined(MBEDTLS_THREADING_ALT)
 	mbedtls_threading_set_alt(wmos_wrap_mutex_init,
 			wmos_wrap_mutex_free,
 			wmos_wrap_mutex_lock,
 			wmos_wrap_mutex_unlock);
+#endif
 }

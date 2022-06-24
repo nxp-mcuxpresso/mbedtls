@@ -682,7 +682,7 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx,
                                                  kSSS_CipherType_AES,
                                                  coordinateLen,
 #if (defined(KW45_A0_SUPPORT) && KW45_A0_SUPPORT)
-                                                 SSS_FULL_KEY_EXPORTABLE) != kStatus_SSS_Success)
+                                                 SSS_FULL_KEY_EXPORTABLE 
 #else
                                                  SSS_KEYPROP_OPERATION_NONE
 #endif

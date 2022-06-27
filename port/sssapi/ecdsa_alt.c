@@ -418,8 +418,8 @@ static int ecdsa_verify_restartable(mbedtls_ecp_group *grp,
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    else if (sss_sscp_key_store_set_key(&g_keyStore, &ecdsaPublic, (const uint8_t *)pubKey, keySize, coordinateBitsLen,
-                                        (sss_key_part_t)NULL) != kStatus_SSS_Success)
+    else if (SSS_KEY_STORE_SET_KEY(&ecdsaPublic, (const uint8_t *)pubKey, keySize, coordinateBitsLen,
+                                        (uint32_t)kSSS_KeyPart_Public) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }

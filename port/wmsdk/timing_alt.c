@@ -26,6 +26,7 @@
 #include "timing_alt.h"
 #include <wm_os.h>
 #include <wm_mbedtls_debug.h>
+#include <wmtime.h>
 
 volatile int mbedtls_timing_alarmed;
 

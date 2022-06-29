@@ -47,6 +47,10 @@
 #include "psa/crypto.h"
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+#include "tinycrypt/ecc.h"
+#endif
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -194,6 +198,14 @@ typedef struct mbedtls_pk_debug_item
  */
 typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+typedef struct
+{
+    uint8_t private_key[NUM_ECC_BYTES];
+    uint8_t public_key[2*NUM_ECC_BYTES];
+} mbedtls_uecc_keypair;
+#endif
+
 /**
  * \brief           Public key container
  */
@@ -229,6 +241,15 @@ static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
     return( (mbedtls_rsa_context *) (pk).pk_ctx );
 }
 #endif /* MBEDTLS_RSA_C */
+
+#if defined(MBEDTLS_USE_TINYCRYPT)
+
+static inline mbedtls_uecc_keypair *mbedtls_pk_uecc( const mbedtls_pk_context pk )
+{
+    return( (mbedtls_uecc_keypair *) (pk).pk_ctx );
+}
+
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
 #if defined(MBEDTLS_ECP_C)
 /**

@@ -298,7 +298,11 @@ int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf,
     int ret;
     unsigned char *sig;
 
-    if( ( sig = mbedtls_calloc( 1, MBEDTLS_PK_SIGNATURE_MAX_SIZE ) ) == NULL )
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    if( ( sig = mbedtls_calloc( 1, MBEDTLS_PK_SIGNATURE_MAX_SIZE + 1 ) ) == NULL )
+#else
+	if( ( sig = mbedtls_calloc( 1, MBEDTLS_PK_SIGNATURE_MAX_SIZE ) ) == NULL )
+#endif
     {
         return( MBEDTLS_ERR_X509_ALLOC_FAILED );
     }

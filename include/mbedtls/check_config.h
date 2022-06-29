@@ -89,6 +89,18 @@
 #error "MBEDTLS_CMAC_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT) && defined(MBEDTLS_NO_64BIT_MULTIPLICATION)
+#error "MBEDTLS_USE_TINYCRYPT defined, but it cannot be defined with MBEDTLS_NO_64BIT_MULTIPLICATION"
+#endif
+#if defined(MBEDTLS_USE_TINYCRYPT) && !defined(MBEDTLS_SHA256_C)
+#error "MBEDTLS_USE_TINYCRYPT defined, but not MBEDTLS_SHA256_C"
+#endif
+#if defined(MBEDTLS_OPTIMIZE_TINYCRYPT_ASM) &&           \
+    ( !defined(MBEDTLS_HAVE_ASM) || \
+      !defined(MBEDTLS_USE_TINYCRYPT) )
+#error "MBEDTLS_OPTIMIZE_TINYCRYPT_ASM defined, but not all prerequesites"
+#endif
+
 #if defined(MBEDTLS_NIST_KW_C) && \
     ( !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_CIPHER_C) )
 #error "MBEDTLS_NIST_KW_C defined, but not all prerequisites"
@@ -382,8 +394,10 @@
 #error "MBEDTLS_PEM_WRITE_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PK_C) && \
-    ( !defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_ECP_C) )
+#if defined(MBEDTLS_PK_C) &&                    \
+    ( !defined(MBEDTLS_RSA_C) &&                \
+      !defined(MBEDTLS_ECP_C) &&                \
+      !defined(MBEDTLS_USE_TINYCRYPT) )
 #error "MBEDTLS_PK_C defined, but not all prerequisites"
 #endif
 

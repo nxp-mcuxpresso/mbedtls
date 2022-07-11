@@ -9,11 +9,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #include "sssapi_mbedtls.h"
 #include "fsl_common.h"
@@ -114,11 +110,7 @@ status_t CRYPTO_ReinitHardware(void)
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #include "sssapi_mbedtls.h"
 #include "fsl_common.h"

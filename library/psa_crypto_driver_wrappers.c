@@ -1066,6 +1066,10 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
 #if !defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT) && !defined(MBEDTLS_PSA_BUILTIN_CIPHER)
             return( PSA_ERROR_NOT_SUPPORTED );
 #endif
+/* NXP added */
+#if !defined(MBEDTLS_PSA_BUILTIN_CIPHER)
+            return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
 
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)

@@ -95,7 +95,8 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_RSA_ALT)
+/* NXP added !MBEDTLS_RSA_CTX_ALT */
+#if !defined(MBEDTLS_RSA_ALT) && !defined(MBEDTLS_RSA_CTX_ALT)
 // Regular implementation
 //
 

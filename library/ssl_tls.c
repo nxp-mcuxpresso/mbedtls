@@ -3306,8 +3306,8 @@ static void ssl_calc_finished_tls_sha256(
      *   hash = PRF( master, finished_label,
      *               Hash( handshake ) )[0.11]
      */
-
-#if !defined(MBEDTLS_SHA256_ALT)
+/* NXP added MBEDTLS_SHA512_CTX_ALT */
+#if !defined(MBEDTLS_SHA256_ALT) && !defined(MBEDTLS_SHA256_CTX_ALT)
     MBEDTLS_SSL_DEBUG_BUF( 4, "finished sha2 state", (unsigned char *)
                    sha256.state, sizeof( sha256.state ) );
 #endif
@@ -3382,8 +3382,8 @@ static void ssl_calc_finished_tls_sha384(
      *   hash = PRF( master, finished_label,
      *               Hash( handshake ) )[0.11]
      */
-
-#if !defined(MBEDTLS_SHA512_ALT)
+/* NXP added MBEDTLS_SHA512_CTX_ALT */
+#if !defined(MBEDTLS_SHA512_ALT) && !defined(MBEDTLS_SHA512_CTX_ALT)
     MBEDTLS_SSL_DEBUG_BUF( 4, "finished sha512 state", (unsigned char *)
                    sha512.state, sizeof( sha512.state ) );
 #endif

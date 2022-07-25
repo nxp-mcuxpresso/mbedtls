@@ -438,6 +438,8 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
     return( 0 );
 }
 
+/* NXP added for HW accelerators support */
+#if !defined(MBEDTLS_GCM_CRYPT_ALT)
 int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
                        int mode,
                        size_t length,
@@ -513,6 +515,8 @@ int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
 
     return( 0 );
 }
+#endif /* !MBEDTLS_GCM_CRYPT_ALT */
+/* NXP added for HW accelerators support */
 
 void mbedtls_gcm_free( mbedtls_gcm_context *ctx )
 {
@@ -535,7 +539,16 @@ void mbedtls_gcm_free( mbedtls_gcm_context *ctx )
 static const int key_index_test_data[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 1 };
 
-static const unsigned char key_test_data[MAX_TESTS][32] =
+#ifndef AT_NONCACHEABLE_SECTION_ALIGN_INIT
+#define AT_NONCACHEABLE_SECTION_ALIGN_INIT(var,alignbytes) var
+#endif // AT_NONCACHEABLE_SECTION_ALIGN_INIT
+
+#ifndef AT_NONCACHEABLE_SECTION_INIT
+#define AT_NONCACHEABLE_SECTION_INIT(var) var
+#endif // AT_NONCACHEABLE_SECTION_INIT
+
+/* NXP: AT_NONCACHEABLE_SECTION for DCACHE compatibility */
+AT_NONCACHEABLE_SECTION_ALIGN_INIT(static unsigned char key_test_data[MAX_TESTS][32],8U) =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -553,7 +566,7 @@ static const size_t iv_len_test_data[MAX_TESTS] =
 static const int iv_index_test_data[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 2 };
 
-static const unsigned char iv_test_data[MAX_TESTS][64] =
+AT_NONCACHEABLE_SECTION_INIT(static unsigned char iv_test_data[MAX_TESTS][64]) =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00 },
@@ -575,7 +588,7 @@ static const size_t add_len_test_data[MAX_TESTS] =
 static const int add_index_test_data[MAX_TESTS] =
     { 0, 0, 0, 1, 1, 1 };
 
-static const unsigned char additional_test_data[MAX_TESTS][64] =
+AT_NONCACHEABLE_SECTION_INIT(static unsigned char additional_test_data[MAX_TESTS][64]) =
 {
     { 0x00 },
     { 0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef,
@@ -589,7 +602,7 @@ static const size_t pt_len_test_data[MAX_TESTS] =
 static const int pt_index_test_data[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 1 };
 
-static const unsigned char pt_test_data[MAX_TESTS][64] =
+AT_NONCACHEABLE_SECTION_INIT(static unsigned char pt_test_data[MAX_TESTS][64]) =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
@@ -603,7 +616,7 @@ static const unsigned char pt_test_data[MAX_TESTS][64] =
       0xba, 0x63, 0x7b, 0x39, 0x1a, 0xaf, 0xd2, 0x55 },
 };
 
-static const unsigned char ct_test_data[MAX_TESTS * 3][64] =
+AT_NONCACHEABLE_SECTION_INIT(static unsigned char ct_test_data[MAX_TESTS * 3][64]) =
 {
     { 0x00 },
     { 0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92,
@@ -712,7 +725,7 @@ static const unsigned char ct_test_data[MAX_TESTS * 3][64] =
       0x44, 0xae, 0x7e, 0x3f },
 };
 
-static const unsigned char tag_test_data[MAX_TESTS * 3][16] =
+AT_NONCACHEABLE_SECTION_INIT(static unsigned char tag_test_data[MAX_TESTS * 3][16]) =
 {
     { 0x58, 0xe2, 0xfc, 0xce, 0xfa, 0x7e, 0x30, 0x61,
       0x36, 0x7f, 0x1d, 0x57, 0xa4, 0xe7, 0x45, 0x5a },
@@ -763,6 +776,19 @@ int mbedtls_gcm_self_test( int verbose )
     for( j = 0; j < 3; j++ )
     {
         int key_len = 128 + 64 * j;
+
+        #if defined(MBEDTLS_AES_ALT_NO_192) && !defined(MBEDTLS_AES192_ALT_SW)
+        if (j == 1)
+        {
+            continue;
+        }
+        #endif
+        #if defined(MBEDTLS_AES_ALT_NO_256) && !defined(MBEDTLS_AES256_ALT_SW)
+        if (j == 2)
+        {
+            continue;
+        }
+        #endif
 
         for( i = 0; i < MAX_TESTS; i++ )
         {

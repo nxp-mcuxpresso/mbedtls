@@ -223,7 +223,7 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
         goto cleanup;
 
     /*
-     * Export P, G, GX. RFC 5246 ยง4.4 states that "leading zero octets are
+     * Export P, G, GX. RFC 5246 ง4.4 states that "leading zero octets are
      * not required". We omit leading zeros for compactness.
      */
 #define DHM_MPI_EXPORT( X, n )                                          \
@@ -438,7 +438,7 @@ int mbedtls_dhm_calc_secret( mbedtls_dhm_context *ctx,
     }
 
     /* Output the secret without any leading zero byte. This is mandatory
-     * for TLS per RFC 5246 ยง8.1.2. */
+     * for TLS per RFC 5246 ง8.1.2. */
     *olen = mbedtls_mpi_size( &ctx->K );
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &ctx->K, output, *olen ) );
 

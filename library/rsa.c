@@ -138,7 +138,8 @@ cleanup:
  * that the RSA primitives will be able to execute without error.
  * It does *not* make guarantees for consistency of the parameters.
  */
-static int rsa_check_context( mbedtls_rsa_context const *ctx, int is_priv,
+/* NXP remove static */
+int rsa_check_context( mbedtls_rsa_context const *ctx, int is_priv,
                               int blinding_needed )
 {
 #if !defined(MBEDTLS_RSA_NO_CRT)
@@ -711,6 +712,8 @@ int mbedtls_rsa_check_pub_priv( const mbedtls_rsa_context *pub,
     return( 0 );
 }
 
+/* NXP added for HW accelerators support */
+#if !defined(MBEDTLS_RSA_PUBLIC_ALT)
 /*
  * Do an RSA public key operation
  */
@@ -761,6 +764,11 @@ cleanup:
     return( 0 );
 }
 
+#endif /* MBEDTLS_RSA_PUBLIC_ALT */
+/* NXP added for HW accelerators support */
+
+/* NXP added */
+#if !defined(MBEDTLS_RSA_PRIVATE_ALT)
 /*
  * Generate or update blinding values, see section 10 of:
  *  KOCHER, Paul C. Timing attacks on implementations of Diffie-Hellman, RSA,
@@ -1076,6 +1084,7 @@ cleanup:
 
     return( ret );
 }
+#endif /* MBEDTLS_RSA_PRIVATE_ALT NXP added */
 
 #if defined(MBEDTLS_PKCS1_V21)
 /**
@@ -2380,7 +2389,7 @@ void mbedtls_rsa_free( mbedtls_rsa_context *ctx )
 #if defined(MBEDTLS_SELF_TEST)
 
 #include "mbedtls/sha1.h"
-
+#if 1 //NXP TBD add test for bigger key
 /*
  * Example RSA-1024 keypair, for test purposes
  */
@@ -2415,7 +2424,7 @@ void mbedtls_rsa_free( mbedtls_rsa_context *ctx )
                 "E211C2B9E5DB1ED0BF61D0D9899620F4" \
                 "910E4168387E3C30AA1E00C339A79508" \
                 "8452DD96A9A5EA5D9DCA68DA636032AF"
-
+#endif
 #define PT_LEN  24
 #define RSA_PT  "\xAA\xBB\xCC\x03\x02\x01\x00\xFF\xFF\xFF\xFF\xFF" \
                 "\x11\x22\x33\x0A\x0B\x0C\xCC\xDD\xDD\xDD\xDD\xDD"
@@ -2446,6 +2455,7 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
  * Checkup routine
  */
 int mbedtls_rsa_self_test( int verbose )
+#if 1 //NXP  TBD add test for bigger key
 {
     int ret = 0;
 #if defined(MBEDTLS_PKCS1_V15)
@@ -2583,6 +2593,108 @@ cleanup:
 #endif /* MBEDTLS_PKCS1_V15 */
     return( ret );
 }
+
+#else
+{
+    int ret = 0;
+#if defined(MBEDTLS_PKCS1_V15)
+    size_t len;
+    mbedtls_pk_context pk;
+    mbedtls_rsa_context *rsa;
+    unsigned char rsa_plaintext[PT_LEN];
+    unsigned char rsa_decrypted[PT_LEN];
+#if defined(MBEDTLS_SHA1_C)
+    unsigned char sha1sum[20];
+#endif
+#if defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE) \
+    || (defined(FREESCALE_PKHA_INT_MAX_BYTES) && (FREESCALE_PKHA_INT_MAX_BYTES >= ((4096 / 8) * 2)))
+    unsigned char rsa_ciphertext[4096 / 8];
+    const char *rsa_keys[] = { RSA_PRIVATE_KEY_1024, RSA_PRIVATE_KEY_2048, RSA_PRIVATE_KEY_4096 };
+#elif defined(FREESCALE_PKHA_INT_MAX_BYTES) && (FREESCALE_PKHA_INT_MAX_BYTES >= ((2048 / 8) * 2))
+    unsigned char rsa_ciphertext[2048 / 8];
+    const char *rsa_keys[] = { RSA_PRIVATE_KEY_1024, RSA_PRIVATE_KEY_2048 };
+#else
+    unsigned char rsa_ciphertext[1024 / 8];
+    const char *rsa_keys[] = { RSA_PRIVATE_KEY_1024 };
+#endif
+    size_t i;
+
+    for (i = 0; i < sizeof(rsa_keys) / sizeof(rsa_keys[0]); i++)
+    {
+        mbedtls_pk_init(&pk);
+        
+        if( verbose != 0 )
+            mbedtls_printf( "  RSA parse key #%d       : ", i + 1 );
+
+        MBEDTLS_MPI_CHK( mbedtls_pk_parse_key(&pk, (const unsigned char *)rsa_keys[i], strlen(rsa_keys[i]) + 1, NULL, 0) );
+
+        rsa = mbedtls_pk_rsa(pk);
+
+        if( verbose != 0 )
+            mbedtls_printf( "passed\n\r  RSA-%d key validation: ", mbedtls_pk_get_bitlen( &pk ) );
+
+        MBEDTLS_MPI_CHK( mbedtls_rsa_check_pubkey( rsa ) );
+        MBEDTLS_MPI_CHK( mbedtls_rsa_check_privkey( rsa ) );
+
+        if( verbose != 0 )
+            mbedtls_printf( "passed\n\r  PKCS#1 encryption      : " );
+
+        memcpy( rsa_plaintext, RSA_PT, PT_LEN );
+
+        MBEDTLS_MPI_CHK( mbedtls_rsa_pkcs1_encrypt( rsa, myrand, NULL, MBEDTLS_RSA_PUBLIC, PT_LEN,
+                               rsa_plaintext, rsa_ciphertext ) );
+
+        if( verbose != 0 )
+            mbedtls_printf( "passed\n\r  PKCS#1 decryption      : " );
+
+        MBEDTLS_MPI_CHK( mbedtls_rsa_pkcs1_decrypt( rsa, myrand, NULL, MBEDTLS_RSA_PRIVATE, &len,
+                               rsa_ciphertext, rsa_decrypted,
+                               sizeof(rsa_decrypted) ) );
+
+        MBEDTLS_MPI_CHK( memcmp( rsa_decrypted, rsa_plaintext, len ) );
+
+        if( verbose != 0 )
+            mbedtls_printf( "passed\n\r" );
+
+    #if defined(MBEDTLS_SHA1_C)
+        if( verbose != 0 )
+            mbedtls_printf( "  PKCS#1 data sign       : " );
+
+        mbedtls_sha1( rsa_plaintext, PT_LEN, sha1sum );
+
+        MBEDTLS_MPI_CHK( mbedtls_rsa_pkcs1_sign( rsa, myrand, NULL, MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_SHA1, 0,
+                            sha1sum, rsa_ciphertext ) );
+
+        if( verbose != 0 )
+            mbedtls_printf( "passed\n\r  PKCS#1 sig. verify     : " );
+
+        MBEDTLS_MPI_CHK( mbedtls_rsa_pkcs1_verify( rsa, NULL, NULL, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA1, 0,
+                              sha1sum, rsa_ciphertext ) );
+
+        if( verbose != 0 )
+            mbedtls_printf( "passed\n\r" );
+    #endif /* MBEDTLS_SHA1_C */
+
+        if( verbose != 0 )
+            mbedtls_printf( "\n\r" );
+
+    cleanup:
+        mbedtls_pk_free( &pk );
+        if( ret != 0 )
+        {
+            if( verbose != 0 )
+                mbedtls_printf( "failed\n\r" );
+
+            return( 1 );
+        }
+    #else /* MBEDTLS_PKCS1_V15 */
+        ((void) verbose);
+    #endif /* MBEDTLS_PKCS1_V15 */
+    }
+    
+    return( 0 );
+}
+#endif
 
 #endif /* MBEDTLS_SELF_TEST */
 

@@ -34,6 +34,13 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
+/* NXP added */
+#if defined(MBEDTLS_CCM_USE_AES_CBC_MAC)
+#include "mbedtls/cipher_internal.h"
+#include "mbedtls/aes.h"
+#include "cbc_mac_alt.h"
+#endif /* MBEDTLS_CCM_USE_AES_CBC_MAC */
+
 #include <string.h>
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
@@ -145,6 +152,8 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
 /*
  * Authenticated encryption or decryption
  */
+/* NXP added for HW accelerators support */ 
+#if !defined(MBEDTLS_CCM_CRYPT_ALT)
 static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
                            const unsigned char *iv, size_t iv_len,
                            const unsigned char *add, size_t add_len,
@@ -230,6 +239,18 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 
         UPDATE_CBC_MAC;
 
+/* NXP added */
+#if defined(MBEDTLS_CCM_USE_AES_CBC_MAC)
+        if( MBEDTLS_CIPHER_ID_AES == ctx->cipher_ctx.cipher_info->base->cipher )
+        {
+            if( ( ret = mbedtls_aes_cbc_mac((mbedtls_aes_context*) ctx->cipher_ctx.cipher_ctx, len_left, y, src) ) != 0 )
+            {
+                return( ret );
+            }
+        }
+        else
+#endif /* MBEDTLS_CCM_USE_AES_CBC_MAC */
+
         while( len_left > 0 )
         {
             use_len = len_left > 16 ? 16 : len_left;
@@ -267,6 +288,36 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     len_left = length;
     src = input;
     dst = output;
+
+/* NXP added */
+#if defined(MBEDTLS_CCM_USE_AES_CBC_MAC)
+    if( MBEDTLS_CIPHER_ID_AES == ctx->cipher_ctx.cipher_info->base->cipher )
+    {
+        if( mode == CCM_ENCRYPT )
+        {
+            if( ( ret = mbedtls_aes_cbc_mac((mbedtls_aes_context*) ctx->cipher_ctx.cipher_ctx, len_left, y, src) ) != 0 )
+            {
+                return( ret );
+            }
+        }
+
+        size_t offset = 0;
+        if( ( ret = mbedtls_aes_crypt_ctr((mbedtls_aes_context*) ctx->cipher_ctx.cipher_ctx, len_left,
+                                          &offset, ctr, b, src, dst) ) != 0 )
+        {
+            return( ret );
+        }
+
+        if( mode == CCM_DECRYPT )
+        {
+            if( ( ret = mbedtls_aes_cbc_mac((mbedtls_aes_context*) ctx->cipher_ctx.cipher_ctx, len_left, y, dst) ) != 0 )
+            {
+                return( ret );
+            }
+        }
+    }
+    else
+#endif /* MBEDTLS_CCM_USE_AES_CBC_MAC */
 
     while( len_left > 0 )
     {
@@ -411,6 +462,7 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
     return( mbedtls_ccm_star_auth_decrypt( ctx, length, iv, iv_len, add,
                 add_len, input, output, tag, tag_len ) );
 }
+#endif /* !MBEDTLS_CCM_CRYPT_ALT */
 #endif /* !MBEDTLS_CCM_ALT */
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
@@ -419,28 +471,36 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  */
 
 #define NB_TESTS 3
-#define CCM_SELFTEST_PT_MAX_LEN 24
+
+/* NXP increased CCM_SELFTEST_PT_MAX_LEN from 24 to 32 for HW accelerators support */ 
+#define CCM_SELFTEST_PT_MAX_LEN 32
 #define CCM_SELFTEST_CT_MAX_LEN 32
+
+#ifndef AT_NONCACHEABLE_SECTION_INIT
+#define AT_NONCACHEABLE_SECTION_INIT(var) var
+#endif // AT_NONCACHEABLE_SECTION_INIT
+
 /*
  * The data is the same for all tests, only the used length changes
  */
-static const unsigned char key_test_data[] = {
+/* NXP: AT_NONCACHEABLE_SECTION for DCACHE compatibility */
+AT_NONCACHEABLE_SECTION_INIT(static unsigned char key_test_data[]) = {
     0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47,
     0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f
 };
 
-static const unsigned char iv_test_data[] = {
+AT_NONCACHEABLE_SECTION_INIT(static unsigned char iv_test_data[]) = {
     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
     0x18, 0x19, 0x1a, 0x1b
 };
 
-static const unsigned char ad_test_data[] = {
+AT_NONCACHEABLE_SECTION_INIT(static unsigned char ad_test_data[]) = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
     0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
     0x10, 0x11, 0x12, 0x13
 };
 
-static const unsigned char msg_test_data[CCM_SELFTEST_PT_MAX_LEN] = {
+AT_NONCACHEABLE_SECTION_INIT(static unsigned char msg_test_data[CCM_SELFTEST_PT_MAX_LEN]) = {
     0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27,
     0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
     0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,

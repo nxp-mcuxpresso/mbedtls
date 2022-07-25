@@ -43,7 +43,8 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_SHA512_ALT)
+/* NXP added !MBEDTLS_SHA512_CTX_ALT */
+#if !defined(MBEDTLS_SHA512_ALT) && !defined(MBEDTLS_SHA512_CTX_ALT)
 // Regular implementation
 //
 

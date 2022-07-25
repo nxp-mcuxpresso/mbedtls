@@ -44,7 +44,8 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_SHA256_ALT)
+/* NXP added !MBEDTLS_SHA256_CTX_ALT */
+#if !defined(MBEDTLS_SHA256_ALT) && !defined(MBEDTLS_SHA256_CTX_ALT)
 // Regular implementation
 //
 

@@ -478,6 +478,13 @@ static const unsigned char sha1_test_sum[3][20] =
       0xEB, 0x2B, 0xDB, 0xAD, 0x27, 0x31, 0x65, 0x34, 0x01, 0x6F }
 };
 
+#if defined(FSL_FEATURE_HAS_L1CACHE) || defined(__DCACHE_PRESENT)
+/* NXP: Move to non-cached section due to HW acceleration */
+AT_NONCACHEABLE_SECTION_INIT(unsigned char sha1sum[20]);
+#else
+unsigned char sha1sum[20];
+#endif /* FSL_FEATURE_HAS_L1CACHE || __DCACHE_PRESENT */
+
 /*
  * Checkup routine
  */

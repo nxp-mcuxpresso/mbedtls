@@ -88,7 +88,8 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
 
     *dst = *src;
 }
-
+/* NXP added MBEDTLS_SHA512_STARTS_ALT */
+#if !defined(MBEDTLS_SHA512_STARTS_ALT)
 /*
  * SHA-512 context setup
  */
@@ -139,6 +140,7 @@ int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 )
 
     return( 0 );
 }
+#endif /* NXP added MBEDTLS_SHA512_STARTS_ALT */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha512_starts( mbedtls_sha512_context *ctx,
@@ -307,7 +309,8 @@ void mbedtls_sha512_process( mbedtls_sha512_context *ctx,
 }
 #endif
 #endif /* !MBEDTLS_SHA512_PROCESS_ALT */
-
+/* NXP added MBEDTLS_SHA512_UPDATE_ALT */
+#if !defined(MBEDTLS_SHA512_UPDATE_ALT)
 /*
  * SHA-512 process buffer
  */
@@ -359,6 +362,7 @@ int mbedtls_sha512_update_ret( mbedtls_sha512_context *ctx,
 
     return( 0 );
 }
+#endif /* NXP added MBEDTLS_SHA512_UPDATE_ALT */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha512_update( mbedtls_sha512_context *ctx,
@@ -368,7 +372,8 @@ void mbedtls_sha512_update( mbedtls_sha512_context *ctx,
     mbedtls_sha512_update_ret( ctx, input, ilen );
 }
 #endif
-
+/* NXP added MBEDTLS_SHA512_FINISH_ALT */
+#if !defined(MBEDTLS_SHA512_FINISH_ALT)
 /*
  * SHA-512 final digest
  */
@@ -438,6 +443,7 @@ int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
 
     return( 0 );
 }
+#endif /* NXP added MBEDTLS_SHA512_FINISH_ALT */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha512_finish( mbedtls_sha512_context *ctx,
@@ -449,6 +455,8 @@ void mbedtls_sha512_finish( mbedtls_sha512_context *ctx,
 
 #endif /* !MBEDTLS_SHA512_ALT */
 
+/* NXP adding for API support */
+#if !defined(NXP_MBEDTLS_SHA512_ALT) && !defined(MBEDTLS_SHA512_FULL_ALT)
 /*
  * output = SHA-512( input buffer )
  */
@@ -494,6 +502,7 @@ void mbedtls_sha512( const unsigned char *input,
     mbedtls_sha512_ret( input, ilen, output, is384 );
 }
 #endif
+#endif /* !NXP_MBEDTLS_SHA512_ALT && !MBEDTLS_SHA512_FULL_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 

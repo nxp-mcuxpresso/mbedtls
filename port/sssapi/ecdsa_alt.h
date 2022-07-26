@@ -67,9 +67,5 @@ typedef struct mbedtls_ecdsa_context
 } mbedtls_ecdsa_context;
 #endif /* MBEDTLS_ECDSA_ALT */
 
-#ifdef __cplusplus
-}
-#endif
-
 #endif /* MBEDTLS_ECDSA_ALT_H */
 

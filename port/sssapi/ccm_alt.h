@@ -86,4 +86,8 @@ typedef struct mbedtls_ccm_context
 int mbedtls_ccm_from_blob(mbedtls_ccm_context *ctx, uint8_t *blob, size_t blobSize);
 #endif
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* MBEDTLS_CCM_ALT_H */

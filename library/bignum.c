@@ -54,38 +54,6 @@
 #define mbedtls_free       free
 #endif
 
-#if defined (__IAR_SYSTEMS_ICC__)
-#include "cmsis_iccarm.h"
-#endif /* (__IAR_SYSTEMS_ICC__) */
-
-/*!
- ****************************************************************************************
- * @brief
- * HAL_REV16 swap bytes in a 16 bit word : useful for htons/ntohs and all enddianness conversions
- * HAL_REV32 swap bytes in a 32 bit word : useful for htonl/ntohl and all enddianness conversions
- ****************************************************************************************
- */
-#ifdef __GNUC__
-#define HAL_REV16(x) __builtin_bswap16(x)
-#define HAL_REV32(x)  __builtin_bswap32(x)
-
-#elif defined (__IAR_SYSTEMS_ICC__)
-
-#define HAL_REV16(x) __REV16(x)
-#define HAL_REV32(x) __REV(x)
-
-#endif
-
-
-#define HAL_HTONS(_x_)  HAL_REV16((_x_))
-#define HAL_NTOHS(_x_)  HAL_REV16((_x_))
-
-#define HAL_HTONL(_x_)  HAL_REV32((_x_))
-#define HAL_NTOHL(_x_)  HAL_REV32((_x_))
-
-#define HAL_BSWAP16(_x_) HAL_REV16((_x_))
-#define HAL_BSWAP32(_x_) HAL_REV32((_x_))
-
 #define MPI_VALIDATE_RET( cond )                                       \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_MPI_BAD_INPUT_DATA )
 #define MPI_VALIDATE( cond )                                           \
@@ -900,19 +868,19 @@ static mbedtls_mpi_uint mpi_uint_bigendian_to_host_c( mbedtls_mpi_uint x )
 static mbedtls_mpi_uint mpi_uint_bigendian_to_host( mbedtls_mpi_uint x )
 {
 #if defined(__BYTE_ORDER__)
+
 /* Nothing to do on bigendian systems. */
 #if ( __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ )
     return( x );
 #endif /* __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ */
 
 #if ( __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ )
+
 /* For GCC and Clang, have builtins for byte swapping. */
 #if defined(__GNUC__) && defined(__GNUC_PREREQ)
 #if __GNUC_PREREQ(4,3)
 #define have_bswap
 #endif
-#elif __IAR_SYSTEMS_ICC__
-#define have_bswap
 #endif
 
 #if defined(__clang__) && defined(__has_builtin)
@@ -924,25 +892,21 @@ static mbedtls_mpi_uint mpi_uint_bigendian_to_host( mbedtls_mpi_uint x )
 
 #if defined(have_bswap)
     /* The compiler is hopefully able to statically evaluate this! */
-#if 0
     switch( sizeof(mbedtls_mpi_uint) )
     {
         case 4:
             return( __builtin_bswap32(x) );
         case 8:
             return( __builtin_bswap64(x) );
-
     }
-#else
-    return(HAL_BSWAP32(x));
-#endif
 #endif
 #endif /* __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ */
-#else
+#endif /* __BYTE_ORDER__ */ 
+    
     /* Fall back to C-based reordering if we don't know the byte order
      * or we couldn't use a compiler-specific builtin. */
     return( mpi_uint_bigendian_to_host_c( x ) );
-#endif /* __BYTE_ORDER__ */
+   
 }
 
 static void mpi_bigendian_to_host( mbedtls_mpi_uint * const p, size_t limbs )

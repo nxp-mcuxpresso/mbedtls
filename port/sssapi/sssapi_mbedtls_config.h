@@ -42,6 +42,13 @@
 /* Define ALT functions for MBEDTLS_NXP_SSSAPI and SENTINEL unit. */
 #if defined(MBEDTLS_NXP_SSSAPI)
 #if defined(MBEDTLS_NXP_SENTINEL200) || defined(MBEDTLS_NXP_SENTINEL300)
+#define MBEDTLS_AES_ALT
+#define MBEDTLS_AES_SETKEY_ENC_ALT
+#define MBEDTLS_AES_SETKEY_DEC_ALT
+#define MBEDTLS_AES_ENCRYPT_ALT
+#define MBEDTLS_AES_DECRYPT_ALT
+#define MBEDTLS_AES_CRYPT_CBC_ALT
+#define NXP_MBEDTLS_AES_ALT
 #define MBEDTLS_CCM_ALT
 #define MBEDTLS_CMAC_ALT
 #define MBEDTLS_SHA256_ALT
@@ -2177,4 +2184,3 @@
 #include "mbedtls/check_config.h"
 
 #endif /* SSSAPI_MBEDTLS_CONFIG_H */
-

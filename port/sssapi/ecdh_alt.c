@@ -51,6 +51,7 @@
 #if defined(MBEDTLS_ECDH_ALT)
 #include "mbedtls/ecdh.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -201,20 +202,24 @@ void mbedtls_ecdh_init(mbedtls_ecdh_context *ctx)
     ctx->var = MBEDTLS_ECDH_VARIANT_NONE;
 #endif
     ctx->point_format     = MBEDTLS_ECP_PF_UNCOMPRESSED;
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    ctx->restart_enabled = 0;
+#endif    
     ctx->isKeyInitialized = false;
 }
 
-static int ecdh_setup_internal(mbedtls_ecdh_context_mbed *ctx, mbedtls_ecp_group_id grp_id)
+static int ecdh_setup_internal( mbedtls_ecdh_context_mbed *ctx,
+                                mbedtls_ecp_group_id grp_id )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    ret = mbedtls_ecp_group_load(&ctx->grp, grp_id);
-    if (ret != 0)
+    ret = mbedtls_ecp_group_load( &ctx->grp, grp_id );
+    if( ret != 0 )
     {
-        return (MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE);
+        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
     }
 
-    return (0);
+    return( 0 );
 }
 
 /*
@@ -229,6 +234,13 @@ int mbedtls_ecdh_setup(mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id)
 #else
     switch (grp_id)
     {
+#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
+        case MBEDTLS_ECP_DP_CURVE25519:
+            ctx->point_format = MBEDTLS_ECP_PF_COMPRESSED;
+            ctx->var = MBEDTLS_ECDH_VARIANT_EVEREST;
+            ctx->grp_id = grp_id;
+            return( mbedtls_everest_setup( &ctx->ctx.everest_ecdh, grp_id ) );
+#endif
         default:
             ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
             ctx->var          = MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0;
@@ -241,12 +253,28 @@ int mbedtls_ecdh_setup(mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id)
 
 static void ecdh_free_internal(mbedtls_ecdh_context_mbed *ctx)
 {
-    mbedtls_ecp_group_free(&ctx->grp);
-    mbedtls_mpi_free(&ctx->d);
-    mbedtls_ecp_point_free(&ctx->Q);
-    mbedtls_ecp_point_free(&ctx->Qp);
-    mbedtls_mpi_free(&ctx->z);
+    mbedtls_ecp_group_free( &ctx->grp );
+    mbedtls_mpi_free( &ctx->d  );
+    mbedtls_ecp_point_free( &ctx->Q   );
+    mbedtls_ecp_point_free( &ctx->Qp  );
+    mbedtls_mpi_free( &ctx->z  );
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    mbedtls_ecp_restart_free( &ctx->rs );
+#endif
 }
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+/*
+ * Enable restartable operations for context
+ */
+void mbedtls_ecdh_enable_restart( mbedtls_ecdh_context *ctx )
+{
+    ECDH_VALIDATE( ctx != NULL );
+
+    ctx->restart_enabled = 1;
+}
+#endif
 
 /*
  * Free context
@@ -270,6 +298,11 @@ void mbedtls_ecdh_free(mbedtls_ecdh_context *ctx)
 #else
     switch (ctx->var)
     {
+#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
+        case MBEDTLS_ECDH_VARIANT_EVEREST:
+            mbedtls_everest_free( &ctx->ctx.everest_ecdh );
+            break;
+#endif
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
             ecdh_free_internal(&ctx->ctx.mbed_ecdh);
             break;
@@ -283,6 +316,7 @@ void mbedtls_ecdh_free(mbedtls_ecdh_context *ctx)
     ctx->grp_id       = MBEDTLS_ECP_DP_NONE;
 #endif
 }
+
 
 static int ecdh_make_params_internal(mbedtls_ecdh_context_mbed *ctx,
                                      size_t *olen,
@@ -494,8 +528,8 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
 {
     int ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     ECDH_VALIDATE_RET(ctx != NULL);
-    size_t coordinateLen     = (ctx->grp.pbits + 7u) / 8u;
-    size_t coordinateBitsLen = ctx->grp.pbits;
+    size_t coordinateLen     = (ctx->ctx.mbed_ecdh.grp.pbits + 7u) / 8u;
+    size_t coordinateBitsLen = ctx->ctx.mbed_ecdh.grp.pbits;
     size_t keySize           = 2u * coordinateLen;
     uint8_t *pubKey = NULL;
     do {
@@ -550,20 +584,20 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
         {
             break;
         }
-        if ((ret = mbedtls_mpi_read_binary(&ctx->Q.X, pubKey, coordinateLen)) != 0)
+        if ((ret = mbedtls_mpi_read_binary(&ctx->ctx.mbed_ecdh.Q.X, pubKey, coordinateLen)) != 0)
         {
             break;
         }
-        if ((ret = mbedtls_mpi_read_binary(&ctx->Q.Y, &pubKey[coordinateLen], coordinateLen)) != 0)
+        if ((ret = mbedtls_mpi_read_binary(&ctx->ctx.mbed_ecdh.Q.Y, &pubKey[coordinateLen], coordinateLen)) != 0)
         {
             break;
         }
-        if ((ret = mbedtls_mpi_lset(&ctx->Q.Z, 1)) != 0)
+        if ((ret = mbedtls_mpi_lset(&ctx->ctx.mbed_ecdh.Q.Z, 1)) != 0)
         {
             break;
         }
 
-        mbedtls_ecp_tls_write_point(&ctx->grp, &ctx->Q, ctx->point_format, olen, buf, blen);
+        mbedtls_ecp_tls_write_point(&ctx->ctx.mbed_ecdh.grp, &ctx->ctx.mbed_ecdh.Q, ctx->point_format, olen, buf, blen);
         ret = 0;
     } while (0);
 
@@ -628,8 +662,8 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx,
     ECDH_VALIDATE_RET(ctx != NULL);
 
     sss_sscp_derive_key_t dCtx;
-    size_t coordinateLen     = (ctx->grp.pbits + 7u) / 8u;
-    size_t coordinateBitsLen = ctx->grp.pbits;
+    size_t coordinateLen     = (ctx->ctx.mbed_ecdh.grp.pbits + 7u) / 8u;
+    size_t coordinateBitsLen = ctx->ctx.mbed_ecdh.grp.pbits;
     size_t keySize           = SSS_ECP_KEY_SZ(coordinateLen);
     uint8_t *pubKey          = mbedtls_calloc(keySize, sizeof(uint8_t));
     if (CRYPTO_InitHardware() != kStatus_Success)
@@ -658,10 +692,10 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx,
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    else if ((ret = mbedtls_mpi_write_binary(&ctx->Qp.X, pubKey, coordinateLen)) != 0)
+    else if ((ret = mbedtls_mpi_write_binary(&ctx->ctx.mbed_ecdh.Qp.X, pubKey, coordinateLen)) != 0)
     {
     }
-    else if ((ret = mbedtls_mpi_write_binary(&ctx->Qp.Y, &pubKey[coordinateLen], coordinateLen)) != 0)
+    else if ((ret = mbedtls_mpi_write_binary(&ctx->ctx.mbed_ecdh.Qp.Y, &pubKey[coordinateLen], coordinateLen)) != 0)
     {
     }
     else if (SSS_KEY_STORE_SET_KEY(&ctx->peerPublicKey,
@@ -704,7 +738,7 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx,
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    else if ((ret = mbedtls_mpi_read_binary(&ctx->z, pubKey, coordinateLen)) != 0)
+    else if ((ret = mbedtls_mpi_read_binary(&ctx->ctx.mbed_ecdh.z, pubKey, coordinateLen)) != 0)
     {
     }
     else
@@ -868,8 +902,8 @@ int mbedtls_ecdh_self_test(int verbose)
         }
         mbedtls_ecdh_init(&ecdhClient);
         mbedtls_ecdh_init(&ecdhServer);
-
-        if ((ret = mbedtls_ecp_group_load(&ecdhClient.grp, curve_info->grp_id)) != 0 ||
+        
+        if ((ret = mbedtls_ecdh_setup(&ecdhClient, curve_info->grp_id)) != 0 ||
             (ret = mbedtls_ecdh_make_public(&ecdhClient, &olen, buf, sizeof(buf), myrand, NULL)) != 0)
         {
             if (verbose != 0)
@@ -878,7 +912,7 @@ int mbedtls_ecdh_self_test(int verbose)
             }
             return ret;
         }
-        if ((ret = mbedtls_ecp_group_load(&ecdhServer.grp, curve_info->grp_id)) != 0 ||
+        if ((ret = mbedtls_ecdh_setup(&ecdhServer, curve_info->grp_id)) != 0 ||
             (ret = mbedtls_ecdh_make_public_sw(&ecdhServer, &olen, buf, sizeof(buf), myrand, NULL)) != 0)
         {
             if (verbose != 0)
@@ -887,14 +921,14 @@ int mbedtls_ecdh_self_test(int verbose)
             }
             return ret;
         }
-
-        (void)mbedtls_ecp_copy(&ecdhServer.Qp, &ecdhClient.Q);
-        (void)mbedtls_ecp_copy(&ecdhClient.Qp, &ecdhServer.Q);
+        
+        (void)mbedtls_ecp_copy(&ecdhServer.ctx.mbed_ecdh.Qp, &ecdhClient.ctx.mbed_ecdh.Q);
+        (void)mbedtls_ecp_copy(&ecdhClient.ctx.mbed_ecdh.Qp, &ecdhServer.ctx.mbed_ecdh.Q);
 
         ret = mbedtls_ecdh_calc_secret(&ecdhClient, &olen, buf, sizeof(buf), myrand, NULL);
         ret = mbedtls_ecdh_calc_secret_sw(&ecdhServer, &olen, buf, sizeof(buf), myrand, NULL);
 
-        if (ret != 0 || (ret = memcmp(ecdhClient.z.p, ecdhServer.z.p, sizeof(mbedtls_mpi_uint) * ecdhClient.z.n)) != 0)
+        if (ret != 0 || (ret = memcmp(ecdhClient.ctx.mbed_ecdh.z.p, ecdhServer.ctx.mbed_ecdh.z.p, sizeof(mbedtls_mpi_uint) * ecdhClient.ctx.mbed_ecdh.z.n)) != 0)
         {
             if (verbose != 0)
             {

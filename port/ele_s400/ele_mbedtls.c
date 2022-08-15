@@ -54,7 +54,7 @@ status_t CRYPTO_InitHardware(void)
             break;
         }
         
-        /****************** Init RNG session ******************/
+        /****************** Init RNG session **********************/
         result = ELE_OpenRngService(S3MU, g_ele_ctx.session_handle, &g_ele_ctx.rng_handle);
         if (result != kStatus_Success)
         {
@@ -85,14 +85,14 @@ status_t CRYPTO_DeinitHardware(void)
 
     do
     {
-        /****************** Init RNG session ******************/
+        /****************** Close RNG session ******************/
         result = ELE_CloseRngService(S3MU, g_ele_ctx.rng_handle);
         if (result != kStatus_Success)
         {
             break;
         }
 
-        /****************** Open EdgeLock session ******************/
+        /****************** Close EdgeLock session ******************/
         result = ELE_CloseSession(S3MU, g_ele_ctx.session_handle);
         if (result != kStatus_Success)
         {

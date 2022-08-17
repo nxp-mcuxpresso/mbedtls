@@ -2503,7 +2503,7 @@
  *
  * This module is used for testing (ssl_client/server).
  */
-//#define MBEDTLS_CERTS_C
+#define MBEDTLS_CERTS_C
 
 /**
  * \def MBEDTLS_CHACHA20_C
@@ -3407,7 +3407,7 @@
  *
  * This module is required for X.509 certificate parsing.
  */
-//#define MBEDTLS_X509_CRT_PARSE_C
+#define MBEDTLS_X509_CRT_PARSE_C
 
 /**
  * \def MBEDTLS_X509_CRL_PARSE_C

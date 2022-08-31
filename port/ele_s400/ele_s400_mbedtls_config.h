@@ -374,10 +374,10 @@
  *            digests and ciphers instead.
  *
  */
-//#define MBEDTLS_AES_ALT
+#define MBEDTLS_AES_ALT
 //#define MBEDTLS_ARIA_ALT
 //#define MBEDTLS_CAMELLIA_ALT
-//#define MBEDTLS_CCM_ALT
+#define MBEDTLS_CCM_ALT
 //#define MBEDTLS_CHACHA20_ALT
 //#define MBEDTLS_CHACHAPOLY_ALT
 //#define MBEDTLS_CMAC_ALT

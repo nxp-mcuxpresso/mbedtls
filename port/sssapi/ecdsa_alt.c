@@ -209,7 +209,9 @@ void mbedtls_ecdsa_free(mbedtls_ecdsa_context *ctx)
     {
         (void)SSS_KEY_OBJ_FREE(&ctx->key);
     }
-    mbedtls_ecp_keypair_free((mbedtls_ecp_keypair *)ctx);
+    mbedtls_ecp_group_free( &ctx->grp );
+    mbedtls_ecp_point_free( &ctx->Q );
+    
 }
 #endif /* MBEDTLS_ECDSA_ALT */
 

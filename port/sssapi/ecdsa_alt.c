@@ -154,10 +154,10 @@ static int ecdsa_sign_restartable(mbedtls_ecp_group *grp,
     {
         ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
-    else if ((ret = mbedtls_ecdsa_verify_digest_len(bufLen, &alg)) != 0)
+    else if ((ret = mbedtls_ecdsa_verify_digest_len(blen, &alg)) != 0)
     {
     }
-    else if (mbedtls_ecdsa_verify_digest_align(bufLen, coordinateLen, (const uint8_t *)buf, alignedDigest) != 0)
+    else if (mbedtls_ecdsa_verify_digest_align(blen, coordinateLen, (const uint8_t *)buf, alignedDigest) != 0)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -384,10 +384,10 @@ static int ecdsa_verify_restartable(mbedtls_ecp_group *grp,
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    else if ((ret = mbedtls_ecdsa_verify_digest_len(bufLen, &alg)) != 0)
+    else if ((ret = mbedtls_ecdsa_verify_digest_len(blen, &alg)) != 0)
     {
     }
-    else if (mbedtls_ecdsa_verify_digest_align(bufLen, coordinateLen, (const uint8_t *)buf, alignedDigest) != 0)
+    else if (mbedtls_ecdsa_verify_digest_align(blen, coordinateLen, (const uint8_t *)buf, alignedDigest) != 0)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }

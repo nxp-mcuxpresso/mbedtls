@@ -35,6 +35,8 @@
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
 
+#define MBEDTLS_MCUX_ELE_S400
+
 /**************************** MCUX ELE S40x end ****************************************/
 /**
  * \name SECTION: System support
@@ -2698,7 +2700,7 @@
  *
  * Requires: MBEDTLS_BIGNUM_C and at least one MBEDTLS_ECP_DP_XXX_ENABLED
  */
-#define MBEDTLS_ECP_C
+//#define MBEDTLS_ECP_C
 
 /**
  * \def MBEDTLS_ENTROPY_C

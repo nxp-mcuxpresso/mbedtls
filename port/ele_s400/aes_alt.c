@@ -193,7 +193,7 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
     GenericCipherECB.size     = 16u;
     GenericCipherECB.key      = (uint32_t)ctx->key;
     GenericCipherECB.key_size = ctx->keySize;
-    GenericCipherECB.iv       = NULL;
+    GenericCipherECB.iv       = (uint32_t)NULL;
     GenericCipherECB.iv_size  = 0;
     GenericCipherECB.mode     = kEncrypt;
     GenericCipherECB.algo     = kAES_ECB;
@@ -219,7 +219,7 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
     GenericCipherECB.size     = 16u;
     GenericCipherECB.key      = (uint32_t)ctx->key;
     GenericCipherECB.key_size = ctx->keySize;
-    GenericCipherECB.iv       = NULL;
+    GenericCipherECB.iv       = (uint32_t)NULL;
     GenericCipherECB.iv_size  = 0;
     GenericCipherECB.mode     = kDecrypt;
     GenericCipherECB.algo     = kAES_ECB;

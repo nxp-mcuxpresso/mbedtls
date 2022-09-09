@@ -51,8 +51,6 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
                         const unsigned char *key,
                         unsigned int keybits )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
     CCM_VALIDATE_RET( ctx != NULL );
     CCM_VALIDATE_RET( key != NULL );
     /* Only AES based CCM is supported */

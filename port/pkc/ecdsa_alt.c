@@ -33,6 +33,8 @@
 #include <platform_hw_ip.h>
 #include <mbedtls/ctr_drbg.h>
 #include <ecc_alt.h>
+#include <ecdh.h>
+
 
 #if (!defined(MBEDTLS_ECDSA_VERIFY_ALT) || !defined(MBEDTLS_ECDSA_SIGN_ALT) || !defined(MBEDTLS_ECDSA_GENKEY_ALT))
 #error This implmenetation requires that all 3 alternative implementation options are enabled together.

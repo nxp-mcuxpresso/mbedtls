@@ -121,10 +121,9 @@ int mbedtls_cipher_aes_cmac_starts( mbedtls_cipher_context_t *ctx )
         mcuxClKey_init(pSessionKeyInit,
                       &(aesCmacCtx->macKey),
                       keyType,
-                      &mcuxClKey_protection_none,
-                      (uint8_t *) ((mbedtls_aes_context *) ctx->cipher_ctx)->pKey,
-                      NULL, /* no srcAuxData */
-                      0u) );
+                      (uint8_t *)((mbedtls_aes_context *) ctx->cipher_ctx)->pKey,
+                      (uint32_t)((mbedtls_aes_context *) ctx->cipher_ctx)->keyLength) );
+    
     if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClKey_init) != tokenKeyInit)
         || (MCUXCLKEY_STATUS_OK != retKeyInit) )
     {
@@ -326,4 +325,3 @@ int mbedtls_cipher_aes_cmac_finish( mbedtls_cipher_context_t *ctx,
     return 0;
 }
 #endif  /* MBEDTLS_AES_CMAC_ALT */
-

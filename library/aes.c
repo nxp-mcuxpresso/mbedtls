@@ -1799,6 +1799,7 @@ static const unsigned char aes_test_xts_data_unit[][16] =
  */
 int mbedtls_aes_self_test( int verbose )
 {
+    mbedtls_printf("\t\tInside public API.\t\t\n");
     int ret = 0, i, j, u, mode;
     unsigned int keybits;
     unsigned char key[32];

@@ -33,7 +33,6 @@
 #include <mbedtls/platform.h>
 #include <platform_hw_ip.h>
 #include <mbedtls/ctr_drbg.h>
-#include <ecc_alt.h>
 
 #if (!defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT) || !defined(MBEDTLS_ECDH_COMPUTE_SHARED_ALT) || !defined(MBEDTLS_ECDH_CANDO_ALT) || defined(MBEDTLS_ECP_RESTARTABLE))
 #error The 3 alternative implementations shall be enabled together, and the feature to restart the operation has to be disabled.

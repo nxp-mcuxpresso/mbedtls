@@ -179,7 +179,7 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx )
     if( ctx->cmac_ctx )
     {
        mbedtls_platform_zeroize( ctx->cmac_ctx,
-                                 sizeof( mbedtls_cmac_context_t ) );
+                                 sizeof( mbedtls_cmac_context_t *) );
        mbedtls_free( ctx->cmac_ctx );
     }
 #endif

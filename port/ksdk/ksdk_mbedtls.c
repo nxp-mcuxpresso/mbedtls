@@ -158,6 +158,11 @@ mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_casper_mutex;
 mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_dcp_mutex;
 #endif /* (FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0) */
 
+#if defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0)
+/* MUTEX for CAAM crypto module */
+mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_caam_mutex;
+#endif /* (FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0) */
+
 #if defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
 /**
  * @brief Initializes the mbedTLS mutex functions.
@@ -302,11 +307,14 @@ status_t CRYPTO_InitHardware(void)
     {
         return (kStatus_Fail);
     }
-#endif
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_init(&mbedtls_threading_hwcrypto_caam_mutex);
+#endif /* (MBEDTLS_THREADING_C) */
+#endif /* (FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0) && defined(CRYPTO_USE_DRIVER_CAAM) */
 #if defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)
     /* Initialize CAU3 */
     CAU3_Init(CAU3);
-#endif
+#endif /* (FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0) */
 #if defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0)
     /* Initialize DCP */
     dcp_config_t dcpConfig;
@@ -320,7 +328,7 @@ status_t CRYPTO_InitHardware(void)
 #if defined(FSL_FEATURE_SOC_SHA_COUNT) && (FSL_FEATURE_SOC_SHA_COUNT > 0)
     /* Initialize SHA driver */
     SHA_ClkInit(SHA_INSTANCE);
-#endif /* (FSL_FEATURE_SOC_SHA_COUNT) */
+#endif /* (FSL_FEATURE_SOC_SHA_COUNT) && (FSL_FEATURE_SOC_SHA_COUNT > 0) */
 #if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
     /* Initialize CASPER */
     CASPER_Init(CASPER);
@@ -564,6 +572,10 @@ int mbedtls_des_crypt_ecb(mbedtls_des_context *ctx, const unsigned char input[8]
         status = MMCAU_DES_DecryptEcb(input, key, output);
     }
 #elif defined(MBEDTLS_FREESCALE_CAAM_DES)
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {
         status = CAAM_DES_EncryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key);
@@ -572,6 +584,10 @@ int mbedtls_des_crypt_ecb(mbedtls_des_context *ctx, const unsigned char input[8]
     {
         status = CAAM_DES_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key);
     }
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 #endif
     return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_DES_HW_ACCEL_FAILED;
 }
@@ -608,6 +624,10 @@ int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx, const unsigned char input[
         status = MMCAU_DES_DecryptEcb(output, key, output);
     }
 #elif defined(MBEDTLS_FREESCALE_CAAM_DES)
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {
         status = CAAM_DES3_EncryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key, key + 8, key + 16);
@@ -616,6 +636,10 @@ int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx, const unsigned char input[
     {
         status = CAAM_DES3_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 8, key, key + 8, key + 16);
     }
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_CAU3_DES)
     if (!crypto_key_is_loaded(ctx))
     {
@@ -716,13 +740,29 @@ int mbedtls_des_crypt_cbc(mbedtls_des_context *ctx,
 
     if (mode == MBEDTLS_DES_ENCRYPT)
     {
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
         status = CAAM_DES_EncryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key);
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
         (void)memcpy(iv, output + length - 8, 8);
     }
     else /* MBEDTLS_DES_DECRYPT */
     {
         (void)memcpy(temp, input + length - 8, 8);
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
         status = CAAM_DES_DecryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key);
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
         (void)memcpy(iv, temp, 8);
     }
     return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_DES_HW_ACCEL_FAILED;
@@ -747,13 +787,29 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
 
     if (mode == MBEDTLS_DES_ENCRYPT)
     {
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
         status = CAAM_DES3_EncryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, key + 8, key + 16);
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
         (void)memcpy(iv, output + length - 8, 8);
     }
     else /* MBEDTLS_DES_DECRYPT */
     {
         (void)memcpy(temp, input + length - 8, 8);
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
         status = CAAM_DES3_DecryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, key + 8, key + 16);
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
         (void)memcpy(iv, temp, 8);
     }
 
@@ -981,7 +1037,15 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
     }
     ret = AES_EncryptEcb(AES_INSTANCE, input, output, 16);
 #elif defined(MBEDTLS_FREESCALE_CAAM_AES)
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     ret = CAAM_AES_EncryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 16, key, (uint32_t)ctx->nr);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_DCP_AES)
     if (!crypto_key_is_loaded(ctx))
     {
@@ -1119,7 +1183,15 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
     }
     ret = AES_DecryptEcb(AES_INSTANCE, input, output, 16);
 #elif defined(MBEDTLS_FREESCALE_CAAM_AES)
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     ret = CAAM_AES_DecryptEcb(CAAM_INSTANCE, &s_caamHandle, input, output, 16, key, (uint32_t)ctx->nr);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_DCP_AES)
     if (!crypto_key_is_loaded(ctx))
     {
@@ -1307,12 +1379,28 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     {
         uint8_t tmp[16];
         (void)memcpy(tmp, input + length - 16, 16);
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
         status = CAAM_AES_DecryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, keySize);
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
         (void)memcpy(iv, tmp, 16);
     }
     else
     {
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
         status = CAAM_AES_EncryptCbc(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, key, keySize);
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
         (void)memcpy(iv, output + length - 16, 16);
     }
 
@@ -1559,8 +1647,16 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
     key = (uint8_t *)ctx->rk;
     keySize = (uint32_t)ctx->nr;
 
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     status = CAAM_AES_CryptCtr(CAAM_INSTANCE, &s_caamHandle, input, output, length, nonce_counter, key, keySize,
                                stream_block, nc_off);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
     return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
 }
@@ -1724,6 +1820,11 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
     aes_ctx = (mbedtls_aes_context *)ctx->cipher_ctx.cipher_ctx;
     key = (uint8_t *)aes_ctx->rk;
     keySize = (uint32_t)aes_ctx->nr;
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (mode == CCM_ENCRYPT)
     {
         status = CAAM_AES_EncryptTagCcm(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, iv_len, add, add_len,
@@ -1734,6 +1835,10 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
         status = CAAM_AES_DecryptTagCcm(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, iv_len, add, add_len,
                                         key, keySize, tag, tag_len);
     }
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
     if (status == kStatus_InvalidArgument)
     {
@@ -1964,6 +2069,12 @@ int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
     aes_ctx = (mbedtls_aes_context *)ctx->cipher_ctx.cipher_ctx;
     key = (uint8_t *)aes_ctx->rk;
     keySize = (uint32_t)aes_ctx->nr;
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     if (mode == MBEDTLS_GCM_ENCRYPT)
     {
         status = CAAM_AES_EncryptTagGcm(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, iv_len, add, add_len,
@@ -1974,6 +2085,10 @@ int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
         status = CAAM_AES_DecryptTagGcm(CAAM_INSTANCE, &s_caamHandle, input, output, length, iv, iv_len, add, add_len,
                                         key, keySize, tag, tag_len);
     }
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
     if (status == kStatus_InvalidArgument)
     {
@@ -2173,8 +2288,17 @@ int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         (void)mbedtls_mpi_write_binary(A, ptrA, sizeA);
         (void)mbedtls_mpi_write_binary(B, ptrB, sizeB);
 
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
         ret = (int)CAAM_PKHA_ModAdd(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrB, sizeB, N, sizeN, ptrC, &sizeC,
                                     kCAAM_PKHA_IntegerArith);
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
         if (ret != kStatus_Success)
             CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
@@ -2294,7 +2418,17 @@ int mbedtls_mpi_sub_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         (void)mbedtls_mpi_write_binary(A, ptrA, sizeA);
         (void)mbedtls_mpi_write_binary(B, ptrB, sizeB);
 
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
         ret = (int)CAAM_PKHA_ModSub1(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrB, sizeB, N, sizeN, ptrC, &sizeC);
+
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
         if (ret != kStatus_Success)
             CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
@@ -2427,14 +2561,23 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         (void)mbedtls_mpi_write_binary(A, ptrA, sizeA);
         (void)mbedtls_mpi_write_binary(B, ptrB, sizeB);
 
-        /*
-         * Modular multiplication operation is used here. Since the modulus N is larger
-         * than the expected result of A * B, the effect is normal multiplication.
-         * TODO use PKHA MUL_IM_OM instead.
-         */
+/*
+ * Modular multiplication operation is used here. Since the modulus N is larger
+ * than the expected result of A * B, the effect is normal multiplication.
+ * TODO use PKHA MUL_IM_OM instead.
+ */
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
         ret = (int)CAAM_PKHA_ModMul(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrB, sizeB, N, sizeN, ptrC, &sizeC,
                                     kCAAM_PKHA_IntegerArith, kCAAM_PKHA_NormalValue, kCAAM_PKHA_NormalValue,
                                     kCAAM_PKHA_TimingEqualized);
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
         if (ret != kStatus_Success)
             CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
@@ -2546,8 +2689,17 @@ int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi 
         (void)mbedtls_mpi_write_binary(A, ptrA, sizeA);
         (void)mbedtls_mpi_write_binary(B, ptrB, sizeB);
 
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
         ret = (int)CAAM_PKHA_ModRed(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrB, sizeB, ptrC, &sizeC,
                                     kCAAM_PKHA_IntegerArith);
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
         if (ret != kStatus_Success)
             CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
@@ -2724,8 +2876,18 @@ int mbedtls_mpi_exp_mod(
         (void)mbedtls_mpi_write_binary(E, ptrE, sizeE);
         (void)mbedtls_mpi_write_binary(N, ptrN, sizeN);
 
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
         ret = (int)CAAM_PKHA_ModExp(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrN, sizeN, ptrE, sizeE, ptrN, &sizeN,
                                     kCAAM_PKHA_IntegerArith, kCAAM_PKHA_NormalValue, kCAAM_PKHA_TimingEqualized);
+
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
         if (ret != kStatus_Success)
             CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
@@ -2837,15 +2999,34 @@ int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
 
         if (mbedtls_mpi_cmp_mpi(A, B) >= 0)
         {
+#if defined(MBEDTLS_THREADING_C)
+            if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+                return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
             ret = (int)CAAM_PKHA_ModRed(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrB, sizeB, ptrA, &sizeA,
                                         kCAAM_PKHA_IntegerArith);
+
+#if defined(MBEDTLS_THREADING_C)
+            if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+                return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
             if (ret != kStatus_Success)
                 CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
         }
 
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
         ret = (int)CAAM_PKHA_ModGcd(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrB, sizeB, ptrC, &sizeC,
                                     kCAAM_PKHA_IntegerArith);
+
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
         if (ret != kStatus_Success)
             CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
@@ -2969,15 +3150,35 @@ int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 
         if (mbedtls_mpi_cmp_mpi(A, N) >= 0)
         {
+#if defined(MBEDTLS_THREADING_C)
+            if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+                return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
             ret = (int)CAAM_PKHA_ModRed(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrN, sizeN, ptrA, &sizeA,
                                         kCAAM_PKHA_IntegerArith);
+
+#if defined(MBEDTLS_THREADING_C)
+            if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+                return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
             if (ret != kStatus_Success)
                 CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
         }
 
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
         ret = (int)CAAM_PKHA_ModInv(CAAM_INSTANCE, &s_caamHandle, ptrA, sizeA, ptrN, sizeN, ptrC, &sizeC,
                                     kCAAM_PKHA_IntegerArith);
+
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
         if (ret != kStatus_Success)
             CLEAN_RETURN(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
@@ -3082,8 +3283,18 @@ int mbedtls_mpi_is_prime(const mbedtls_mpi *X, int (*f_rng)(void *, unsigned cha
         // Get the random seed number
         (void)f_rng(p_rng, (unsigned char *)(&random), sizeof(random));
 
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
         ret = (int)CAAM_PKHA_PrimalityTest(CAAM_INSTANCE, &s_caamHandle, (unsigned char *)&random, sizeof(random),
                                            (const uint8_t *)"1", 1u, ptrX, sizeX, &result);
+
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
         if (ret != kStatus_Success)
         {
@@ -3327,9 +3538,19 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     /* modulus */
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, ptrN, size));
 
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     /* Multiply */
     status = CAAM_PKHA_ECC_PointMul(CAAM_INSTANCE, &s_caamHandle, &A, ptrE, size_bin, ptrN, NULL, ptrParamA, ptrParamB,
                                     size, kCAAM_PKHA_TimingEqualized, kCAAM_PKHA_IntegerArith, &result);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
     if (status != kStatus_Success)
     {
@@ -3559,9 +3780,19 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
     MBEDTLS_MPI_CHK(caam_get_from_mbedtls_mpi(B.Y, &Q->Y, size));
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, ptrN, size));
 
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     /* Multiply */
     status = CAAM_PKHA_ECC_PointAdd(CAAM_INSTANCE, &s_caamHandle, &A, &B, ptrN, NULL, ptrParamA, ptrParamB, size,
                                     kCAAM_PKHA_IntegerArith, &result);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
     if (status != kStatus_Success)
     {
@@ -4118,7 +4349,18 @@ void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *s
 int mbedtls_sha1_starts_ret(mbedtls_sha1_context *ctx)
 {
     status_t ret = kStatus_Fail;
-    ret          = CAAM_HASH_Init(CAAM_INSTANCE, &s_caamHandle, ctx, kCAAM_Sha1, NULL, 0);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
+    ret = CAAM_HASH_Init(CAAM_INSTANCE, &s_caamHandle, ctx, kCAAM_Sha1, NULL, 0);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
@@ -4129,7 +4371,19 @@ int mbedtls_sha1_starts_ret(mbedtls_sha1_context *ctx)
 int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
 {
     status_t ret = kStatus_Fail;
-    ret          = CAAM_HASH_Update(ctx, data, 64);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
+    ret = CAAM_HASH_Update(ctx, data, 64);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
@@ -4143,7 +4397,19 @@ int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char
 int mbedtls_sha1_update_ret(mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen)
 {
     status_t ret = kStatus_Fail;
-    ret          = CAAM_HASH_Update(ctx, input, ilen);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
+    ret = CAAM_HASH_Update(ctx, input, ilen);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
@@ -4157,7 +4423,19 @@ int mbedtls_sha1_update_ret(mbedtls_sha1_context *ctx, const unsigned char *inpu
 int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 {
     status_t ret = kStatus_Fail;
-    ret          = CAAM_HASH_Finish(ctx, output, NULL);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
+    ret = CAAM_HASH_Finish(ctx, output, NULL);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
@@ -4795,6 +5073,11 @@ void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_cont
 int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
 {
     status_t ret = kStatus_Fail;
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     if (is224)
     {
         ret = CAAM_HASH_Init(CAAM_INSTANCE, &s_caamHandle, ctx, kCAAM_Sha224, NULL, 0);
@@ -4803,6 +5086,12 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
     {
         ret = CAAM_HASH_Init(CAAM_INSTANCE, &s_caamHandle, ctx, kCAAM_Sha256, NULL, 0);
     }
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
@@ -4813,7 +5102,19 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
 int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
 {
     status_t ret = kStatus_Fail;
-    ret          = CAAM_HASH_Update(ctx, data, 64);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
+    ret = CAAM_HASH_Update(ctx, data, 64);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
@@ -4827,7 +5128,19 @@ int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned 
 int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
 {
     status_t ret = kStatus_Fail;
-    ret          = CAAM_HASH_Update(ctx, input, ilen);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
+    ret = CAAM_HASH_Update(ctx, input, ilen);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
@@ -4841,7 +5154,19 @@ int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *
 int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[32])
 {
     status_t ret = kStatus_Fail;
-    ret          = CAAM_HASH_Finish(ctx, output, NULL);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
+    ret = CAAM_HASH_Finish(ctx, output, NULL);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
@@ -5107,8 +5432,17 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 #elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
     result = RNGA_GetRandomData(RNG, (void *)output, len);
 #elif defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0) && defined(CRYPTO_USE_DRIVER_CAAM)
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     result = CAAM_RNG_GetRandomData(CAAM_INSTANCE, &s_caamHandle, kCAAM_RngStateHandle0, output, len, kCAAM_RngDataAny,
                                     NULL);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 #elif defined(FSL_FEATURE_SOC_LPC_RNG_COUNT) && (FSL_FEATURE_SOC_LPC_RNG_COUNT > 0)
     result = RNG_GetRandomData(output, len);
 #elif defined(FSL_FEATURE_EDGELOCK) && (FSL_FEATURE_EDGELOCK > 0)

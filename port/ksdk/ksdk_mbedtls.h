@@ -35,6 +35,11 @@ extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_casper_mutex;
 extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_dcp_mutex;
 #endif /* (FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0) */
 
+#if defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0)
+/* MUTEX for CAAM crypto module */
+extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_caam_mutex;
+#endif /* (FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0) */
+
 #endif /* defined(MBEDTLS_THREADING_C) */
 
 #ifdef __cplusplus

@@ -95,12 +95,12 @@ uint32_t nonCacheSize  = (uint32_t)__NCACHE_REGION_SIZE;
 /* Returns TRUE if in noncached, FALSE otherwise */
 static bool IS_IN_NONCACHED(uint32_t addr, uint32_t size)
 {
-  /* Check if data are in TCM (non-cached) memory */
+    /* Check if data are in TCM (non-cached) memory */
 #if defined(__DTCM_PRESENT) && (__DTCM_PRESENT == 1U)
     uint32_t DTCM_SIZE = 0, DTCM_END = 0U;
     /* Get DTCM size configuration*/
-    DTCM_SIZE = FSL_FEATURE_FLEXRAM_INTERNAL_RAM_BANK_SIZE * FSL_FEATURE_FLEXRAM_INTERNAL_RAM_TOTAL_BANK_NUMBERS  ;
-   
+    DTCM_SIZE = FSL_FEATURE_FLEXRAM_INTERNAL_RAM_BANK_SIZE * FSL_FEATURE_FLEXRAM_INTERNAL_RAM_TOTAL_BANK_NUMBERS;
+
     DTCM_END = DTCM_START + DTCM_SIZE;
 
     if ((addr >= DTCM_START) && (addr + size < DTCM_END))
@@ -109,7 +109,7 @@ static bool IS_IN_NONCACHED(uint32_t addr, uint32_t size)
     }
 #endif /* __DTCM_PRESENT */
     /* If not in DTCM, check non-cached section based linker file */
- /* Check non-cached section based linker file */
+    /* Check non-cached section based linker file */
     if ((addr >= nonCacheStart) && ((addr + size) < (nonCacheStart + nonCacheSize)))
     {
         return true;
@@ -152,6 +152,11 @@ mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_hashcrypt_mutex;
 /* MUTEX for HW CASPER crypto module */
 mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_casper_mutex;
 #endif /* (FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0) */
+
+#if defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0)
+/* MUTEX for HW DCP crypto module */
+mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_dcp_mutex;
+#endif /* (FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0) */
 
 #if defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
 /**
@@ -308,11 +313,14 @@ status_t CRYPTO_InitHardware(void)
 
     DCP_GetDefaultConfig(&dcpConfig);
     DCP_Init(DCP, &dcpConfig);
-#endif
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_init(&mbedtls_threading_hwcrypto_dcp_mutex);
+#endif /* (MBEDTLS_THREADING_C) */
+#endif /* (FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0) */
 #if defined(FSL_FEATURE_SOC_SHA_COUNT) && (FSL_FEATURE_SOC_SHA_COUNT > 0)
     /* Initialize SHA driver */
     SHA_ClkInit(SHA_INSTANCE);
-#endif /* (FSL_FEATURE_SOC_SHA_COUNT) */   
+#endif /* (FSL_FEATURE_SOC_SHA_COUNT) */
 #if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
     /* Initialize CASPER */
     CASPER_Init(CASPER);
@@ -977,7 +985,16 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
 #elif defined(MBEDTLS_FREESCALE_DCP_AES)
     if (!crypto_key_is_loaded(ctx))
     {
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
         ret = DCP_AES_SetKey(DCP, &s_dcpHandle, key, (uint32_t)ctx->nr);
+
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
         if (ret != kStatus_Success)
         {
             return MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
@@ -1017,7 +1034,17 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
         outputPtr = (uint32_t *)(uintptr_t)output_buff;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
+
     ret = DCP_AES_EncryptEcb(DCP, &s_dcpHandle, (uint8_t *)inputPtr, (uint8_t *)outputPtr, 16);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
 
     /* Ivalidate output */
     DCACHE_InvalidateByRange((uint32_t)outputPtr, 16);
@@ -1028,8 +1055,18 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
         (void)memmove(output, (uint8_t *)outputPtr, 16);
     }
 
-#else  /* __DCACHE_PRESENT && DCP_USE_DCACHE */
+#else /* __DCACHE_PRESENT && DCP_USE_DCACHE */
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
+
     ret = DCP_AES_EncryptEcb(DCP, &s_dcpHandle, input, output, 16);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
 #endif
 
@@ -1086,7 +1123,16 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
 #elif defined(MBEDTLS_FREESCALE_DCP_AES)
     if (!crypto_key_is_loaded(ctx))
     {
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
         ret = DCP_AES_SetKey(DCP, &s_dcpHandle, key, (uint32_t)ctx->nr);
+
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
         crypto_attach_ctx_to_key_slot(ctx, (uint8_t)s_dcpHandle.keySlot);
         if (ret != kStatus_Success)
         {
@@ -1126,7 +1172,17 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
         outputPtr = (uint32_t *)(uintptr_t)output_buff;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
+
     ret = DCP_AES_DecryptEcb(DCP, &s_dcpHandle, (uint8_t *)inputPtr, (uint8_t *)outputPtr, 16);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
 
     /* Ivalidate output */
     DCACHE_InvalidateByRange((uint32_t)outputPtr, 16);
@@ -1136,8 +1192,19 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
         (void)memmove(output, (uint8_t *)outputPtr, 16);
     }
 
-#else  /* __DCACHE_PRESENT && DCP_USE_DCACHE */
+#else /* __DCACHE_PRESENT && DCP_USE_DCACHE */
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
+
     ret = DCP_AES_DecryptEcb(DCP, &s_dcpHandle, input, output, 16);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
+
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
 #endif
 
@@ -1286,10 +1353,20 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     key = (uint8_t *)ctx->rk;
     if (!crypto_key_is_loaded(ctx))
     {
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
         if (DCP_AES_SetKey(DCP, &s_dcpHandle, key, (uint32_t)ctx->nr) != kStatus_Success)
         {
             return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
         }
+
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
+
         crypto_attach_ctx_to_key_slot(ctx, (uint8_t)s_dcpHandle.keySlot);
     }
 
@@ -1301,7 +1378,17 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         DCACHE_CleanByRange((uint32_t)input, length);
         DCACHE_CleanByRange((uint32_t)iv, 16);
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
+
         status = DCP_AES_DecryptCbc(DCP, &s_dcpHandle, input, output, length, iv);
+
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
         DCACHE_InvalidateByRange((uint32_t)output, length);
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
@@ -1313,7 +1400,17 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         DCACHE_CleanByRange((uint32_t)input, length);
         DCACHE_CleanByRange((uint32_t)iv, 16);
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
+
         status = DCP_AES_EncryptCbc(DCP, &s_dcpHandle, input, output, length, iv);
+
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
         DCACHE_InvalidateByRange((uint32_t)output, length);
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
@@ -3806,25 +3903,23 @@ int mbedtls_internal_md5_process(mbedtls_md5_context *ctx, const unsigned char d
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
+#define SHA1_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA)
 
-#define SHA1_VALIDATE_RET(cond)                             \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
+#define SHA1_VALIDATE(cond) MBEDTLS_INTERNAL_VALIDATE(cond)
 
-#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
-
-void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
+void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
 {
-    SHA1_VALIDATE( ctx != NULL );
+    SHA1_VALIDATE(ctx != NULL);
 
-    memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
+    memset(ctx, 0, sizeof(mbedtls_sha1_context));
 }
 
-void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
+void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL)
         return;
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha1_context));
 }
 
 void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
@@ -3891,11 +3986,9 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
+#define SHA1_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA)
 
-#define SHA1_VALIDATE_RET(cond)                             \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
-
-#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+#define SHA1_VALIDATE(cond) MBEDTLS_INTERNAL_VALIDATE(cond)
 
 int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
 {
@@ -3913,25 +4006,23 @@ int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
+#define SHA1_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA)
 
-#define SHA1_VALIDATE_RET(cond)                             \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
+#define SHA1_VALIDATE(cond) MBEDTLS_INTERNAL_VALIDATE(cond)
 
-#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
-
-void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
+void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
 {
-    SHA1_VALIDATE( ctx != NULL );
+    SHA1_VALIDATE(ctx != NULL);
 
-    memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
+    memset(ctx, 0, sizeof(mbedtls_sha1_context));
 }
 
-void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
+void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL)
         return;
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha1_context));
 }
 
 void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
@@ -3997,25 +4088,23 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
+#define SHA1_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA)
 
-#define SHA1_VALIDATE_RET(cond)                             \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
+#define SHA1_VALIDATE(cond) MBEDTLS_INTERNAL_VALIDATE(cond)
 
-#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
-
-void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
+void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
 {
-    SHA1_VALIDATE( ctx != NULL );
+    SHA1_VALIDATE(ctx != NULL);
 
-    memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
+    memset(ctx, 0, sizeof(mbedtls_sha1_context));
 }
 
-void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
+void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL)
         return;
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha1_context));
 }
 
 void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
@@ -4081,25 +4170,23 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
+#define SHA1_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA)
 
-#define SHA1_VALIDATE_RET(cond)                             \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
+#define SHA1_VALIDATE(cond) MBEDTLS_INTERNAL_VALIDATE(cond)
 
-#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
-
-void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
+void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
 {
-    SHA1_VALIDATE( ctx != NULL );
+    SHA1_VALIDATE(ctx != NULL);
 
-    memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
+    memset(ctx, 0, sizeof(mbedtls_sha1_context));
 }
 
-void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
+void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL)
         return;
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha1_context));
 }
 
 void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
@@ -4165,25 +4252,23 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
+#define SHA1_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA)
 
-#define SHA1_VALIDATE_RET(cond)                             \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
+#define SHA1_VALIDATE(cond) MBEDTLS_INTERNAL_VALIDATE(cond)
 
-#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
-
-void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
+void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
 {
-    SHA1_VALIDATE( ctx != NULL );
+    SHA1_VALIDATE(ctx != NULL);
 
-    memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
+    memset(ctx, 0, sizeof(mbedtls_sha1_context));
 }
 
-void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
+void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL)
         return;
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha1_context));
 }
 
 void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
@@ -4197,7 +4282,18 @@ void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *s
 int mbedtls_sha1_starts_ret(mbedtls_sha1_context *ctx)
 {
     status_t ret = kStatus_Fail;
-    ret          = DCP_HASH_Init(DCP, &s_dcpHandle, ctx, kDCP_Sha1);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
+
+    ret = DCP_HASH_Init(DCP, &s_dcpHandle, ctx, kDCP_Sha1);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
+
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
@@ -4211,7 +4307,17 @@ int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
     DCACHE_CleanByRange((uint32_t)data, 64u);
 #endif /* __DCACHE_PRESENT & DCP_USE_DCACHE */
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
+
     ret = DCP_HASH_Update(DCP, ctx, data, 64);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
@@ -4228,7 +4334,16 @@ int mbedtls_sha1_update_ret(mbedtls_sha1_context *ctx, const unsigned char *inpu
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
     DCACHE_CleanByRange((uint32_t)input, ilen);
 #endif /* __DCACHE_PRESENT & DCP_USE_DCACHE */
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
     ret = DCP_HASH_Update(DCP, ctx, input, ilen);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
@@ -4242,7 +4357,15 @@ int mbedtls_sha1_update_ret(mbedtls_sha1_context *ctx, const unsigned char *inpu
 int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 {
     status_t ret = kStatus_Fail;
-    ret          = DCP_HASH_Finish(DCP, ctx, output, NULL);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
+    ret = DCP_HASH_Finish(DCP, ctx, output, NULL);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
@@ -4255,25 +4378,23 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
+#define SHA1_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA)
 
-#define SHA1_VALIDATE_RET(cond)                             \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
+#define SHA1_VALIDATE(cond) MBEDTLS_INTERNAL_VALIDATE(cond)
 
-#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
-
-void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
+void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
 {
-    SHA1_VALIDATE( ctx != NULL );
+    SHA1_VALIDATE(ctx != NULL);
 
-    memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
+    memset(ctx, 0, sizeof(mbedtls_sha1_context));
 }
 
-void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
+void mbedtls_sha1_free(mbedtls_sha1_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL)
         return;
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha1_context));
 }
 
 void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *src)
@@ -4371,24 +4492,22 @@ void mbedtls_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
-#define SHA256_VALIDATE_RET(cond)                           \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
-#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+#define SHA256_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA)
+#define SHA256_VALIDATE(cond)     MBEDTLS_INTERNAL_VALIDATE(cond)
 
-
-void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
+void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
 {
-    SHA256_VALIDATE( ctx != NULL );
+    SHA256_VALIDATE(ctx != NULL);
 
-    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
+    memset(ctx, 0, sizeof(mbedtls_sha256_context));
 }
 
-void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
+void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL)
         return;
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha256_context));
 }
 
 void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
@@ -4478,24 +4597,22 @@ int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned 
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
-#define SHA256_VALIDATE_RET(cond)                           \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
-#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+#define SHA256_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA)
+#define SHA256_VALIDATE(cond)     MBEDTLS_INTERNAL_VALIDATE(cond)
 
-
-void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
+void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
 {
-    SHA256_VALIDATE( ctx != NULL );
+    SHA256_VALIDATE(ctx != NULL);
 
-    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
+    memset(ctx, 0, sizeof(mbedtls_sha256_context));
 }
 
-void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
+void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL)
         return;
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha256_context));
 }
 
 void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
@@ -4564,24 +4681,22 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
-#define SHA256_VALIDATE_RET(cond)                           \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
-#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+#define SHA256_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA)
+#define SHA256_VALIDATE(cond)     MBEDTLS_INTERNAL_VALIDATE(cond)
 
-
-void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
+void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
 {
-    SHA256_VALIDATE( ctx != NULL );
+    SHA256_VALIDATE(ctx != NULL);
 
-    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
+    memset(ctx, 0, sizeof(mbedtls_sha256_context));
 }
 
-void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
+void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL)
         return;
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha256_context));
 }
 
 void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
@@ -4651,24 +4766,22 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
-#define SHA256_VALIDATE_RET(cond)                           \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
-#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+#define SHA256_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA)
+#define SHA256_VALIDATE(cond)     MBEDTLS_INTERNAL_VALIDATE(cond)
 
-
-void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
+void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
 {
-    SHA256_VALIDATE( ctx != NULL );
+    SHA256_VALIDATE(ctx != NULL);
 
-    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
+    memset(ctx, 0, sizeof(mbedtls_sha256_context));
 }
 
-void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
+void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL)
         return;
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha256_context));
 }
 
 void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
@@ -4741,24 +4854,22 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
-#define SHA256_VALIDATE_RET(cond)                           \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
-#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+#define SHA256_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA)
+#define SHA256_VALIDATE(cond)     MBEDTLS_INTERNAL_VALIDATE(cond)
 
-
-void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
+void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
 {
-    SHA256_VALIDATE( ctx != NULL );
+    SHA256_VALIDATE(ctx != NULL);
 
-    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
+    memset(ctx, 0, sizeof(mbedtls_sha256_context));
 }
 
-void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
+void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL)
         return;
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha256_context));
 }
 
 void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)
@@ -4774,7 +4885,16 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
     status_t ret = kStatus_Fail;
     if (0 == is224)
     {
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
         ret = DCP_HASH_Init(DCP, &s_dcpHandle, ctx, kDCP_Sha256);
+
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
     }
     if (ret != kStatus_Success)
     {
@@ -4789,7 +4909,15 @@ int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned 
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
     DCACHE_CleanByRange((uint32_t)data, 64u);
 #endif /* __DCACHE_PRESENT & DCP_USE_DCACHE */
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
     ret = DCP_HASH_Update(DCP, ctx, data, 64);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
@@ -4806,7 +4934,15 @@ int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && defined(DCP_USE_DCACHE) && (DCP_USE_DCACHE == 1U)
     DCACHE_CleanByRange((uint32_t)input, ilen);
 #endif /* __DCACHE_PRESENT & DCP_USE_DCACHE */
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
     ret = DCP_HASH_Update(DCP, ctx, input, ilen);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
@@ -4820,7 +4956,15 @@ int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *
 int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[32])
 {
     status_t ret = kStatus_Fail;
-    ret          = DCP_HASH_Finish(DCP, ctx, output, NULL);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
+    ret = DCP_HASH_Finish(DCP, ctx, output, NULL);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
@@ -4833,24 +4977,22 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
-#define SHA256_VALIDATE_RET(cond)                           \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
-#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+#define SHA256_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA)
+#define SHA256_VALIDATE(cond)     MBEDTLS_INTERNAL_VALIDATE(cond)
 
-
-void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
+void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
 {
-    SHA256_VALIDATE( ctx != NULL );
+    SHA256_VALIDATE(ctx != NULL);
 
-    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
+    memset(ctx, 0, sizeof(mbedtls_sha256_context));
 }
 
-void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
+void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL)
         return;
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha256_context));
 }
 
 void mbedtls_sha256_clone(mbedtls_sha256_context *dst, const mbedtls_sha256_context *src)

@@ -18,14 +18,22 @@ status_t CRYPTO_InitHardware(void);
 
 #if defined(MBEDTLS_THREADING_C)
 
-/* MUTEX FOR HW Modules*/
+/* MUTEXES FOR HW Modules*/
+
 #if defined(FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0)
+/* MUTEX for Hashcrypt crypto module */
 extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_hashcrypt_mutex;
 #endif /* (FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0 */
 
 #if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
+/* MUTEX for CASPER crypto module */
 extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_casper_mutex;
 #endif /* (FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0) */
+
+#if defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0)
+/* MUTEX for DCP crypto module */
+extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_dcp_mutex;
+#endif /* (FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0) */
 
 #endif /* defined(MBEDTLS_THREADING_C) */
 

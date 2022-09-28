@@ -25,6 +25,9 @@
 #include <mcuxClPkc.h>
 #include <mcuxClEcc.h>
 #include <mcuxClMemory.h>
+#if defined(MBEDTLS_MCUX_ELS_PKC_API) 
+#include <mcuxClRandom.h>
+#endif /* MBEDTLS_MCUX_ELS_PKC_API */
 #include <mbedtls/ccm.h>
 #include <mbedtls/platform_util.h>
 #include <mbedtls/ecdsa.h>
@@ -35,9 +38,9 @@
 #include <ecc_alt.h>
 #include <mbedtls/ecdh.h>
 
-/* If RW610/RW61X is enabled, a few mappings are required from CL-EAR2 to exsiting CL #defines, 
-to support exisiting ALT implementation. The defines are mainly required due to renaming in CL EAR2*/
-#if defined(RW610_SERIES)
+/* If ELS-PKC is used, then expectation is CL-EAR2 is being used, Hence, a few mappings are required from CL-EAR2 
+to exsiting CL #defines, to support exisiting ALT implementation. The defines are mainly required due to renaming in CL EAR2*/
+#if defined(MBEDTLS_MCUX_ELS_PKC_API)
 #define MCUXCLECC_STATUS_POINTMULT_INVALID_PARAMS MCUXCLECC_STATUS_INVALID_PARAMS
 #define MCUXCLECC_STATUS_POINTMULT_RNG_ERROR MCUXCLECC_STATUS_RNG_ERROR
 #define MCUXCLECC_STATUS_POINTMULT_OK MCUXCLECC_STATUS_OK
@@ -45,12 +48,7 @@ to support exisiting ALT implementation. The defines are mainly required due to 
 #define MCUXCLECC_STATUS_SIGN_RNG_ERROR MCUXCLECC_STATUS_RNG_ERROR
 #define MCUXCLECC_STATUS_SIGN_OK MCUXCLECC_STATUS_OK
 #define MCUXCLECC_STATUS_VERIFY_OK MCUXCLECC_STATUS_OK
-#define MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WACPU_SIZE MCUXCLRSA_VERIFY_NOVERIFY_WACPU_SIZE  
-#define MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WAPKC_SIZE MCUXCLRSA_VERIFY_WAPKC_SIZE           
-#define MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_2048_WACPU_SIZE MCUXCLRSA_SIGN_CRT_NOENCODE_2048_WACPU_SIZE 
-#define MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_WACPU_SIZE MCUXCLRSA_SIGN_CRT_NOENCODE_WACPU_SIZE   
-#define MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_WAPKC_SIZE MCUXCLRSA_SIGN_CRT_WAPKC_SIZE           
-#endif
+#endif /* MBEDTLS_MCUX_ELS_PKC_API */
 
 #if (!defined(MBEDTLS_ECDSA_VERIFY_ALT) || !defined(MBEDTLS_ECDSA_SIGN_ALT) || !defined(MBEDTLS_ECDSA_GENKEY_ALT))
 #error This implmenetation requires that all 3 alternative implementation options are enabled together.
@@ -171,6 +169,22 @@ int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
         .pSignature = pSignature,
         .optLen = mcuxClEcc_Sign_Param_optLen_Pack(blen)
     };
+
+    /* The code is added as per documentation of CL usage, where it specifies following:
+    mcuxClEcc_Sign function uses DRBG and PRNG. Caller needs to check if DRBG and PRNG are ready.*/
+#if defined(MBEDTLS_MCUX_ELS_PKC_API)    
+    /* Initialize the RNG context */
+    mcuxClRandom_Context_t rng_ctx = NULL;
+
+    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(randomInit_result, randomInit_token,
+                                     mcuxClRandom_init(&session, rng_ctx, mcuxClRandom_Mode_CSS_Drbg));
+    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClRandom_init) != randomInit_token) ||
+        (MCUXCLRANDOM_STATUS_OK != randomInit_result))
+    {
+        mbedtls_ecp_free_ecdsa(&pDomainParams, NULL, NULL, &paramSign);
+        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    }
+#endif /* MBEDTLS_MCUX_ELS_PKC_API */
     
     /* Call ECC sign. */
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retEccSign, tokenEccSign,mcuxClEcc_Sign(&session, &paramSign));

@@ -71,7 +71,7 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
 
     mcuxClSession_Descriptor_t session_descriptor;
     const mcuxClHash_Algo_t * pHash_algo;
-    const mcuxClHash_Context_t* pContext = &ctx->context;
+    mcuxClHash_Context_t pContext = (mcuxClHash_Context_t)ctx->context;
     mcuxClSession_Handle_t session = &session_descriptor;
  
     if(0u == is224)
@@ -102,7 +102,7 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
 
-    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retInit, tokenInit, mcuxClHash_init(session, *pContext, *pHash_algo));
+    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retInit, tokenInit, mcuxClHash_init(session, pContext, *pHash_algo));
 
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClHash_init) != tokenInit)
     {
@@ -127,7 +127,7 @@ int mbedtls_sha256_update_ret (mbedtls_sha256_context *ctx,
 
     mcuxClSession_Descriptor_t session_descriptor;
     const mcuxClHash_Algo_t * pHash_algo;
-    const mcuxClHash_Context_t* pContext = &ctx->context;
+    mcuxClHash_Context_t pContext = (mcuxClHash_Context_t)ctx->context;
     mcuxClSession_Handle_t session = &session_descriptor;
 	
     #define MCUXCLHASH_WA_SIZE_MAX MCUXCLHASH_COMPUTE_CPU_WA_BUFFER_SIZE_MAX
@@ -150,7 +150,7 @@ int mbedtls_sha256_update_ret (mbedtls_sha256_context *ctx,
     }
 
 
-    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retUpdate, tokenUpdate, mcuxClHash_process(session, *pContext, input, ilen));
+    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retUpdate, tokenUpdate, mcuxClHash_process(session, pContext, input, ilen));
 
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClHash_process) != tokenUpdate)
     {
@@ -174,7 +174,7 @@ int mbedtls_sha256_finish_ret (mbedtls_sha256_context *ctx,
 
     mcuxClSession_Descriptor_t session_descriptor;
     mcuxClSession_Handle_t session = &session_descriptor;
-    const mcuxClHash_Context_t* pContext = &ctx->context;
+    mcuxClHash_Context_t pContext = (mcuxClHash_Context_t)ctx->context;
     
     #define MCUXCLHASH_WA_SIZE_MAX MCUXCLHASH_COMPUTE_CPU_WA_BUFFER_SIZE_MAX
     uint32_t workarea[MCUXCLHASH_WA_SIZE_MAX/sizeof(uint32_t)];
@@ -195,7 +195,7 @@ int mbedtls_sha256_finish_ret (mbedtls_sha256_context *ctx,
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     
-    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retFinish, tokenFinish, mcuxClHash_finish(session, *pContext, output, NULL));
+    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retFinish, tokenFinish, mcuxClHash_finish(session, pContext, output, NULL));
 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retCleanup, tokenCleanup, mcuxClSession_cleanup(session));
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retDestroy, toeknDestroy, mcuxClSession_destroy(session));

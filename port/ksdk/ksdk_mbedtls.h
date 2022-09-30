@@ -40,6 +40,11 @@ extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_dcp_mutex;
 extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_caam_mutex;
 #endif /* (FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0) */
 
+#if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
+/* MUTEX for LTC crypto module */
+extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_ltc_mutex;
+#endif /* (FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0) */
+
 #endif /* defined(MBEDTLS_THREADING_C) */
 
 #ifdef __cplusplus

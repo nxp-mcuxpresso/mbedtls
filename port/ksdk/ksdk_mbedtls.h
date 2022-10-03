@@ -55,6 +55,16 @@ extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_sha_mutex;
 extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_aes_mutex;
 #endif /* (FSL_FEATURE_SOC_AES_COUNT) && (FSL_FEATURE_SOC_AES_COUNT > 0) */
 
+#if defined(FSL_FEATURE_SOC_MMCAU_COUNT) && (FSL_FEATURE_SOC_MMCAU_COUNT > 0)
+/* MUTEX for MMCAU crypto module */
+extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_mmcau_mutex;
+#endif /* (FSL_FEATURE_SOC_MMCAU_COUNT) && (FSL_FEATURE_SOC_MMCAU_COUNT > 0) */
+
+#if defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)
+/* MUTEX for CAU3 crypto module */
+extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_cau3_mutex;
+#endif
+
 #endif /* defined(MBEDTLS_THREADING_C) */
 
 #ifdef __cplusplus

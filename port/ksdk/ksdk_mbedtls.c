@@ -46,6 +46,9 @@ extern void CRYPTO_ConfigureThreading(void);
 #if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
 #include "fsl_casper.h"
 #endif
+#if defined(FSL_FEATURE_SOC_MMCAU_COUNT) && (FSL_FEATURE_SOC_MMCAU_COUNT > 0)
+#include "fsl_mmcau.h"
+#endif
 #if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
 #include "fsl_trng.h"
 #elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
@@ -177,6 +180,16 @@ mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_sha_mutex;
 /* MUTEX for AES crypto module */
 mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_aes_mutex;
 #endif /* (FSL_FEATURE_SOC_AES_COUNT) && (FSL_FEATURE_SOC_AES_COUNT > 0) */
+
+#if defined(FSL_FEATURE_SOC_MMCAU_COUNT) && (FSL_FEATURE_SOC_MMCAU_COUNT > 0)
+/* MUTEX for MMCAU crypto module */
+mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_mmcau_mutex;
+#endif /* (FSL_FEATURE_SOC_MMCAU_COUNT) && (FSL_FEATURE_SOC_MMCAU_COUNT > 0) */
+
+#if defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)
+/* MUTEX for CAU3 crypto module */
+mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_cau3_mutex;
+#endif
 
 #if defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
 /**
@@ -332,6 +345,9 @@ status_t CRYPTO_InitHardware(void)
 #if defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)
     /* Initialize CAU3 */
     CAU3_Init(CAU3);
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_init(&mbedtls_threading_hwcrypto_cau3_mutex);
+#endif /* (MBEDTLS_THREADING_C) */
 #endif /* (FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0) */
 #if defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0)
     /* Initialize DCP */
@@ -355,6 +371,11 @@ status_t CRYPTO_InitHardware(void)
     mbedtls_mutex_init(&mbedtls_threading_hwcrypto_aes_mutex);
 #endif /* (MBEDTLS_THREADING_C) */
 #endif /* (FSL_FEATURE_SOC_AES_COUNT) && (FSL_FEATURE_SOC_AES_COUNT > 0) */
+#if defined(FSL_FEATURE_SOC_MMCAU_COUNT) && (FSL_FEATURE_SOC_MMCAU_COUNT > 0)
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_init(&mbedtls_threading_hwcrypto_mmcau_mutex);
+#endif /* (MBEDTLS_THREADING_C) */
+#endif /* (FSL_FEATURE_SOC_MMCAU_COUNT) && (FSL_FEATURE_SOC_MMCAU_COUNT > 0) */
 #if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
     /* Initialize CASPER */
     CASPER_Init(CASPER);
@@ -597,6 +618,10 @@ int mbedtls_des_crypt_ecb(mbedtls_des_context *ctx, const unsigned char input[8]
         return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
 #endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {
         status = MMCAU_DES_EncryptEcb(input, key, output);
@@ -605,6 +630,10 @@ int mbedtls_des_crypt_ecb(mbedtls_des_context *ctx, const unsigned char input[8]
     {
         status = MMCAU_DES_DecryptEcb(input, key, output);
     }
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_CAAM_DES)
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
@@ -653,6 +682,10 @@ int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx, const unsigned char input[
         return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
 #endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_MMCAU_DES)
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (ctx->mode == MBEDTLS_DES_ENCRYPT)
     {
         status = MMCAU_DES_EncryptEcb(input, key, output);
@@ -665,6 +698,10 @@ int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx, const unsigned char input[
         status = MMCAU_DES_EncryptEcb(output, key + 8, output);
         status = MMCAU_DES_DecryptEcb(output, key, output);
     }
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_CAAM_DES)
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0)
@@ -683,6 +720,10 @@ int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx, const unsigned char input[
         return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
 #endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_CAU3_DES)
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (!crypto_key_is_loaded(ctx))
     {
         status = CAU3_TDES_SetKey(CAU3, &s_cau3Handle, key, 24);
@@ -697,6 +738,10 @@ int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx, const unsigned char input[
     {
         status = CAU3_TDES_Decrypt(CAU3, &s_cau3Handle, input, output);
     }
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 #endif
     return (kStatus_Success == status) ? 0 : MBEDTLS_ERR_DES_HW_ACCEL_FAILED;
 }
@@ -981,10 +1026,20 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key, u
             return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     if (MMCAU_AES_SetKey(key, keybits / 8U, (uint8_t *)RK) != kStatus_Success)
     {
         return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
     }
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 #endif
 
     return (0);
@@ -1062,10 +1117,20 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
             return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     if (MMCAU_AES_SetKey(key, keybits / 8U, (uint8_t *)RK) != kStatus_Success)
     {
         return (MBEDTLS_ERR_AES_INVALID_KEY_LENGTH);
     }
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 #endif
 
     return 0;
@@ -1099,8 +1164,20 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
         return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
 #endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     ret = MMCAU_AES_EncryptEcb(input, key, (uint32_t)ctx->nr, output);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_CAU3_AES)
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (!crypto_key_is_loaded(ctx))
     {
         ret = CAU3_AES_SetKey(CAU3, &s_cau3Handle, key, ctx->nr);
@@ -1111,6 +1188,10 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
         crypto_attach_ctx_to_key_slot(ctx, s_cau3Handle.keySlot);
     }
     ret = CAU3_AES_Encrypt(CAU3, &s_cau3Handle, input, output);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_LPC_AES)
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_aes_mutex) != 0)
@@ -1142,13 +1223,13 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
 #if defined(MBEDTLS_THREADING_C)
         if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
             return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
-#endif
+#endif /* MBEDTLS_THREADING_C */
         ret = DCP_AES_SetKey(DCP, &s_dcpHandle, key, (uint32_t)ctx->nr);
 
 #if defined(MBEDTLS_THREADING_C)
         if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
             return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
-#endif
+#endif /* MBEDTLS_THREADING_C */
         if (ret != kStatus_Success)
         {
             return MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
@@ -1191,14 +1272,14 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
         return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
-#endif
+#endif /* MBEDTLS_THREADING_C */
 
     ret = DCP_AES_EncryptEcb(DCP, &s_dcpHandle, (uint8_t *)inputPtr, (uint8_t *)outputPtr, 16);
 
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
         return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
-#endif
+#endif /* MBEDTLS_THREADING_C */
 
     /* Ivalidate output */
     DCACHE_InvalidateByRange((uint32_t)outputPtr, 16);
@@ -1213,14 +1294,14 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
         return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
-#endif
+#endif /* MBEDTLS_THREADING_C */
 
     ret = DCP_AES_EncryptEcb(DCP, &s_dcpHandle, input, output, 16);
 
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
         return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
-#endif
+#endif /* MBEDTLS_THREADING_C */
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
 #endif
 
@@ -1260,8 +1341,20 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
         return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
 #endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_MMCAU_AES)
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     ret = MMCAU_AES_DecryptEcb(input, key, ctx->nr, output);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_CAU3_AES)
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (!crypto_key_is_loaded(ctx))
     {
         ret = CAU3_AES_SetKey(CAU3, &s_cau3Handle, key, ctx->nr);
@@ -1273,6 +1366,10 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
     }
 
     ret = CAU3_AES_Decrypt(CAU3, &s_cau3Handle, input, output);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_LPC_AES)
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_aes_mutex) != 0)
@@ -1308,13 +1405,13 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
 #if defined(MBEDTLS_THREADING_C)
         if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
             return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
-#endif
+#endif /* MBEDTLS_THREADING_C */
         ret = DCP_AES_SetKey(DCP, &s_dcpHandle, key, (uint32_t)ctx->nr);
 
 #if defined(MBEDTLS_THREADING_C)
         if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
             return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
-#endif
+#endif /* MBEDTLS_THREADING_C */
         crypto_attach_ctx_to_key_slot(ctx, (uint8_t)s_dcpHandle.keySlot);
         if (ret != kStatus_Success)
         {
@@ -1357,14 +1454,14 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
         return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
-#endif
+#endif /* MBEDTLS_THREADING_C */
 
     ret = DCP_AES_DecryptEcb(DCP, &s_dcpHandle, (uint8_t *)inputPtr, (uint8_t *)outputPtr, 16);
 
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
         return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
-#endif
+#endif /* MBEDTLS_THREADING_C */
 
     /* Ivalidate output */
     DCACHE_InvalidateByRange((uint32_t)outputPtr, 16);
@@ -1378,14 +1475,14 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
         return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
-#endif
+#endif /* MBEDTLS_THREADING_C */
 
     ret = DCP_AES_DecryptEcb(DCP, &s_dcpHandle, input, output, 16);
 
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0)
         return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
-#endif
+#endif /* MBEDTLS_THREADING_C */
 
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
 #endif
@@ -1861,6 +1958,11 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
         status_t status;
         uint8_t mac[16];
 
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
         status = CAU3_AES_SetKey(CAU3, &s_cau3Handle, key, keylen / 8u);
         if (status != kStatus_Success)
         {
@@ -1868,6 +1970,12 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
             goto exit;
         }
         status = CAU3_AES_Cmac(CAU3, &s_cau3Handle, input, ilen, mac);
+
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
         if (status != kStatus_Success)
         {
             ret = MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
@@ -2372,6 +2480,9 @@ static void ltc_reverse_array(uint8_t *src, size_t src_len)
 
 #define cau3_reverse_array        ltc_reverse_array
 #define cau3_get_from_mbedtls_mpi ltc_get_from_mbedtls_mpi
+
+#define mbedtls_threading_hwcrypto_ltc_mutex mbedtls_threading_hwcrypto_cau3_mutex
+
 #endif
 
 #if defined(MBEDTLS_FREESCALE_LTC_PKHA)
@@ -3909,8 +4020,19 @@ int ecp_mul_comb(mbedtls_ecp_group *grp,
     cau3_reverse_array(ptrN, size);
 
     /* Multiply */
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     status = CAU3_PKHA_ECC_PointMul(CAU3, &A, ptrE, size_bin, ptrN, NULL, ptrParamA, ptrParamB, size,
                                     kCAU3_PKHA_TimingEqualized, kCAU3_PKHA_IntegerArith, &result);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
     if (status != kStatus_Success)
     {
@@ -4151,8 +4273,19 @@ int ecp_add(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R, const mbedtls_ec
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&grp->P, ptrN, size));
     cau3_reverse_array(ptrN, size);
     /* Multiply */
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     status =
         CAU3_PKHA_ECC_PointAdd(CAU3, &A, &B, ptrN, NULL, ptrParamA, ptrParamB, size, kCAU3_PKHA_IntegerArith, &result);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
     if (status != kStatus_Success)
     {
@@ -4237,8 +4370,19 @@ int ecp_mul_mxz(mbedtls_ecp_group *grp,
     cau3_reverse_array(ptrE, size_bin);
 
     /* Multiply */
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     status = CAU3_PKHA_ECM_PointMul(CAU3, ptrE, size_bin, A.X, s_curve25519_A24, s_curve25519_N, s_curve25519_R2modN,
                                     size, kCAU3_PKHA_TimingEqualized, result.X);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
 
     if (status != kStatus_Success)
     {
@@ -4402,7 +4546,19 @@ cleanup:
 int mbedtls_internal_md5_process(mbedtls_md5_context *ctx, const unsigned char data[64])
 {
     status_t ret = kStatus_Fail;
-    ret          = MMCAU_MD5_HashN(data, 1, ctx->state);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
+    ret = MMCAU_MD5_HashN(data, 1, ctx->state);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_MD5_HW_ACCEL_FAILED;
@@ -4547,7 +4703,18 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
 {
     status_t ret = kStatus_Fail;
-    ret          = MMCAU_SHA1_HashN(data, 1, ctx->state);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
+    ret = MMCAU_SHA1_HashN(data, 1, ctx->state);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
@@ -4833,7 +5000,15 @@ void mbedtls_sha1_clone(mbedtls_sha1_context *dst, const mbedtls_sha1_context *s
 int mbedtls_sha1_starts_ret(mbedtls_sha1_context *ctx)
 {
     status_t ret = kStatus_Fail;
-    ret          = CAU3_HASH_Init(CAU3, ctx, kCAU3_Sha1);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+    ret = CAU3_HASH_Init(CAU3, ctx, kCAU3_Sha1);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
@@ -4844,7 +5019,15 @@ int mbedtls_sha1_starts_ret(mbedtls_sha1_context *ctx)
 int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
 {
     status_t ret = kStatus_Fail;
-    ret          = CAU3_HASH_Update(CAU3, ctx, data, 64);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+    ret = CAU3_HASH_Update(CAU3, ctx, data, 64);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
@@ -4858,7 +5041,15 @@ int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char
 int mbedtls_sha1_update_ret(mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen)
 {
     status_t ret = kStatus_Fail;
-    ret          = CAU3_HASH_Update(CAU3, ctx, input, ilen);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+    ret = CAU3_HASH_Update(CAU3, ctx, input, ilen);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
@@ -4872,7 +5063,15 @@ int mbedtls_sha1_update_ret(mbedtls_sha1_context *ctx, const unsigned char *inpu
 int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 {
     status_t ret = kStatus_Fail;
-    ret          = CAU3_HASH_Finish(CAU3, ctx, output, 0);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+    ret = CAU3_HASH_Finish(CAU3, ctx, output, 0);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
@@ -5247,7 +5446,19 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[
 int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
 {
     status_t ret = kStatus_Fail;
-    ret          = MMCAU_SHA256_HashN(data, 1, ctx->state);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
+    ret = MMCAU_SHA256_HashN(data, 1, ctx->state);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_mmcau_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
@@ -5292,7 +5503,15 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
     status_t ret = kStatus_Fail;
     if (!is224) /* SHA-224 not supported at the moment */
     {
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
         ret = CAU3_HASH_Init(CAU3, ctx, kCAU3_Sha256);
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+            return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     }
     if (ret != kStatus_Success)
     {
@@ -5304,7 +5523,15 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
 int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
 {
     status_t ret = kStatus_Fail;
-    ret          = CAU3_HASH_Update(CAU3, ctx, data, 64);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+    ret = CAU3_HASH_Update(CAU3, ctx, data, 64);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
@@ -5318,7 +5545,15 @@ int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned 
 int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
 {
     status_t ret = kStatus_Fail;
-    ret          = CAU3_HASH_Update(CAU3, ctx, input, ilen);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+    ret = CAU3_HASH_Update(CAU3, ctx, input, ilen);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
@@ -5332,7 +5567,15 @@ int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *
 int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[32])
 {
     status_t ret = kStatus_Fail;
-    ret          = CAU3_HASH_Finish(CAU3, ctx, output, 0);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
+    ret = CAU3_HASH_Finish(CAU3, ctx, output, 0);
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_cau3_mutex) != 0)
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+#endif /* MBEDTLS_THREADING_C */
     if (ret != kStatus_Success)
     {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;

@@ -310,6 +310,8 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
     return( (int) len );
 }
 
+/* NXP added for HW accelerators support */
+#if !defined(MBEDTLS_PK_KEY_ALT)
 int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_t size )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -459,6 +461,7 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
 
     return( (int) len );
 }
+#endif /* MBEDTLS_PK_KEY_ALT */
 
 #if defined(MBEDTLS_PEM_WRITE_C)
 

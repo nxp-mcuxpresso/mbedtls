@@ -91,7 +91,8 @@ void mbedtls_mpi_init( mbedtls_mpi *X )
     X->n = 0;
     X->p = NULL;
 }
-
+/* NXP added for HW accelerators support */ 
+#if !defined(MBEDTLS_MPI_FREE_ALT)
 /*
  * Unallocate one MPI
  */
@@ -110,6 +111,7 @@ void mbedtls_mpi_free( mbedtls_mpi *X )
     X->n = 0;
     X->p = NULL;
 }
+#endif /* MBEDTLS_MPI_FREE_ALT */
 
 /*
  * Enlarge to the specified number of limbs

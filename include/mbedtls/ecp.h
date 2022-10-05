@@ -421,6 +421,7 @@ typedef void mbedtls_ecp_restart_ctx;
 
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
+#if !defined(MBEDTLS_ECP_GENKEY_ALT)
 /**
  * \brief    The ECP key-pair structure.
  *
@@ -436,7 +437,11 @@ typedef struct mbedtls_ecp_keypair
     mbedtls_ecp_point Q;        /*!<  our public value                  */
 }
 mbedtls_ecp_keypair;
+#else
+#include "ecdsa_alt.h"
+typedef mbedtls_ecdsa_context mbedtls_ecp_keypair ;
 
+#endif /* MBEDTLS_ECP_GENKEY_ALT */
 /*
  * Point formats, from RFC 4492's enum ECPointFormat
  */

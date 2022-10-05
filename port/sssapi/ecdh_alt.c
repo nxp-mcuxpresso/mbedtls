@@ -31,7 +31,11 @@
  * RFC 4492
  */
 
-#include "common.h"
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "mbedtls/config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -52,8 +56,6 @@
 #include "fsl_debug_console.h"
 #include "sss_crypto.h"
 
-
-
 /* Parameter validation macros based on platform_util.h */
 #define ECDH_VALIDATE_RET( cond )    \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA )
@@ -73,6 +75,9 @@ static mbedtls_ecp_group_id mbedtls_ecdh_grp_id(
     return (ctx->grp_id);
 #endif
 }
+
+#define MBEDTLS_MPI_S_HAVE_OBJECT (155)
+#define MBEDTLS_MPI_N_HAVE_OBJECT (1u)
 
 /* NXP added */
 #if !defined(MBEDTLS_ECDH_CANDO_ALT)
@@ -131,10 +136,151 @@ int mbedtls_ecdh_gen_public(mbedtls_ecp_group *grp,
 }
 #endif /* !MBEDTLS_ECDH_GEN_PUBLIC_ALT */
 
-#if !defined(MBEDTLS_ECDH_COMPUTE_SHARED_ALT)
+#if defined(MBEDTLS_ECDH_COMPUTE_SHARED_ALT)
 /*
  * Compute shared secret (SEC1 3.3.1)
  */
+static int ecdh_compute_shared_restartable(mbedtls_ecp_group *grp,
+                                           mbedtls_mpi *z,
+                                           const mbedtls_ecp_point *Q,
+                                           const mbedtls_mpi *d,
+                                           int (*f_rng)(void *, unsigned char *, size_t),
+                                           void *p_rng,
+                                           mbedtls_ecp_restart_ctx *rs_ctx)
+{
+
+    int ret = 0;
+
+    sss_sscp_derive_key_t dCtx;
+    size_t coordinateLen     = (grp->pbits + 7u) / 8u;
+    size_t coordinateBitsLen = grp->pbits;
+
+    sss_sscp_object_t pEcdhPubKey;
+    sss_sscp_object_t sharedSecret;
+    sss_sscp_object_t *pSecretKey = NULL;
+    bool bFreeSecretKey = false;
+    
+    size_t keySize           = SSS_ECP_KEY_SZ(coordinateLen);
+    uint8_t *pubKey          = mbedtls_calloc(keySize, sizeof(uint8_t));
+    
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if (sss_sscp_key_object_init(&pEcdhPubKey, &g_keyStore) != kStatus_SSS_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if (sss_sscp_key_object_allocate_handle(&pEcdhPubKey,
+                                                 0u,
+                                                 kSSS_KeyPart_Public,
+                                                 kSSS_CipherType_EC_NIST_P,
+                                                 3u * coordinateLen,
+                                                 SSS_KEYPROP_OPERATION_KDF) != kStatus_SSS_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if ((ret = mbedtls_mpi_write_binary(&Q->X, pubKey, coordinateLen)) != 0)
+    {
+    }
+    else if ((ret = mbedtls_mpi_write_binary(&Q->Y, &pubKey[coordinateLen], coordinateLen)) != 0)
+    {
+    }
+    else if (SSS_KEY_STORE_SET_KEY(&pEcdhPubKey,
+                                   (const uint8_t *)pubKey,
+                                   keySize,
+                                   coordinateBitsLen,
+                                   kSSS_KeyPart_Public)!= kStatus_SSS_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if (sss_sscp_key_object_init(&sharedSecret, &g_keyStore) != kStatus_SSS_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if (sss_sscp_key_object_allocate_handle(&sharedSecret,
+                                                 0u,
+                                                 kSSS_KeyPart_Default,
+                                                 kSSS_CipherType_AES,
+                                                 coordinateLen,
+                                                 SSS_KEYPROP_OPERATION_NONE
+                                                 ) != kStatus_SSS_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+
+    /* Check if private key is sw or S200 generated */
+    if ((d->s == MBEDTLS_MPI_S_HAVE_OBJECT) &&(d->n == MBEDTLS_MPI_N_HAVE_OBJECT))
+    {
+        pSecretKey = (sss_sscp_object_t *)(uintptr_t)d->p;
+        bFreeSecretKey = true;
+    }
+    else
+    {
+        sss_sscp_object_t secretKey;
+        pSecretKey = & secretKey;
+
+        /* Load secret key into SSS */
+        if (sss_sscp_key_object_init(pSecretKey, &g_keyStore) != kStatus_SSS_Success)
+        {
+            ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        }
+        else if (sss_sscp_key_object_allocate_handle(pSecretKey,
+                                                     0u,
+                                                     kSSS_KeyPart_Private,
+                                                     kSSS_CipherType_EC_NIST_P,
+                                                     coordinateLen,
+                                                     SSS_KEYPROP_OPERATION_KDF
+                                                     ) != kStatus_SSS_Success)
+        {
+            ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        }
+        else if ((ret = mbedtls_mpi_write_binary(d, pubKey, coordinateLen)) != 0)
+        {
+            ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        }
+        else if (SSS_KEY_STORE_SET_KEY(pSecretKey, (const uint8_t *)pubKey, coordinateLen, coordinateBitsLen, 
+                                              kSSS_KeyPart_Private) != kStatus_SSS_Success)
+        {
+            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        }
+    }
+    
+    if (sss_sscp_derive_key_context_init(&dCtx, &g_sssSession, pSecretKey, kAlgorithm_SSS_ECDH,
+                                              kMode_SSS_ComputeSharedSecret) != kStatus_SSS_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if (sss_sscp_asymmetric_dh_derive_key(&dCtx, &pEcdhPubKey, &sharedSecret) != kStatus_SSS_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if (sss_sscp_key_store_get_key(&g_keyStore, &sharedSecret, pubKey, &coordinateLen, &coordinateBitsLen,
+                                        (sss_key_part_t)NULL) != kStatus_SSS_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    else if ((ret = mbedtls_mpi_read_binary(z, pubKey, coordinateLen)) != 0)
+    {
+    }
+    else
+    {
+        ret = 0;
+    }
+    (void)sss_sscp_derive_key_context_free(&dCtx);
+    (void)SSS_KEY_OBJ_FREE(&pEcdhPubKey);
+    (void)SSS_KEY_OBJ_FREE(&sharedSecret);
+    mbedtls_platform_zeroize(pubKey, keySize);
+    mbedtls_free(pubKey);
+
+    if (bFreeSecretKey)
+    {
+        (void)SSS_KEY_OBJ_FREE(pSecretKey);
+    }
+
+    return ret;
+}
+#else
 static int ecdh_compute_shared_restartable(mbedtls_ecp_group *grp,
                                            mbedtls_mpi *z,
                                            const mbedtls_ecp_point *Q,
@@ -165,6 +311,8 @@ cleanup:
     return (ret);
 }
 
+#endif /* MBEDTLS_ECDH_COMPUTE_SHARED_ALT */
+
 /*
  * Compute shared secret (SEC1 3.3.1)
  */
@@ -181,7 +329,7 @@ int mbedtls_ecdh_compute_shared(mbedtls_ecp_group *grp,
     ECDH_VALIDATE_RET(z != NULL);
     return (ecdh_compute_shared_restartable(grp, z, Q, d, f_rng, p_rng, NULL));
 }
-#endif /* !MBEDTLS_ECDH_COMPUTE_SHARED_ALT */
+
 
 static void ecdh_init_internal(mbedtls_ecdh_context_mbed *ctx)
 {

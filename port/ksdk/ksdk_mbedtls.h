@@ -9,6 +9,11 @@
 #ifndef KSDK_MBEDTLS_H
 #define KSDK_MBEDTLS_H
 
+#if defined(MBEDTLS_THREADING_C)
+/* Threading mutex implementations for mbedTLS. */
+#include "mbedtls/threading.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

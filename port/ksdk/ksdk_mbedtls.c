@@ -15,12 +15,6 @@
 
 #include "mbedtls/platform.h"
 
-#if defined(MBEDTLS_THREADING_C)
-/* Threading mutex implementations for mbedTLS. */
-#include "mbedtls/threading.h"
-#include "threading_alt.h"
-#endif
-
 #if !defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) && defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
 extern void CRYPTO_ConfigureThreading(void);
 #endif
@@ -6196,7 +6190,6 @@ void *pvPortCalloc(size_t num, size_t size)
 #if defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
 /* Threading mutex implementations for mbedTLS. */
 #include "mbedtls/threading.h"
-#include "threading_alt.h"
 
 /**
  * @brief Implementation of mbedtls_mutex_init for thread-safety.

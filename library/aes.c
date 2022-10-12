@@ -1812,7 +1812,12 @@ int mbedtls_aes_self_test( int verbose )
     int ret = 0, i, j, u, mode;
     unsigned int keybits;
     unsigned char key[32];
-    unsigned char buf[64];
+    /* NXP: Move buffer to NON-CACHED memory because of HW accel */ 
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    AT_NONCACHEABLE_SECTION_INIT(static unsigned char buf[64]);
+#else
+    unsigned char buf[64];    
+#endif /* DCACHE */
     const unsigned char *aes_tests;
 #if defined(MBEDTLS_CIPHER_MODE_CBC) || defined(MBEDTLS_CIPHER_MODE_CFB)
     unsigned char iv[16];
@@ -1863,11 +1868,11 @@ int mbedtls_aes_self_test( int verbose )
         }
 
         /*
-         * AES-192 is an optional feature that may be unavailable when
+         * AES-192 and AES-256 is an optional feature that may be unavailable when
          * there is an alternative underlying implementation i.e. when
          * MBEDTLS_AES_ALT is defined.
          */
-        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192 )
+        if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE)
         {
             mbedtls_printf( "skipped\n" );
             continue;
@@ -1927,11 +1932,11 @@ int mbedtls_aes_self_test( int verbose )
         }
 
         /*
-         * AES-192 is an optional feature that may be unavailable when
+         * AES-192 and AES-256 is an optional feature that may be unavailable when
          * there is an alternative underlying implementation i.e. when
          * MBEDTLS_AES_ALT is defined.
          */
-        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192 )
+        if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE)
         {
             mbedtls_printf( "skipped\n" );
             continue;
@@ -1992,11 +1997,11 @@ int mbedtls_aes_self_test( int verbose )
         offset = 0;
         ret = mbedtls_aes_setkey_enc( &ctx, key, keybits );
         /*
-         * AES-192 is an optional feature that may be unavailable when
+         * AES-192 and AES-256 is an optional feature that may be unavailable when
          * there is an alternative underlying implementation i.e. when
          * MBEDTLS_AES_ALT is defined.
          */
-        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192 )
+        if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE)
         {
             mbedtls_printf( "skipped\n" );
             continue;
@@ -2055,11 +2060,11 @@ int mbedtls_aes_self_test( int verbose )
         offset = 0;
         ret = mbedtls_aes_setkey_enc( &ctx, key, keybits );
         /*
-         * AES-192 is an optional feature that may be unavailable when
+         * AES-192 and AES-256 is an optional feature that may be unavailable when
          * there is an alternative underlying implementation i.e. when
          * MBEDTLS_AES_ALT is defined.
          */
-        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192 )
+        if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE)
         {
             mbedtls_printf( "skipped\n" );
             continue;

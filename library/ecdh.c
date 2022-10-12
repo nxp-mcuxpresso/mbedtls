@@ -33,7 +33,7 @@
 #endif
 
 #if defined(MBEDTLS_ECDH_C)
-
+#if !defined(MBEDTLS_ECDH_ALT)
 #include "mbedtls/ecdh.h"
 #include "mbedtls/platform_util.h"
 
@@ -673,4 +673,7 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
 #endif
 }
 
+
+
+#endif /*#if !defined(MBEDTLS_ECDH_ALT) */
 #endif /* MBEDTLS_ECDH_C */

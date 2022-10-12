@@ -15,7 +15,7 @@
  * The initial seeding grabs #MBEDTLS_CTR_DRBG_ENTROPY_LEN bytes of entropy.
  * See the documentation of mbedtls_ctr_drbg_seed() for more details.
  *
- * Based on NIST SP 800-90A ยง10.2.1 table 3 and NIST SP 800-57 part 1 table 2,
+ * Based on NIST SP 800-90A ง10.2.1 table 3 and NIST SP 800-57 part 1 table 2,
  * here are the security strengths achieved in typical configuration:
  * - 256 bits under the default configuration of the library, with AES-256
  *   and with #MBEDTLS_CTR_DRBG_ENTROPY_LEN set to 48 or more.
@@ -222,7 +222,7 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  *
  * \note                The _seed_material_ value passed to the derivation
  *                      function in the CTR_DRBG Instantiate Process
- *                      described in NIST SP 800-90A ยง10.2.1.3.2
+ *                      described in NIST SP 800-90A ง10.2.1.3.2
  *                      is the concatenation of the string obtained from
  *                      calling \p f_entropy and the \p custom string.
  *                      The origin of the nonce depends on the value of
@@ -234,7 +234,7 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  *                        strength, then the nonce is taken from \p custom.
  *                        In this case, for compliance with SP 800-90A,
  *                        you must pass a unique value of \p custom at
- *                        each invocation. See SP 800-90A ยง8.6.7 for more
+ *                        each invocation. See SP 800-90A ง8.6.7 for more
  *                        details.
  */
 #if MBEDTLS_CTR_DRBG_ENTROPY_LEN < MBEDTLS_CTR_DRBG_KEYSIZE * 3 / 2

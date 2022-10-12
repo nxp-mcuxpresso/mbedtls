@@ -924,6 +924,7 @@ int mbedtls_ecdsa_from_keypair( mbedtls_ecdsa_context *ctx, const mbedtls_ecp_ke
     return( ret );
 }
 
+#if !defined(MBEDTLS_ECDSA_ALT)
 /*
  * Initialize context
  */
@@ -944,6 +945,7 @@ void mbedtls_ecdsa_free( mbedtls_ecdsa_context *ctx )
 
     mbedtls_ecp_keypair_free( ctx );
 }
+#endif /* !MBEDTLS_ECDSA_ALT */
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 /*

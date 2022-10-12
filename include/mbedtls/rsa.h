@@ -980,8 +980,8 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  *
  * \note           This function always uses the maximum possible salt size,
  *                 up to the length of the payload hash. This choice of salt
- *                 size complies with FIPS 186-4 ยง5.5 (e) and RFC 8017 (PKCS#1
- *                 v2.2) ยง9.1.1 step 3. Furthermore this function enforces a
+ *                 size complies with FIPS 186-4 ง5.5 (e) and RFC 8017 (PKCS#1
+ *                 v2.2) ง9.1.1 step 3. Furthermore this function enforces a
  *                 minimum salt size which is the hash size minus 2 bytes. If
  *                 this minimum size is too large given the key size (the salt
  *                 size, plus the hash size, plus 2 bytes must be no more than

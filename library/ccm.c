@@ -149,6 +149,11 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
 /*
  * Authenticated encryption or decryption
  */
+#if !defined(MBEDTLS_CCM_CRYPT_ALT)
+/* CCM selftest fails on ARM Cortex M with IAR 8.11 with common subexpression elimination optimalization enabled */
+#if defined(__ICCARM__)
+#pragma optimize=no_cse
+#endif
 static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
                            const unsigned char *iv, size_t iv_len,
                            const unsigned char *add, size_t add_len,
@@ -416,6 +421,7 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
     return( mbedtls_ccm_star_auth_decrypt( ctx, length, iv, iv_len, add,
                 add_len, input, output, tag, tag_len ) );
 }
+#endif /* !MBEDTLS_CCM_CRYPT_ALT */
 #endif /* !MBEDTLS_CCM_ALT */
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)

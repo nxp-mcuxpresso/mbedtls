@@ -1193,7 +1193,11 @@ int mbedtls_mpi_cmp_int( const mbedtls_mpi *X, mbedtls_mpi_sint z )
 /*
  * Unsigned addition: X = |A| + |B|  (HAC 14.7)
  */
+#if defined(MBEDTLS_MPI_ADD_ABS_ALT)
+int mbedtls_mpi_add_abs_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#else
 int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#endif /* MBEDTLS_MPI_ADD_ABS_ALT */
 {
     int ret;
     size_t i, j;
@@ -1273,7 +1277,11 @@ static void mpi_sub_hlp( size_t n, mbedtls_mpi_uint *s, mbedtls_mpi_uint *d )
 /*
  * Unsigned subtraction: X = |A| - |B|  (HAC 14.9)
  */
+#if defined(MBEDTLS_MPI_SUB_ABS_ALT)
+int mbedtls_mpi_sub_abs_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#else
 int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#endif /* MBEDTLS_MPI_SUB_ABS_ALT */
 {
     mbedtls_mpi TB;
     int ret;
@@ -1497,7 +1505,11 @@ void mpi_mul_hlp( size_t i, mbedtls_mpi_uint *s, mbedtls_mpi_uint *d, mbedtls_mp
 /*
  * Baseline multiplication: X = A * B  (HAC 14.12)
  */
+#if defined(MBEDTLS_MPI_MUL_MPI_ALT)
+int mbedtls_mpi_mul_mpi_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#else
 int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#endif /* MBEDTLS_MPI_MUL_MPI_ALT */
 {
     int ret;
     size_t i, j;
@@ -1788,7 +1800,11 @@ int mbedtls_mpi_div_int( mbedtls_mpi *Q, mbedtls_mpi *R,
 /*
  * Modulo: R = A mod B
  */
+#if defined(MBEDTLS_MPI_MOD_MPI_ALT)
+int mbedtls_mpi_mod_mpi_orig( mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#else
 int mbedtls_mpi_mod_mpi( mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#endif /* MBEDTLS_MPI_MOD_MPI_ALT */
 {
     int ret;
     MPI_VALIDATE_RET( R != NULL );
@@ -1948,9 +1964,13 @@ static int mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N,
 /*
  * Sliding-window exponentiation: X = A^E mod N  (HAC 14.85)
  */
+#if defined(MBEDTLS_MPI_EXP_MOD_ALT)
+int mbedtls_mpi_exp_mod_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *E, const mbedtls_mpi *N, mbedtls_mpi *_RR )
+#else
 int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
                          const mbedtls_mpi *E, const mbedtls_mpi *N,
                          mbedtls_mpi *_RR )
+#endif /* MBEDTLS_MPI_EXP_MOD_ALT */
 {
     int ret;
     size_t wbits, wsize, one = 1;
@@ -2165,7 +2185,11 @@ cleanup:
 /*
  * Greatest common divisor: G = gcd(A, B)  (HAC 14.54)
  */
+#if defined(MBEDTLS_MPI_GCD_ALT)
+int mbedtls_mpi_gcd_orig( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#else
 int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#endif /* MBEDTLS_MPI_GCD_ALT */
 {
     int ret;
     size_t lz, lzt;
@@ -2258,7 +2282,11 @@ cleanup:
 /*
  * Modular inverse: X = A^-1 mod N  (HAC 14.61 / 14.64)
  */
+#if defined(MBEDTLS_MPI_INV_MOD_ALT)
+int mbedtls_mpi_inv_mod_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *N )
+#else
 int mbedtls_mpi_inv_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *N )
+#endif /* MBEDTLS_MPI_INV_MOD_ALT */
 {
     int ret;
     mbedtls_mpi G, TA, TU, U1, U2, TB, TV, V1, V2;
@@ -2544,9 +2572,15 @@ int mbedtls_mpi_is_prime_ext( const mbedtls_mpi *X, int rounds,
 /*
  * Pseudo-primality test, error probability 2^-80
  */
+#if defined(MBEDTLS_MPI_IS_PRIME_ALT)
+int mbedtls_mpi_is_prime_orig( const mbedtls_mpi *X,
+                  int (*f_rng)(void *, unsigned char *, size_t),
+                  void *p_rng )
+#else
 int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng )
+#endif /* MBEDTLS_MPI_IS_PRIME_ALT */
 {
     MPI_VALIDATE_RET( X     != NULL );
     MPI_VALIDATE_RET( f_rng != NULL );
@@ -2618,7 +2652,7 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int flags,
     while( 1 )
     {
         MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( X, n * ciL, f_rng, p_rng ) );
-        /* make sure generated number is at least (nbits-1)+0.5 bits (FIPS 186-4 Â§B.3.3 steps 4.4, 5.5) */
+        /* make sure generated number is at least (nbits-1)+0.5 bits (FIPS 186-4 §B.3.3 steps 4.4, 5.5) */
         if( X->p[n-1] < CEIL_MAXUINT_DIV_SQRT2 ) continue;
 
         k = n * biL;

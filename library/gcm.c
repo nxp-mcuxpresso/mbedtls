@@ -134,7 +134,7 @@ static int gcm_gen_table( mbedtls_gcm_context *ctx )
 
     return( 0 );
 }
-
+#if !defined(MBEDTLS_AES_GCM_SETKEY_ALT)
 int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
                         mbedtls_cipher_id_t cipher,
                         const unsigned char *key,
@@ -171,6 +171,7 @@ int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
 
     return( 0 );
 }
+#endif
 
 /*
  * Shoup's method for multiplication use this table with
@@ -245,6 +246,7 @@ static void gcm_mult( mbedtls_gcm_context *ctx, const unsigned char x[16],
     MBEDTLS_PUT_UINT32_BE( zl, output, 12 );
 }
 
+#if !defined(MBEDTLS_AES_GCM_STARTS_ALT)
 int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
                 int mode,
                 const unsigned char *iv,
@@ -333,7 +335,8 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
 
     return( 0 );
 }
-
+#endif
+#if !defined(MBEDTLS_AES_GCM_UPDATE_ALT)
 int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
                 size_t length,
                 const unsigned char *input,
@@ -396,7 +399,9 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
 
     return( 0 );
 }
+#endif
 
+#if !defined(MBEDTLS_AES_GCM_FINISH_ALT)
 int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
                 unsigned char *tag,
                 size_t tag_len )
@@ -437,7 +442,7 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
 
     return( 0 );
 }
-
+#endif
 /* NXP added for HW accelerators support */
 #if !defined(MBEDTLS_GCM_CRYPT_ALT)
 int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,

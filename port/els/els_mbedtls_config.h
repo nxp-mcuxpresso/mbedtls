@@ -391,7 +391,7 @@
 //#define MBEDTLS_DHM_ALT
 //#define MBEDTLS_ECJPAKE_ALT
 //#define MBEDTLS_GCM_ALT
-#define MBEDTLS_AES_GCM_ALT
+//#define MBEDTLS_AES_GCM_ALT
 //#define MBEDTLS_NIST_KW_ALT
 //#define MBEDTLS_MD2_ALT
 //#define MBEDTLS_MD4_ALT

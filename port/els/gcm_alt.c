@@ -25,12 +25,11 @@
 
 #include <string.h>
 
+#if !defined(MBEDTLS_AES_GCM_SETKEY_ALT) || !defined(MBEDTLS_AES_GCM_STARTS_ALT) || !defined(MBEDTLS_AES_GCM_UPDATE_ALT) || !defined(MBEDTLS_AES_GCM_FINISH_ALT) || !defined(MBEDTLS_AES_CTX_ALT)
+#error the 5 alternative implementations shall be enabled together
+#elif defined(MBEDTLS_AES_GCM_SETKEY_ALT) && defined(MBEDTLS_AES_GCM_STARTS_ALT) && defined(MBEDTLS_AES_GCM_UPDATE_ALT) && defined(MBEDTLS_AES_GCM_FINISH_ALT) && defined(MBEDTLS_AES_CTX_ALT)
 
-#if !defined(MBEDTLS_AES_GCM_ALT) || !defined(MBEDTLS_AES_CTX_ALT)
-#error the alternative implementations shall be enabled together
-#elif defined(MBEDTLS_AES_GCM_ALT) && defined(MBEDTLS_AES_CTX_ALT)
-
-int mbedtls_aes_gcm_setkey( mbedtls_gcm_context *ctx,
+int mbedtls_aes_gcm_setkey_alt( mbedtls_gcm_context *ctx,
                         mbedtls_cipher_id_t cipher,
                         const unsigned char *key,
                         unsigned int keybits )
@@ -68,7 +67,20 @@ int mbedtls_aes_gcm_setkey( mbedtls_gcm_context *ctx,
     return( 0 );
 }
 
-int mbedtls_aes_gcm_starts( mbedtls_gcm_context *ctx,
+
+/*
+ * GCM key schedule , alternative implementation
+ */
+int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
+                        mbedtls_cipher_id_t cipher,
+                        const unsigned char *key,
+                        unsigned int keybits )
+{
+    return mbedtls_aes_gcm_setkey_alt(ctx, cipher ,key, keybits);
+}
+
+
+int mbedtls_aes_gcm_starts_alt( mbedtls_gcm_context *ctx,
                 int mode,
                 const unsigned char *iv,
                 size_t iv_len,
@@ -281,7 +293,17 @@ int mbedtls_aes_gcm_starts( mbedtls_gcm_context *ctx,
     return( 0 );
 }
 
-int mbedtls_aes_gcm_update( mbedtls_gcm_context *ctx,
+int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
+                int mode,
+                const unsigned char *iv,
+                size_t iv_len,
+                const unsigned char *add,
+                size_t add_len )
+{
+    return mbedtls_aes_gcm_starts_alt(ctx, mode ,iv, iv_len, add, add_len);
+}
+
+int mbedtls_aes_gcm_update_alt( mbedtls_gcm_context *ctx,
                 size_t length,
                 const unsigned char *input,
                 unsigned char *output )
@@ -377,7 +399,15 @@ int mbedtls_aes_gcm_update( mbedtls_gcm_context *ctx,
     return( 0 );
 }
 
-int mbedtls_aes_gcm_finish( mbedtls_gcm_context *ctx,
+int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
+                size_t length,
+                const unsigned char *input,
+                unsigned char *output )
+{
+    return mbedtls_aes_gcm_update_alt(ctx, length, input, output);
+}
+
+int mbedtls_aes_gcm_finish_alt( mbedtls_gcm_context *ctx,
                 unsigned char *tag,
                 size_t tag_len )
 {
@@ -434,6 +464,13 @@ int mbedtls_aes_gcm_finish( mbedtls_gcm_context *ctx,
     }
     
     return( 0 );
+}
+
+int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
+                unsigned char *tag,
+                size_t tag_len )
+{
+    return mbedtls_aes_gcm_finish_alt(ctx, tag, tag_len);
 }
 
 #endif /* MBEDTLS_AES_GCM_ALT && MBEDTLS_AES_CTX_ALT */

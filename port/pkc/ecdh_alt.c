@@ -33,6 +33,7 @@
 #include <mbedtls/platform.h>
 #include <platform_hw_ip.h>
 #include <mbedtls/ctr_drbg.h>
+#include <ecc_alt.h>
 
 /* If ELS-PKC is used, then expectation is CL-EAR2 is being used, Hence, a few mappings are required from CL-EAR2 
 to exsiting CL #defines, to support exisiting ALT implementation. The defines are mainly required due to renaming in CL EAR2*/

@@ -3885,6 +3885,14 @@
  */
 #define MBEDTLS_CCM_USE_AES_CBC_MAC
 
+/**
+ * \def MBEDTLS_CBC_MAC_USE_CMAC
+ *
+ * Uncomment this macro in case AES CBC-MAC should be used with CSS CMAC command.
+ *
+ */
+//#define MBEDTLS_CBC_MAC_USE_CMAC
+
 /* \} name SECTION: Customisation configuration options */
 
 /* Target and application specific configurations

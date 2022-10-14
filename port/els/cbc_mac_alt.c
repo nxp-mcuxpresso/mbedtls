@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------------------*/
-/* Copyright 2021 NXP                                                       */
+/* Copyright 2021, 2022 NXP                                                       */
 /*                                                                          */
 /* NXP Confidential. This software is owned or controlled by NXP and may    */
 /* only be used strictly in accordance with the applicable license terms.   */
@@ -31,13 +31,14 @@ int mbedtls_aes_cbc_mac  ( mbedtls_aes_context *ctx,
                            unsigned char *iv,
                            const unsigned char *pInput )
 {
-
+#ifdef MBEDTLS_CBC_MAC_USE_CMAC
     mcuxClCss_CmacOption_t cmac_options = {0};
 
     cmac_options.bits.extkey = MCUXCLCSS_CMAC_EXTERNAL_KEY_ENABLE; 
     /* Set options to UPDATE (i.e., neither initialize nor finalize) for cbc-mac operation */
     cmac_options.bits.initialize = MCUXCLCSS_CMAC_INITIALIZE_DISABLE;
     cmac_options.bits.finalize = MCUXCLCSS_CMAC_FINALIZE_DISABLE;
+#endif
     
     mcuxClCss_CipherOption_t cipher_options = {0};    
     cipher_options.bits.dcrpt = MCUXCLCSS_CIPHER_ENCRYPT;
@@ -48,7 +49,7 @@ int mbedtls_aes_cbc_mac  ( mbedtls_aes_context *ctx,
     size_t key_length = ctx->keyLength;
     size_t nr_full_blocks = length / 16u;
     size_t len_last_block = length - (nr_full_blocks * 16u);
-    uint8_t* pOutput = (uint8_t*) malloc((nr_full_blocks * 16u) * sizeof(uint8_t));
+    uint8_t last_block_output[16] = {0U};
 
     /* Initialize CSS */
     int ret_hw_init = mbedtls_hw_init();
@@ -63,7 +64,7 @@ int mbedtls_aes_cbc_mac  ( mbedtls_aes_context *ctx,
         if( (MCUXCLCSS_CMAC_KEY_SIZE_128 == key_length) || // use CMAC for HW Acceleration of 128-bit and 256-bit keys
             (MCUXCLCSS_CMAC_KEY_SIZE_256 == key_length) ) 
         {
-            
+#ifdef MBEDTLS_CBC_MAC_USE_CMAC
             /* call mcuxClCss_Cmac_Async on full blocks */
             MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED( resultFullBlocks, tokenFullBlocks,
                 mcuxClCss_Cmac_Async( cmac_options,
@@ -88,11 +89,50 @@ int mbedtls_aes_cbc_mac  ( mbedtls_aes_context *ctx,
             {
                 return MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
             }
+#else
+            uint8_t* pOutput = (uint8_t*) mbedtls_calloc(1U, (nr_full_blocks * 16u));
+            mbedtls_platform_zeroize(pOutput, (nr_full_blocks * 16u));
+            
+            MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retCssCipherAsync, tokenCssCipherAsync,
+                mcuxClCss_Cipher_Async(cipher_options,
+                                      0u, /* keyIdx is ignored. */
+                                      pKey,
+                                      key_length,
+                                      (uint8_t const *) pInput,
+                                      (nr_full_blocks * 16u),
+                                      (uint8_t *) iv,
+                                      (uint8_t *) pOutput) );
+            if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Cipher_Async) != tokenCssCipherAsync)
+                 || (MCUXCLCSS_STATUS_OK_WAIT != retCssCipherAsync) )
+            {
+                mbedtls_free(pOutput);
+                /* _Cipher_Async shall not return _SW_CANNOT_INTERRUPT after successfully returning from _WaitForOperation. */
+                /* _Cipher_Async shall not return _SW_INVALID_PARAM if parameters are set properly. */
+                return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            }
 
-            pInput += (nr_full_blocks * 16u);
+             /* Wait for mcuxClCss_Cipher_Async. */
+            MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retCssWaitCipher, tokenCssWaitCipher,
+                 mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR) );
+            if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenCssWaitCipher)
+            {
+                mbedtls_free(pOutput);
+                return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            }
+            if (MCUXCLCSS_STATUS_OK != retCssWaitCipher)
+            {
+                mbedtls_free(pOutput);
+                return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            }
+
+            memcpy(iv, &pOutput[(nr_full_blocks * 16u) - 16], 16);
+            mbedtls_free(pOutput);
+#endif //MBEDTLS_CBC_MAC_USE_CMAC
         }
         else if (MCUXCLCSS_CIPHER_KEY_SIZE_AES_192 == key_length) // use CIPHER for HW acceleration of 192-bit keys
         {
+            uint8_t* pOutput = (uint8_t*) mbedtls_calloc(1U, (nr_full_blocks * 16u));
+            mbedtls_platform_zeroize(pOutput, (nr_full_blocks * 16u));
             
             MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retCssCipherAsync, tokenCssCipherAsync,
                 mcuxClCss_Cipher_Async(cipher_options,
@@ -106,6 +146,7 @@ int mbedtls_aes_cbc_mac  ( mbedtls_aes_context *ctx,
             if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Cipher_Async) != tokenCssCipherAsync)
                 || (MCUXCLCSS_STATUS_OK_WAIT != retCssCipherAsync) )
             {
+                mbedtls_free(pOutput);
                  /* _Cipher_Async shall not return _SW_CANNOT_INTERRUPT after successfully returning from _WaitForOperation. */
                  /* _Cipher_Async shall not return _SW_INVALID_PARAM if parameters are set properly. */
                  return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -116,28 +157,33 @@ int mbedtls_aes_cbc_mac  ( mbedtls_aes_context *ctx,
                  mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR) );
              if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenCssWaitCipher)
              {
+                mbedtls_free(pOutput);
                  return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
              }
              if (MCUXCLCSS_STATUS_OK != retCssWaitCipher)
              {
+                mbedtls_free(pOutput);
                  return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
              }
              memcpy(iv, &pOutput[(nr_full_blocks * 16u) - 16], 16);
+            mbedtls_free(pOutput);
+        }
              pInput += (nr_full_blocks * 16u);
         }
-    }
 
 
     /* process last block */
     if( len_last_block > 0u )
     {
-        if( (MCUXCLCSS_CMAC_KEY_SIZE_128 == key_length) || // use CMAC for HW Acceleration of 128-bit and 256-bit keys
-            (MCUXCLCSS_CMAC_KEY_SIZE_256 == key_length) ) 
-        {
             // pad with zeros
             uint8_t last_block[16];
             (void) memset( last_block, 0, 16 );
             (void) memcpy( last_block, pInput, len_last_block );
+
+        if( (MCUXCLCSS_CMAC_KEY_SIZE_128 == key_length) || // use CMAC for HW Acceleration of 128-bit and 256-bit keys
+            (MCUXCLCSS_CMAC_KEY_SIZE_256 == key_length) ) 
+        {
+#ifdef MBEDTLS_CBC_MAC_USE_CMAC
 
             /* call mcuxClCss_Cmac_Async on padded last block */
             MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED( resultLastBlock, tokenLastBlock,
@@ -163,18 +209,16 @@ int mbedtls_aes_cbc_mac  ( mbedtls_aes_context *ctx,
             {
                 return MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
             }
-        }  
-        else if ( MCUXCLCSS_CIPHER_KEY_SIZE_AES_192 == key_length) // use CIPHER for HW acceleration of 192-bit keys
-        {
+#else
             MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retCssCipherAsync, tokenCssCipherAsync,
-                mcuxClCss_Cipher_Async(cipher_options,
-                                      0u, /* keyIdx is ignored. */
-                                      pKey,
-                                      key_length,
-                                      (uint8_t const *) pInput,
-                                      (nr_full_blocks * 16u),
-                                      (uint8_t *) iv,
-                                      (uint8_t *) pOutput) );
+            mcuxClCss_Cipher_Async(cipher_options,
+                                   0u, /* keyIdx is ignored. */
+                                   pKey,
+                                   key_length,
+                                   last_block,
+                                   16u,
+                                   (uint8_t *) iv,
+                                   (uint8_t *) last_block_output) );
             if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Cipher_Async) != tokenCssCipherAsync)
                 || (MCUXCLCSS_STATUS_OK_WAIT != retCssCipherAsync) )
             {
@@ -194,11 +238,44 @@ int mbedtls_aes_cbc_mac  ( mbedtls_aes_context *ctx,
             {
                 return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             }
-            memcpy(iv, &pOutput[(nr_full_blocks * 16u) - 16], 16);
-            pInput += (nr_full_blocks * 16u);
+
+            memcpy(iv, last_block_output, 16);
+#endif //MBEDTLS_CBC_MAC_USE_CMAC
+        }  
+        else if ( MCUXCLCSS_CIPHER_KEY_SIZE_AES_192 == key_length) // use CIPHER for HW acceleration of 192-bit keys
+        {
+            MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retCssCipherAsync, tokenCssCipherAsync,
+                mcuxClCss_Cipher_Async(cipher_options,
+                                      0u, /* keyIdx is ignored. */
+                                      pKey,
+                                      key_length,
+                                      last_block,
+                                      16u,
+                                      (uint8_t *) iv,
+                                      (uint8_t *) last_block_output) );
+            if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Cipher_Async) != tokenCssCipherAsync)
+                || (MCUXCLCSS_STATUS_OK_WAIT != retCssCipherAsync) )
+            {
+                /* _Cipher_Async shall not return _SW_CANNOT_INTERRUPT after successfully returning from _WaitForOperation. */
+                /* _Cipher_Async shall not return _SW_INVALID_PARAM if parameters are set properly. */
+                return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            }
+
+            /* Wait for mcuxClCss_Cipher_Async. */
+            MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retCssWaitCipher, tokenCssWaitCipher,
+                mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR) );
+            if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenCssWaitCipher)
+            {
+                return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            }
+            if (MCUXCLCSS_STATUS_OK != retCssWaitCipher)
+            {
+                return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            }
+
+            memcpy(iv, last_block_output, 16);
         }
     }
     
-    free(pOutput);
-    return( 0 );
+    return (0);
 }

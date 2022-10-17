@@ -1,0 +1,9 @@
+mbedtls                    Name: Mbed TLS
+                           Version: 2.13.1
+                           Outgoing License: Apache-2.0
+                           License File: ./LICENSE
+                           Format: source code
+                           Description: Cryptographic and SSL/TLS Library
+                           Location: ./
+                           Origin: ARM(Apache-2.0) -
+                           https://github.com/Mbed-TLS/mbedtls/releases/tag/mbedtls-2.13.1

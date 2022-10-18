@@ -1210,6 +1210,8 @@ static int pk_parse_key_pkcs8_encrypted_der(
 }
 #endif /* MBEDTLS_PKCS12_C || MBEDTLS_PKCS5_C */
 
+/* NXP added for HW accelerators support */
+#if !defined(MBEDTLS_PK_KEY_ALT)
 /*
  * Parse a private key
  */
@@ -1425,6 +1427,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
 
     return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
 }
+#endif /* MBEDTLS_PK_KEY_ALT */
 
 /*
  * Parse a public key

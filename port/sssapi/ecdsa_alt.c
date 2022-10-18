@@ -127,7 +127,6 @@ static int ecdsa_sign_restartable(mbedtls_ecp_group *grp,
     int ret = 0;
     sss_sscp_asymmetric_t asyc;
     sss_algorithm_t alg;
-    size_t bufLen          = (blen + 7u) / 8u;
     size_t coordinateLen   = (grp->pbits + 7u) / 8u;
     size_t signatureSize   = 2u * coordinateLen;
     uint8_t *signature     = mbedtls_calloc(signatureSize, sizeof(uint8_t));
@@ -213,6 +212,96 @@ void mbedtls_ecdsa_free(mbedtls_ecdsa_context *ctx)
     mbedtls_ecp_point_free( &ctx->Q );
     
 }
+
+int mbedtls_ecdsa_from_keypair( mbedtls_ecdsa_context *ctx, const mbedtls_ecp_keypair *key )
+{
+    int ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    ECDSA_VALIDATE_RET(ctx != NULL);
+    ECDSA_VALIDATE_RET( key != NULL );
+
+    if( ( ret = mbedtls_ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 ||
+        ( ret = mbedtls_ecp_copy( &ctx->Q, &key->Q ) ) != 0 )
+    {
+        mbedtls_ecdsa_free( ctx );
+        return ret;
+    }
+
+    size_t keyLen     = (ctx->grp.pbits + 7u) / 8u;
+    size_t keyBitsLen = ctx->grp.pbits;
+
+    mbedtls_ecdsa_context * pKey = (mbedtls_ecdsa_context *) key;
+
+    if ((pKey->d.s == MBEDTLS_ECDSA_MPI_S_HAVE_OBJECT) && (pKey->d.n == MBEDTLS_ECDSA_MPI_N_HAVE_OBJECT))
+    {
+        /* The key was generated with S200 and must be loaded into ecdsa context.*/
+        ctx->d.s = MBEDTLS_ECDSA_MPI_S_HAVE_OBJECT;
+        ctx->d.n = MBEDTLS_ECDSA_MPI_N_HAVE_OBJECT;
+        ctx->key = pKey->key;
+//      ctx->d.p = (mbedtls_mpi_uint *)(uintptr_t)&pKey->key;
+        ctx->d.p = (mbedtls_mpi_uint *)(uintptr_t)&ctx->key;
+        
+        /* We don't want to free the key in ecdsa free */
+        ctx->isKeyInitialized = false;
+
+        ret      = 0;
+    }
+    /* Check if we actually have a private key to load, for ecdsa verify it is not needed */
+    else if (key->d.p != NULL)
+    {
+        /* Key is loaded from file into S200*/
+        uint8_t privateKey[32];
+        mbedtls_mpi_write_binary(&key->d, privateKey, 32);
+
+        if (CRYPTO_InitHardware() != kStatus_Success)
+        {
+            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        }
+
+        if (ctx->isKeyInitialized == false)
+        {
+            if (sss_sscp_key_object_init(&ctx->key, &g_keyStore) != kStatus_SSS_Success)
+            {
+                (void)SSS_KEY_OBJ_FREE(&ctx->key);
+                return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            }
+            /* Allocate key handle */
+            else if (sss_sscp_key_object_allocate_handle(&ctx->key,
+                                                         0x0u,
+                                                         kSSS_KeyPart_Private,
+                                                         kSSS_CipherType_EC_NIST_P,
+                                                         keyLen,
+                                                         SSS_KEYPROP_OPERATION_ASYM) != kStatus_SSS_Success)
+            {
+                (void)SSS_KEY_OBJ_FREE(&ctx->key);
+                return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            }
+            else
+            {
+                ctx->isKeyInitialized = true;
+            }
+        }
+        if ((ret = SSS_KEY_STORE_SET_KEY(&ctx->key, (const uint8_t *)privateKey, keyLen, keyBitsLen, 
+                                          kSSS_KeyPart_Private)) != kStatus_SSS_Success)
+        {
+            (void)SSS_KEY_OBJ_FREE(&ctx->key);
+            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        }
+        else
+        {
+            ctx->d.s = MBEDTLS_ECDSA_MPI_S_HAVE_OBJECT;
+            ctx->d.n = MBEDTLS_ECDSA_MPI_N_HAVE_OBJECT;
+            ctx->d.p = (mbedtls_mpi_uint *)(uintptr_t)&ctx->key;
+            ret      = 0;
+        }
+    }
+    else
+    {
+        /* Nothing left to do in this case but to return success */
+        ret = 0;
+    }
+    return ret;
+}
+
 #endif /* MBEDTLS_ECDSA_ALT */
 
 #if defined(MBEDTLS_ECDSA_GENKEY_ALT)
@@ -374,7 +463,6 @@ static int ecdsa_verify_restartable(mbedtls_ecp_group *grp,
     size_t coordinateLen     = (grp->pbits + 7u) / 8u;
     size_t coordinateBitsLen = grp->pbits;
     size_t keySize           = SSS_ECP_KEY_SZ(coordinateLen);
-    size_t bufLen            = (blen + 7u) / 8u;
     uint8_t *pubKey          = mbedtls_calloc(keySize, sizeof(uint8_t));
     sss_sscp_object_t ecdsaPublic;
     sss_sscp_asymmetric_t asyc;

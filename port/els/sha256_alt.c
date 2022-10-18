@@ -40,20 +40,6 @@
 
 #define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
 
-//void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
-//{
-//    SHA256_VALIDATE( ctx != NULL );
-//
-//    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
-//}
-//
-//void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
-//{
-//    if( ctx == NULL )
-//        return;
-//  
-//    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
-//}
 
 int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
 {
@@ -61,7 +47,6 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
     {
         return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
     }
-    //PRINTF("Inside alt sha");
     /* Initialize CSS */
     status_t ret_hw_init = mbedtls_hw_init();
     if(kStatus_Success != ret_hw_init)

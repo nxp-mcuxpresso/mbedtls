@@ -40,21 +40,6 @@
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA512_BAD_INPUT_DATA )
 #define SHA512_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
 
-//void mbedtls_sha512_init( mbedtls_sha512_context *ctx )
-//{
-//    SHA512_VALIDATE( ctx != NULL );
-//
-//    memset( ctx, 0, sizeof( mbedtls_sha512_context ) );
-//}
-//
-//void mbedtls_sha512_free( mbedtls_sha512_context *ctx )
-//{
-//    if( ctx == NULL )
-//        return;
-//
-//    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha512_context ) );
-//}
-
 int mbedtls_sha512_starts_ret(mbedtls_sha512_context *ctx, int is384)
 {
     if(ctx == NULL)
@@ -64,7 +49,6 @@ int mbedtls_sha512_starts_ret(mbedtls_sha512_context *ctx, int is384)
     
     /* Initialize CSS */
     status_t ret_hw_init = mbedtls_hw_init();
-//    PRINTF("Inside alt sha 512");
     if(kStatus_Success != ret_hw_init)
     {
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;

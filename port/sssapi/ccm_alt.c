@@ -80,6 +80,16 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
                        unsigned int keybits)
 {
     int ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+
+    CCM_VALIDATE_RET(ctx != NULL);
+    CCM_VALIDATE_RET(key != NULL);
+
+    /* SSSAPI HW Aceleration support only CCM with AES*/
+    if (cipher != MBEDTLS_CIPHER_ID_AES)
+    {
+        return (MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED);
+    }
+
     uint8_t ramKey[32];
     (void)memcpy(ramKey, key, (keybits + 7u) / 8u);
     if (CRYPTO_InitHardware() != kStatus_Success)
@@ -92,14 +102,12 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
     }
 #if (defined(KW45_A0_SUPPORT) && KW45_A0_SUPPORT)
     else if ((sss_sscp_key_object_allocate_handle(&ctx->key, 1u, kSSS_KeyPart_Default, kSSS_CipherType_AES,
-                                                  (keybits + 7u) / 8u,
-                                                  0u)) != kStatus_SSS_Success)
+                                                  (keybits + 7u) / 8u, 0u)) != kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    else if ((sss_sscp_key_store_set_key(&g_keyStore, &ctx->key, ramKey,
-                                         (keybits + 7u) / 8u, keybits,
-                                         NULL)) != kStatus_SSS_Success)
+    else if ((sss_sscp_key_store_set_key(&g_keyStore, &ctx->key, ramKey, (keybits + 7u) / 8u, keybits, NULL)) !=
+             kStatus_SSS_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -191,16 +199,14 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
             break;
         }
         if (sss_sscp_aead_context_init(&aeadCtx, &g_sssSession, &ctx->key, kAlgorithm_SSS_AES_CCM, sssMode) !=
-              kStatus_SSS_Success)
+            kStatus_SSS_Success)
         {
             ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             break;
         }
         /* RUN AEAD */
-        if (sss_sscp_aead_one_go(&aeadCtx, input, output, length,
-                                 (uint8_t *)(uintptr_t)iv, iv_len,
-                                 add, add_len,
-                                 tag, &tlen) != kStatus_SSS_Success)
+        if (sss_sscp_aead_one_go(&aeadCtx, input, output, length, (uint8_t *)(uintptr_t)iv, iv_len, add, add_len, tag,
+                                 &tlen) != kStatus_SSS_Success)
         {
             ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             /* do not break; */
@@ -218,7 +224,6 @@ static int ccm_auth_crypt(mbedtls_ccm_context *ctx,
     } while (0);
 
     return ret;
-
 }
 
 /*

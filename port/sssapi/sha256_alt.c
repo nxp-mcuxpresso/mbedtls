@@ -148,41 +148,7 @@ void mbedtls_sha256_starts(mbedtls_sha256_context *ctx, int is224)
 }
 #endif
 
-#if !defined(MBEDTLS_SHA256_PROCESS_ALT)
-static const uint32_t K[] = {
-    0x428A2F98u, 0x71374491u, 0xB5C0FBCFu, 0xE9B5DBA5u, 0x3956C25Bu, 0x59F111F1u, 0x923F82A4u, 0xAB1C5ED5u,
-    0xD807AA98u, 0x12835B01u, 0x243185BEu, 0x550C7DC3u, 0x72BE5D74u, 0x80DEB1FEu, 0x9BDC06A7u, 0xC19BF174u,
-    0xE49B69C1u, 0xEFBE4786u, 0x0FC19DC6u, 0x240CA1CCu, 0x2DE92C6Fu, 0x4A7484AAu, 0x5CB0A9DCu, 0x76F988DAu,
-    0x983E5152u, 0xA831C66Du, 0xB00327C8u, 0xBF597FC7u, 0xC6E00BF3u, 0xD5A79147u, 0x06CA6351u, 0x14292967u,
-    0x27B70A85u, 0x2E1B2138u, 0x4D2C6DFCu, 0x53380D13u, 0x650A7354u, 0x766A0ABBu, 0x81C2C92Eu, 0x92722C85u,
-    0xA2BFE8A1u, 0xA81A664Bu, 0xC24B8B70u, 0xC76C51A3u, 0xD192E819u, 0xD6990624u, 0xF40E3585u, 0x106AA070u,
-    0x19A4C116u, 0x1E376C08u, 0x2748774Cu, 0x34B0BCB5u, 0x391C0CB3u, 0x4ED8AA4Au, 0x5B9CCA4Fu, 0x682E6FF3u,
-    0x748F82EEu, 0x78A5636Fu, 0x84C87814u, 0x8CC70208u, 0x90BEFFFAu, 0xA4506CEBu, 0xBEF9A3F7u, 0xC67178F2u,
-};
-
-#define SHR(x, n)  (((x)&0xFFFFFFFFU) >> (n))
-#define ROTR(x, n) (SHR(x, n) | ((x) << (32 - (n))))
-
-#define S0(x) (ROTR(x, 7) ^ ROTR(x, 18) ^ SHR(x, 3))
-#define S1(x) (ROTR(x, 17) ^ ROTR(x, 19) ^ SHR(x, 10))
-
-#define S2(x) (ROTR(x, 2) ^ ROTR(x, 13) ^ ROTR(x, 22))
-#define S3(x) (ROTR(x, 6) ^ ROTR(x, 11) ^ ROTR(x, 25))
-
-#define F0(x, y, z) (((x) & (y)) | ((z) & ((x) | (y))))
-#define F1(x, y, z) ((z) ^ ((x) & ((y) ^ (z))))
-
-#define R(t) (W[t] = S1(W[(t)-2]) + W[(t)-7] + S0(W[(t)-15]) + W[(t)-16])
-
-#define P(a, b, c, d, e, f, g, h, x, K)                      \
-    do                                                       \
-    {                                                        \
-        temp1 = (h) + S3(e) + F1((e), (f), (g)) + (K) + (x); \
-        temp2 = S2(a) + F0((a), (b), (c));                   \
-        (d) += temp1;                                        \
-        (h) = temp1 + temp2;                                 \
-    } while (0)
-
+#if defined(MBEDTLS_SHA256_PROCESS_ALT)
 int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
 {
     status_t ret;

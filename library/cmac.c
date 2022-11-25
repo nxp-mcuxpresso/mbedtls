@@ -995,7 +995,7 @@ int mbedtls_cmac_self_test( int verbose )
         return( ret );
     }
 /* NXP added for HW accelerators support */	
-#if !defined(MBEDTLS_AES_ALT_NO_192)
+#if defined(MBEDTLS_CIPHER_CMAC_ALT) && !defined(MBEDTLS_AES_ALT_NO_192)
     /* AES-192 */
     if( ( ret = cmac_test_subkeys( verbose,
                                    "AES 192",
@@ -1022,7 +1022,7 @@ int mbedtls_cmac_self_test( int verbose )
     {
         return( ret );
     }
-#endif /* !MBEDTLS_AES_ALT_NO_192 */
+#endif /* MBEDTLS_CIPHER_CMAC_ALT && !MBEDTLS_AES_ALT_NO_192 */
 
     /* AES-256 */
     if( ( ret = cmac_test_subkeys( verbose,

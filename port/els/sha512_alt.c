@@ -20,6 +20,11 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#include "els_pkc_mbedtls.h"
+#endif
+
 #include <sha512_alt.h>
 #include <mbedtls/error.h>
 #include <mbedtls/platform.h>
@@ -42,16 +47,24 @@
 
 int mbedtls_sha512_starts_ret(mbedtls_sha512_context *ctx, int is384)
 {
+    int errCode = 0;
     if(ctx == NULL)
     {
         return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
     }
     
+#if defined(MBEDTLS_THREADING_C)
+        int ret;
+        if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+            return ret;
+#endif   
+        
     /* Initialize CSS */
     status_t ret_hw_init = mbedtls_hw_init();
     if(kStatus_Success != ret_hw_init)
     {
-        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto cleanup;
     }
 
     mcuxClSession_Descriptor_t session_descriptor;
@@ -82,31 +95,45 @@ int mbedtls_sha512_starts_ret(mbedtls_sha512_context *ctx, int is384)
 
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != tokenSessionInit)
     {
-        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        goto cleanup;
     }
     if(MCUXCLSESSION_STATUS_OK != restSessionInit)
     {
-        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto cleanup;
     }
 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retInit, tokenInit, mcuxClHash_init(session, pContext, *pHash_algo));
 
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClHash_init) != tokenInit)
     {
-        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        goto cleanup;
     }
     if(MCUXCLHASH_STATUS_OK != retInit)
     {
-        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto cleanup;
     }
-
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
     return 0;
+cleanup:
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
+    return errCode;
 }
 
 int mbedtls_sha512_update_ret(mbedtls_sha512_context *ctx,
                                const unsigned char *input,
                                size_t ilen)
 {
+    int errCode = 0;
     if(ctx == NULL || input == NULL)
     {
         return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
@@ -119,6 +146,11 @@ int mbedtls_sha512_update_ret(mbedtls_sha512_context *ctx,
     #define MCUXCLHASH_WA_SIZE_MAX MCUXCLHASH_COMPUTE_CPU_WA_BUFFER_SIZE_MAX
     uint32_t workarea[MCUXCLHASH_WA_SIZE_MAX/sizeof(uint32_t)];
 
+#if defined(MBEDTLS_THREADING_C)
+    int ret;
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(restSessionInit, tokenSessionInit, mcuxClSession_init(
             session,
             workarea,
@@ -128,11 +160,13 @@ int mbedtls_sha512_update_ret(mbedtls_sha512_context *ctx,
     
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != tokenSessionInit)
     {
-        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        goto cleanup;
     }
     if(MCUXCLSESSION_STATUS_OK != restSessionInit)
     {
-        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto cleanup;
     }
 
     //*context = &ctx->context;
@@ -141,19 +175,31 @@ int mbedtls_sha512_update_ret(mbedtls_sha512_context *ctx,
 
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClHash_process) != tokenUpdate)
     {
-        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        goto cleanup;
     }
     if(MCUXCLHASH_STATUS_OK != retUpdate)
     {
-        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto cleanup;
     }
-
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
     return 0;
+cleanup:
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
+    return errCode;
 }
 
 int mbedtls_sha512_finish_ret(mbedtls_sha512_context *ctx,
                                unsigned char output[64])
 {
+    int errCode = 0;
     if(ctx == NULL || output == NULL)
     {
         return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
@@ -165,7 +211,11 @@ int mbedtls_sha512_finish_ret(mbedtls_sha512_context *ctx,
     
     #define MCUXCLHASH_WA_SIZE_MAX MCUXCLHASH_COMPUTE_CPU_WA_BUFFER_SIZE_MAX
     uint32_t workarea[MCUXCLHASH_WA_SIZE_MAX/sizeof(uint32_t)];
-
+#if defined(MBEDTLS_THREADING_C)
+    int ret;
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(restSessionInit, tokenSessionInit, mcuxClSession_init(
             session,
             workarea,
@@ -175,11 +225,13 @@ int mbedtls_sha512_finish_ret(mbedtls_sha512_context *ctx,
 
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != tokenSessionInit)
     {
-        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        goto cleanup;
     }
     if(MCUXCLSESSION_STATUS_OK != restSessionInit)
     {
-        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto cleanup;
     }
 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retFinish, tokenFinish, mcuxClHash_finish(session, pContext, output, NULL));
@@ -191,14 +243,25 @@ int mbedtls_sha512_finish_ret(mbedtls_sha512_context *ctx,
        MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_cleanup) != tokenCleanup ||
        MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_destroy) != toeknDestroy)
     {
-        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        goto cleanup;
     }
     if(MCUXCLHASH_STATUS_OK != retFinish || MCUXCLSESSION_STATUS_OK != retCleanup ||  MCUXCLSESSION_STATUS_OK != retDestroy)
     {
-        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto cleanup;
     }
-
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
     return 0;
+cleanup:
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
+    return errCode;
 }
 
 int mbedtls_sha512_ret(const unsigned char *input,
@@ -206,6 +269,7 @@ int mbedtls_sha512_ret(const unsigned char *input,
                         unsigned char output[64],
                         int is384)
 {
+    int errCode = 0;
     if(input == NULL || output == NULL)
     {
         return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
@@ -226,7 +290,11 @@ int mbedtls_sha512_ret(const unsigned char *input,
     }
 
     uint32_t workarea[MCUXCLHASH_WA_SIZE_MAX/sizeof(uint32_t)];
-
+#if defined(MBEDTLS_THREADING_C)
+    int ret;
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(restSessionInit, tokenSessionInit, mcuxClSession_init(
             session,
             workarea,
@@ -236,25 +304,38 @@ int mbedtls_sha512_ret(const unsigned char *input,
 
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != tokenSessionInit)
     {
-        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        goto cleanup;
     }
     if(MCUXCLSESSION_STATUS_OK != restSessionInit)
     {
-        return MBEDTLS_ERR_SHA512_HW_ACCEL_FAILED;
+        errCode = MBEDTLS_ERR_SHA512_HW_ACCEL_FAILED;
+        goto cleanup;
     }
 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retCopmute, tokenCompute, mcuxClHash_compute(session, *pHash_algo, input, ilen, output, NULL));
 
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClHash_compute) != tokenCompute)
     {
-        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        goto cleanup;
     }
     if(MCUXCLHASH_STATUS_OK != retCopmute)
     {
-        return MBEDTLS_ERR_SHA512_HW_ACCEL_FAILED;
+        errCode = MBEDTLS_ERR_SHA512_HW_ACCEL_FAILED;
+        goto cleanup;
     }
-
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
     return 0;
+cleanup:
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
+    return errCode;
 }
 
 int mbedtls_internal_sha512_process(mbedtls_sha512_context *ctx,

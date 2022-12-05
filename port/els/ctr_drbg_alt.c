@@ -23,17 +23,37 @@
 #include <mcuxClCss.h>
 #include <mcuxClMemory.h>
 
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#include "els_pkc_mbedtls.h"
+#endif
 
 #if defined(MBEDTLS_CTR_DRBG_ALT)
 
 void mbedtls_ctr_drbg_init(mbedtls_ctr_drbg_context *ctx)
 {
+#if defined(MBEDTLS_THREADING_C)
+   if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex) != 0)
+       return;
+#endif
    mcuxClMemory_set((uint8_t *) ctx, 0u, sizeof(mbedtls_ctr_drbg_context), sizeof(mbedtls_ctr_drbg_context));
+#if defined(MBEDTLS_THREADING_C)
+   if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex) != 0)
+       return;
+#endif
 }
 
-void mbedtls_ctr_drbg_free(mbedtls_ctr_drbg_context *ctx)
+void mbedtls_ctr_drbg_free(mbedtls_ctr_drbg_context *ctx) 
 {
+#if defined(MBEDTLS_THREADING_C)
+   if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex) != 0)
+       return;
+#endif
     mcuxClMemory_set((uint8_t *) ctx, 0u, sizeof(mbedtls_ctr_drbg_context), sizeof(mbedtls_ctr_drbg_context));
+#if defined(MBEDTLS_THREADING_C)
+   if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex) != 0)
+       return;
+#endif
 }
 
 void mbedtls_ctr_drbg_set_prediction_resistance(mbedtls_ctr_drbg_context *ctx,
@@ -83,18 +103,24 @@ int mbedtls_ctr_drbg_seed(mbedtls_ctr_drbg_context *ctx,
 int mbedtls_ctr_drbg_random(void *p_rng, unsigned char *output,
                             size_t output_len)
 {
+    int errCode = 0;
     mbedtls_ctr_drbg_context *ctx = (mbedtls_ctr_drbg_context *) p_rng;
 
     if(0u != ctx->prediction_resistance)
     {
         return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     }
-
+#if defined(MBEDTLS_THREADING_C)
+   int ret;
+   if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+       return ret;
+#endif
     /* Initialize CSS */
     int ret_hw_init = mbedtls_hw_init();
     if(0!=ret_hw_init)
     {
-        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto cleanup;
     }
 
     size_t output_wordLen = output_len & (~ (size_t) 3u);
@@ -105,22 +131,26 @@ int mbedtls_ctr_drbg_random(void *p_rng, unsigned char *output,
             mcuxClCss_Rng_DrbgRequest_Async(output, output_wordLen));
         if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Rng_DrbgRequest_Async) != tokenDrbgRequestAsync)
         {
-            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            goto cleanup;
         }
         if(MCUXCLCSS_STATUS_OK_WAIT != retDrbgRequestAsync)
         {
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            goto cleanup;
         }
 
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retCssWait, tokenCssWait,
             mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR));
         if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenCssWait)
         {
-            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            goto cleanup;
         }
         if(MCUXCLCSS_STATUS_OK != retCssWait)
         {
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            goto cleanup;
         }
     }
 
@@ -134,22 +164,26 @@ int mbedtls_ctr_drbg_random(void *p_rng, unsigned char *output,
             mcuxClCss_Rng_DrbgRequest_Async((uint8_t *) &rngTempStack, 4u));
         if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Rng_DrbgRequest_Async) != tokenDrbgRequestAsync)
         {
-            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            goto cleanup;
         }
         if(MCUXCLCSS_STATUS_OK_WAIT != retDrbgRequestAsync)
         {
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            goto cleanup;
         }
 
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retCssWait, tokenCssWait,
             mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR));
         if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenCssWait)
         {
-            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            goto cleanup;
         }
         if(MCUXCLCSS_STATUS_OK != retCssWait)
         {
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            goto cleanup;
         }
 
         uint32_t rngTemp = rngTempStack;  /* avoid writing rng back to stack. */
@@ -162,8 +196,17 @@ int mbedtls_ctr_drbg_random(void *p_rng, unsigned char *output,
             remain_len--;
         } while (0u < remain_len);
     }
-
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
     return 0;
+cleanup:
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
+    return errCode;
 }
 
 int mbedtls_ctr_drbg_random_with_add(void *p_rng,

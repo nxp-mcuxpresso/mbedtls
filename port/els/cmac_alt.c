@@ -58,7 +58,7 @@
  */
 int mbedtls_cipher_aes_cmac_starts( mbedtls_cipher_context_t *ctx )
 {
-    int errCode = 0;
+    int return_code = 0;
     /* Get KeyType */
     const mcuxClKey_Type_t *keyType;
     mbedtls_cipher_type_t cipherType = ctx->cipher_info->type;
@@ -122,7 +122,7 @@ int mbedtls_cipher_aes_cmac_starts( mbedtls_cipher_context_t *ctx )
         || (MCUXCLSESSION_STATUS_OK != retSessionInitKey) )
     {
         ZEROIZE_AND_FREE_ALLOCATED_MEMORY;
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
 
@@ -138,7 +138,7 @@ int mbedtls_cipher_aes_cmac_starts( mbedtls_cipher_context_t *ctx )
         || (MCUXCLKEY_STATUS_OK != retKeyInit) )
     {
         ZEROIZE_AND_FREE_ALLOCATED_MEMORY;
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
 
@@ -150,7 +150,7 @@ int mbedtls_cipher_aes_cmac_starts( mbedtls_cipher_context_t *ctx )
         || (MCUXCLKEY_STATUS_OK != retKeyLoadMemory) )
     {
         ZEROIZE_AND_FREE_ALLOCATED_MEMORY;
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
 
@@ -161,7 +161,7 @@ int mbedtls_cipher_aes_cmac_starts( mbedtls_cipher_context_t *ctx )
         || (MCUXCLSESSION_STATUS_OK != retSessionCleanKey) )
     {
         ZEROIZE_AND_FREE_ALLOCATED_MEMORY;
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED( retSessionDestroyKey, tokenSessionDestroyKey,
@@ -170,7 +170,7 @@ int mbedtls_cipher_aes_cmac_starts( mbedtls_cipher_context_t *ctx )
         || (MCUXCLSESSION_STATUS_OK != retSessionDestroyKey) )
     {
         ZEROIZE_AND_FREE_ALLOCATED_MEMORY;
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
 
@@ -190,7 +190,7 @@ int mbedtls_cipher_aes_cmac_starts( mbedtls_cipher_context_t *ctx )
         || (MCUXCLSESSION_STATUS_OK != retSessionInitMac) )
     {
         ZEROIZE_AND_FREE_ALLOCATED_MEMORY;   
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
 
@@ -203,19 +203,19 @@ int mbedtls_cipher_aes_cmac_starts( mbedtls_cipher_context_t *ctx )
     if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMac_init) != tokenMacInit)
     {
         ZEROIZE_AND_FREE_ALLOCATED_MEMORY;
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     if (MCUXCLMAC_ERRORCODE_ERROR == retMacInit)
     {
         ZEROIZE_AND_FREE_ALLOCATED_MEMORY;
-        errCode = MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED;
         goto cleanup;
     }
     else if (MCUXCLMAC_ERRORCODE_OK != retMacInit)
     {
         ZEROIZE_AND_FREE_ALLOCATED_MEMORY;
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     else
@@ -230,22 +230,18 @@ int mbedtls_cipher_aes_cmac_starts( mbedtls_cipher_context_t *ctx )
         || (MCUXCLSESSION_STATUS_OK != retSessionClean) )
     {
         ZEROIZE_AND_FREE_ALLOCATED_MEMORY;
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
-        return ret;
-#endif
     ctx->cmac_ctx = (mbedtls_cmac_context_t *) aesCmacCtx;
-    return 0;
+    return_code = 0;
 
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
         return ret;
 #endif
-    return errCode;
+    return return_code;
   
 }
 
@@ -257,7 +253,7 @@ int mbedtls_cipher_aes_cmac_update( mbedtls_cipher_context_t *ctx,
                                     const unsigned char *input,
                                     size_t ilen )
 {   
-    int errCode = 0;
+    int return_code = 0;
     mbedtls_aes_cmac_context_t *aesCmacCtx = (mbedtls_aes_cmac_context_t *) ctx->cmac_ctx;
 #if defined(MBEDTLS_THREADING_C)
     int ret;
@@ -270,17 +266,17 @@ int mbedtls_cipher_aes_cmac_update( mbedtls_cipher_context_t *ctx,
                          input, (uint32_t) ilen) );
     if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMac_process) != token)
     {
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     if (MCUXCLMAC_ERRORCODE_ERROR == retCode)
     {
-        errCode = MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED;
         goto cleanup;
     }
     else if (MCUXCLMAC_ERRORCODE_OK != retCode)
     {
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     else
@@ -293,21 +289,18 @@ int mbedtls_cipher_aes_cmac_update( mbedtls_cipher_context_t *ctx,
     if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_cleanup) != tokenSessionClean)
         || (MCUXCLSESSION_STATUS_OK != retSessionClean) )
     {
-        errCode =  MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code =  MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
-        return ret;
-#endif
-    return 0;
+
+    return_code = 0;
 
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
         return (ret);
 #endif
-    return errCode;
+    return return_code;
 }
 
 
@@ -317,7 +310,7 @@ cleanup:
 int mbedtls_cipher_aes_cmac_finish( mbedtls_cipher_context_t *ctx,
                                     unsigned char *output )
 {
-    int errCode = 0;
+    int return_code = 0;
 #if defined(MBEDTLS_THREADING_C)
     int ret;
 #endif
@@ -334,17 +327,17 @@ int mbedtls_cipher_aes_cmac_finish( mbedtls_cipher_context_t *ctx,
                             output) );
         if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMac_finish) != token)
         {
-            errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             goto cleanup;
         }
         if (MCUXCLMAC_ERRORCODE_ERROR == retCode)
         {
-            errCode = MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED;
+            return_code = MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED;
             goto cleanup;
         }
         else if (MCUXCLMAC_ERRORCODE_OK != retCode)
         {
-            errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             goto cleanup;
         }
         else
@@ -359,7 +352,7 @@ int mbedtls_cipher_aes_cmac_finish( mbedtls_cipher_context_t *ctx,
     if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClKey_flush) != tokenKeyFlush)
         || (MCUXCLKEY_STATUS_OK != retKeyFlush) )
     {
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     mbedtls_free(aesCmacCtx->macKeyDestination);
@@ -370,24 +363,20 @@ int mbedtls_cipher_aes_cmac_finish( mbedtls_cipher_context_t *ctx,
     if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_cleanup) != tokenSessionClean)
         || (MCUXCLSESSION_STATUS_OK != retSessionClean) )
     {
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     if (NULL == output)
     {
-        errCode = MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+        return_code = MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
         goto cleanup;
     }
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
-        return ret;
-#endif
-    return 0;
+    return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
         return ret;
 #endif
-    return errCode;
+    return return_code;
 }
 #endif  /* MBEDTLS_AES_CMAC_ALT */

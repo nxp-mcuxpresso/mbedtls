@@ -67,7 +67,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
                 const unsigned char *input,
                 unsigned char *output )
 {
-    int errCode =  0;
+    int return_code =  0;
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( input != NULL );
     RSA_VALIDATE_RET( output != NULL );
@@ -90,7 +90,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
     int ret_hw_init = mbedtls_hw_init();
     if(0!=ret_hw_init)
     {
-        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
@@ -121,7 +121,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
 
     if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != si_token) || (MCUXCLSESSION_STATUS_OK != si_status))
     {
-        errCode = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
+        return_code = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
         goto cleanup;
     }
 
@@ -139,7 +139,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
     /* Check actual length with length given in the context. */
     if( nByteLength != modByteLength )
     {
-        errCode = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
+        return_code = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
         goto cleanup;
     }
 
@@ -185,7 +185,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
 
     if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClRsa_verify) != verify_token) || (MCUXCLRSA_STATUS_VERIFYPRIMITIVE_OK != verify_result))
     {
-        errCode = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
+        return_code = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
         goto cleanup;
     }
 
@@ -197,7 +197,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
 
     if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMemory_copy) != tokenMemCpy) && (0u != retMemCpy) )
     {
-        errCode = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
+        return_code = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
         goto cleanup;
     }
 
@@ -210,7 +210,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
 
     if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_cleanup) != cleanup_token) || (MCUXCLSESSION_STATUS_OK != cleanup_result))
     {
-        errCode = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
+        return_code = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
         goto cleanup;
     }
 
@@ -219,16 +219,17 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
 
     if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_destroy) != destroy_token) || (MCUXCLSESSION_STATUS_OK != destroy_result))
     {
-        errCode = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
+        return_code = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
         goto cleanup;
     }
-    return( 0 );
+    
+    return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
         return ret;
 #endif
-    return errCode; 
+    return return_code; 
 }
 
 /*
@@ -240,7 +241,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
                  const unsigned char *input,
                  unsigned char *output )
 {
-    int errCode =0;
+    int return_code = 0;
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( input != NULL );
     RSA_VALIDATE_RET( output != NULL );
@@ -262,7 +263,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     int ret_hw_init = mbedtls_hw_init();
     if(0!=ret_hw_init)
     {
-        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
@@ -296,7 +297,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 
     if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != si_token) || (MCUXCLSESSION_STATUS_OK != si_status))
     {
-        errCode = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
+        return_code = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
         goto cleanup;
     }
 
@@ -322,7 +323,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     /* Check actual length with length given in the context. */
     if( (pqByteLength != pByteLength) || (pqByteLength != qByteLength) )
     {
-        errCode = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
+        return_code = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
         goto cleanup;
     }
 
@@ -389,12 +390,12 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     {
         if (MCUXCLRSA_STATUS_INVALID_INPUT == sign_result)
         {
-            errCode = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
+            return_code = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
             goto cleanup;
         }
         else
         {
-            errCode = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
+            return_code = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
             goto cleanup;
         }
     }
@@ -407,7 +408,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 
     if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMemory_copy) != tokenMemCpy) && (0u != retMemCpy) )
     {
-        errCode = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
+        return_code = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
         goto cleanup;
     }
 
@@ -420,7 +421,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 
     if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_cleanup) != cleanup_token) || (MCUXCLSESSION_STATUS_OK != cleanup_result))
     {   
-        errCode = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
+        return_code = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
         goto cleanup;
     }
 
@@ -429,17 +430,17 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 
     if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_destroy) != destroy_token) || (MCUXCLSESSION_STATUS_OK != destroy_result))
     {
-        errCode = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
+        return_code = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
         goto cleanup;
     }
 
-    return( 0 );
+    return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
         return ret;
 #endif
-    return errCode; 
+    return return_code; 
 }
 
 #endif /*!defined(MBEDTLS_RSA_CTX_ALT) || !defined(MBEDTLS_RSA_PUBLIC_ALT) || !defined(MBEDTLS_RSA_PRIVATE_ALT) */

@@ -93,7 +93,7 @@ int mbedtls_aes_gcm_starts_alt( mbedtls_gcm_context *ctx,
                 const unsigned char *add,
                 size_t add_len )
 {
-    int errCode = 0;
+    int return_code = 0;
     ctx->mode = mode;
     ctx->len = 0;
     ctx->add_len = add_len;
@@ -109,15 +109,15 @@ int mbedtls_aes_gcm_starts_alt( mbedtls_gcm_context *ctx,
     uint8_t *pKey = (uint8_t*) aes_ctx->pKey;
     size_t key_length = aes_ctx->keyLength;
 #if defined(MBEDTLS_THREADING_C)
-        int ret;
-        if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
-            return ret;
+     int ret;
+     if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+         return ret;
 #endif    
     /* Initialize hardware accelerator */
     int ret_hw_init = mbedtls_hw_init();
     if( 0 != ret_hw_init)
     {
-        errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED ;
+        return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED ;
         goto cleanup;
     }
 
@@ -141,7 +141,7 @@ int mbedtls_aes_gcm_starts_alt( mbedtls_gcm_context *ctx,
         if( (MCUX_CSSL_FP_FUNCTION_CALLED( mcuxClCss_Aead_Init_Async ) != tokenInit) ||
                 (MCUXCLCSS_STATUS_OK_WAIT != resultInit) )
         {
-            errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+            return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup; 
         }
 
@@ -151,7 +151,7 @@ int mbedtls_aes_gcm_starts_alt( mbedtls_gcm_context *ctx,
         if( (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitInit) ||
             (MCUXCLCSS_STATUS_OK != retWaitInit) )
         {
-            errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+            return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
     }
@@ -184,7 +184,7 @@ int mbedtls_aes_gcm_starts_alt( mbedtls_gcm_context *ctx,
             if( (MCUX_CSSL_FP_FUNCTION_CALLED( mcuxClCss_Aead_PartialInit_Async ) != tokenPartialInitFull) ||
                     (MCUXCLCSS_STATUS_OK_WAIT != resultPartialInitFull) )
             {
-                errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+                return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
                 goto cleanup;
             }
 
@@ -194,7 +194,7 @@ int mbedtls_aes_gcm_starts_alt( mbedtls_gcm_context *ctx,
             if( (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitPartialInitFull) ||
                 (MCUXCLCSS_STATUS_OK != retWaitPartialInitFull) )
             {
-                errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+                return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
                 goto cleanup;
             }
             iv += (nr_full_iv_blocks * 16u);
@@ -223,7 +223,7 @@ int mbedtls_aes_gcm_starts_alt( mbedtls_gcm_context *ctx,
         if( (MCUX_CSSL_FP_FUNCTION_CALLED( mcuxClCss_Aead_PartialInit_Async ) != tokenPartialInitLast) ||
                 (MCUXCLCSS_STATUS_OK_WAIT != resultPartialInitLast) )
         {
-            errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+            return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
 
@@ -233,7 +233,7 @@ int mbedtls_aes_gcm_starts_alt( mbedtls_gcm_context *ctx,
         if( (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitPartialInitLast) ||
             (MCUXCLCSS_STATUS_OK != retWaitPartialInitLast) )
         {
-            errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+            return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }  
     }
@@ -257,7 +257,7 @@ int mbedtls_aes_gcm_starts_alt( mbedtls_gcm_context *ctx,
         if( (MCUX_CSSL_FP_FUNCTION_CALLED( mcuxClCss_Aead_UpdateAad_Async ) != tokenUpdateFull) ||
                 (MCUXCLCSS_STATUS_OK_WAIT != resultUpdateFull) )
         {
-            errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+            return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
 
@@ -267,7 +267,7 @@ int mbedtls_aes_gcm_starts_alt( mbedtls_gcm_context *ctx,
         if( (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitUpdateFull) ||
             (MCUXCLCSS_STATUS_OK != retWaitUpdateFull) )
         {
-            errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+            return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
         add += (nr_full_add_blocks * 16u);
@@ -291,7 +291,7 @@ int mbedtls_aes_gcm_starts_alt( mbedtls_gcm_context *ctx,
         if( (MCUX_CSSL_FP_FUNCTION_CALLED( mcuxClCss_Aead_UpdateAad_Async ) != tokenUpdateLast) ||
                 (MCUXCLCSS_STATUS_OK_WAIT != resultUpdateLast) )
         {
-            errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+            return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
 
@@ -301,21 +301,18 @@ int mbedtls_aes_gcm_starts_alt( mbedtls_gcm_context *ctx,
         if( (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitUpdateLast) ||
             (MCUXCLCSS_STATUS_OK != retWaitUpdateLast) )
         {
-            errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+            return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
     }
-#if defined(MBEDTLS_THREADING_C)
-        if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
-            return ret;
-#endif   
-    return( 0 );
+   
+    return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
         return ret;
 #endif
-    return errCode;
+    return return_code;
 }
 
 int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
@@ -333,7 +330,7 @@ int mbedtls_aes_gcm_update_alt( mbedtls_gcm_context *ctx,
                 const unsigned char *input,
                 unsigned char *output )
 {
-    int errCode = 0;
+    int return_code = 0;
     ctx->len += length;
 
     mcuxClCss_AeadOption_t options = {0};
@@ -353,7 +350,7 @@ int mbedtls_aes_gcm_update_alt( mbedtls_gcm_context *ctx,
     int ret_hw_init = mbedtls_hw_init();
     if( 0 != ret_hw_init)
     {
-        errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
@@ -376,7 +373,7 @@ int mbedtls_aes_gcm_update_alt( mbedtls_gcm_context *ctx,
         if( (MCUX_CSSL_FP_FUNCTION_CALLED( mcuxClCss_Aead_UpdateData_Async ) != tokenUpdateFull) ||
                 (MCUXCLCSS_STATUS_OK_WAIT != resultUpdateFull) )
         {
-            errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+            return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
 
@@ -386,7 +383,7 @@ int mbedtls_aes_gcm_update_alt( mbedtls_gcm_context *ctx,
         if( (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitUpdateFull) ||
             (MCUXCLCSS_STATUS_OK != retWaitUpdateFull) )
         {
-            errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+            return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
 
@@ -416,7 +413,7 @@ int mbedtls_aes_gcm_update_alt( mbedtls_gcm_context *ctx,
         if( (MCUX_CSSL_FP_FUNCTION_CALLED( mcuxClCss_Aead_UpdateData_Async ) != tokenUpdateLast) ||
                 (MCUXCLCSS_STATUS_OK_WAIT != resultUpdateLast) )
         {
-            errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+            return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
 
@@ -426,21 +423,18 @@ int mbedtls_aes_gcm_update_alt( mbedtls_gcm_context *ctx,
         if( (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitUpdateLast) ||
             (MCUXCLCSS_STATUS_OK != retWaitUpdateLast) )
         {
-            errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+            return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
     }
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
-        return ret;
-#endif
-    return( 0 );
+
+    return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
         return ret;
 #endif
-    return errCode;
+    return return_code;
 }
 
 int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
@@ -455,7 +449,7 @@ int mbedtls_aes_gcm_finish_alt( mbedtls_gcm_context *ctx,
                 unsigned char *tag,
                 size_t tag_len )
 {
-    int errCode = 0;
+    int return_code = 0;
     mcuxClCss_AeadOption_t options = {0};
     options.bits.extkey = MCUXCLCSS_AEAD_EXTERN_KEY;
     options.bits.dcrpt = ( ctx->mode == MBEDTLS_GCM_DECRYPT ) ? MCUXCLCSS_AEAD_DECRYPT
@@ -474,7 +468,7 @@ int mbedtls_aes_gcm_finish_alt( mbedtls_gcm_context *ctx,
     int ret_hw_init = mbedtls_hw_init();
     if( 0 != ret_hw_init)
     {
-        errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
@@ -495,7 +489,7 @@ int mbedtls_aes_gcm_finish_alt( mbedtls_gcm_context *ctx,
     if( (MCUX_CSSL_FP_FUNCTION_CALLED( mcuxClCss_Aead_Finalize_Async ) != tokenFinalize) ||
             (MCUXCLCSS_STATUS_OK_WAIT != resultFinalize) )
     {
-        errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
@@ -505,7 +499,7 @@ int mbedtls_aes_gcm_finish_alt( mbedtls_gcm_context *ctx,
     if( (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitFinalize) ||
         (MCUXCLCSS_STATUS_OK != retWaitFinalize) )
     {
-        errCode = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
@@ -515,17 +509,13 @@ int mbedtls_aes_gcm_finish_alt( mbedtls_gcm_context *ctx,
         (void) memcpy( (void *) tag, (void const *) pTag, tag_len );
     }
 
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
-        return ret;
-#endif
-    return( 0 );
+    return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
         return ret;
 #endif
-    return errCode;   
+    return return_code;   
 }
 
 int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,

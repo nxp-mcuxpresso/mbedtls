@@ -95,7 +95,7 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 { 
-    int errCode = 0;
+    int return_code = 0;
     /* Check input parameters. */
     ECDH_VALIDATE_RET( grp != NULL );
     ECDH_VALIDATE_RET( d != NULL );
@@ -112,7 +112,7 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
     int ret_hw_init = mbedtls_hw_init();
     if( 0 != ret_hw_init )
     {
-        errCode = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
@@ -143,7 +143,7 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
     if(0u != mbedtls_ecp_setupDomainParams(grp, &pDomainParams))
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, NULL);
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
 
@@ -154,7 +154,7 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
 
     if(0u != f_rng(&rng_ctx, pScalar, nByteLength))
     {
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
 
@@ -173,25 +173,25 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
     if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEcc_PointMult) != tokenEccPointMult)
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     if(MCUXCLECC_STATUS_POINTMULT_INVALID_PARAMS == retEccPointMult)
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
-        errCode = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        return_code = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
     }
     else if(MCUXCLECC_STATUS_POINTMULT_RNG_ERROR == retEccPointMult)
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
-        errCode = MBEDTLS_ERR_ECP_RANDOM_FAILED;
+        return_code = MBEDTLS_ERR_ECP_RANDOM_FAILED;
         goto cleanup;
     }
     else if(MCUXCLECC_STATUS_POINTMULT_OK != retEccPointMult)
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     else
@@ -210,17 +210,13 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
         (void) mcuxClSession_cleanup(&session);
         (void) mcuxClSession_destroy(&session);
     }
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
-        return ret;
-#endif
-    return 0;
+    return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
         return ret;
 #endif
-    return errCode;   
+    return return_code;   
 }
 
 int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
@@ -228,7 +224,7 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng )
 {
-    int errCode = 0;
+    int return_code = 0;
     /* Check input parameters. */
     ECDH_VALIDATE_RET( grp != NULL );
     ECDH_VALIDATE_RET( Q != NULL );
@@ -244,7 +240,7 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
     int ret_hw_init = mbedtls_hw_init();
     if( 0 != ret_hw_init )
     {
-        errCode = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
@@ -275,7 +271,7 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
     if(0u != mbedtls_ecp_setupDomainParams(grp, &pDomainParams))
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, NULL);
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
 
@@ -292,19 +288,19 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
     if(0u != mbedtls_mpi_write_binary(&Q->X, (unsigned char *)PointMultParams.pPoint, pByteLength))
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     if(0u != mbedtls_mpi_write_binary(&Q->Y, (unsigned char *)PointMultParams.pPoint + pByteLength, pByteLength))
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     if(0u != mbedtls_mpi_write_binary(d, (unsigned char *)PointMultParams.pScalar, nByteLength))
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
    
@@ -313,25 +309,25 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
     if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEcc_PointMult) != tokenEccPointMult)
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     if(MCUXCLECC_STATUS_POINTMULT_INVALID_PARAMS == retEccPointMult)
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
-        errCode = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        return_code = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
     }
     else if(MCUXCLECC_STATUS_POINTMULT_RNG_ERROR == retEccPointMult)
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
-        errCode = MBEDTLS_ERR_ECP_RANDOM_FAILED;
+        return_code = MBEDTLS_ERR_ECP_RANDOM_FAILED;
         goto cleanup;
     }
     else if(MCUXCLECC_STATUS_POINTMULT_OK != retEccPointMult)
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     else
@@ -346,17 +342,14 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
         (void) mcuxClSession_cleanup(&session);
         (void) mcuxClSession_destroy(&session);
     }
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
-        return ret;
-#endif  
-    return 0;
+
+    return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
         return ret;
 #endif
-    return errCode;   
+    return return_code;   
 }
 
 int mbedtls_ecdh_can_do( mbedtls_ecp_group_id gid )

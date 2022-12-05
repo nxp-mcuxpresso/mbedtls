@@ -24,7 +24,7 @@
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
 int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t *olen)
 {
-    int errCode = 0;
+    int return_code = 0;
 #if defined(MBEDTLS_THREADING_C)
     int ret;
     if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
@@ -37,21 +37,17 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
     MCUX_CSSL_FP_FUNCTION_CALL_BEGIN(result, token, mcuxClCss_Prng_GetRandom(output, len));
     if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Prng_GetRandom) != token) || (MCUXCLCSS_STATUS_OK != result))
     {
-        errCode = kStatus_Fail;
+        return_code = kStatus_Fail;
         goto cleanup;
     }
     MCUX_CSSL_FP_FUNCTION_CALL_END();
-#if defined(MBEDTLS_THREADING_C)
-        if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
-            return ret;
-#endif  
     *olen = len;  
-    return 0;
+    return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
         return ret;
 #endif  
-return errCode;
+return return_code;
 }
 #endif /* MBEDTLS_ENTROPY_HARDWARE_ALT */

@@ -48,21 +48,21 @@
 
 int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
 {
-    int errCode = 0;
+    int return_code = 0;
     if(ctx == NULL)
     {
         return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
     }
 #if defined(MBEDTLS_THREADING_C)
-        int ret;
-        if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
-            return ret;
+     int ret;
+     if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+         return ret;
 #endif   
     /* Initialize CSS */
     status_t ret_hw_init = mbedtls_hw_init();
     if(kStatus_Success != ret_hw_init)
     {
-        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
@@ -92,12 +92,12 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
     
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != tokenSessionInit)
     {
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     if(MCUXCLSESSION_STATUS_OK != restSessionInit)
     {
-        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
@@ -105,32 +105,29 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
 
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClHash_init) != tokenInit)
     {
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     if(MCUXCLHASH_STATUS_OK != retInit)
     {
-        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
-        return ret;
-#endif
-    return 0;
+
+    return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
         return ret;
 #endif
-    return errCode;
+    return return_code;
 }
 
 int mbedtls_sha256_update_ret (mbedtls_sha256_context *ctx,
                                const unsigned char *input,
                                size_t ilen)
 {
-    int errCode = 0;
+    int return_code = 0;
     if(ctx == NULL || input == NULL)
     {
         return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
@@ -157,12 +154,12 @@ int mbedtls_sha256_update_ret (mbedtls_sha256_context *ctx,
 
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != tokenSessionInit)
     {
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     if(MCUXCLSESSION_STATUS_OK != restSessionInit)
     {
-        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
@@ -171,31 +168,27 @@ int mbedtls_sha256_update_ret (mbedtls_sha256_context *ctx,
 
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClHash_process) != tokenUpdate)
     {
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     if(MCUXCLHASH_STATUS_OK != retUpdate)
     {
-        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
-        return ret;
-#endif
-    return 0;
+    return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
         return ret;
 #endif
-    return errCode;
+    return return_code;
 }
 
 int mbedtls_sha256_finish_ret (mbedtls_sha256_context *ctx,
                                unsigned char output[32])
 {
-    int errCode = 0;
+    int return_code = 0;
     if(ctx == NULL || output == NULL)
     {
         return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
@@ -221,12 +214,12 @@ int mbedtls_sha256_finish_ret (mbedtls_sha256_context *ctx,
 
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != tokenSessionInit)
     {
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     if(MCUXCLSESSION_STATUS_OK != restSessionInit)
     {
-        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
     
@@ -239,25 +232,21 @@ int mbedtls_sha256_finish_ret (mbedtls_sha256_context *ctx,
        MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_cleanup) != tokenCleanup ||
        MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_destroy) != toeknDestroy)
     {
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     if(MCUXCLHASH_STATUS_OK != retFinish || MCUXCLSESSION_STATUS_OK != retCleanup ||  MCUXCLSESSION_STATUS_OK != retDestroy)
     {
-        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
-        return ret;
-#endif
-    return 0;
+    return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
         return ret;
 #endif
-    return errCode;
+    return return_code;
 }
 
 int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx,
@@ -271,7 +260,7 @@ int mbedtls_sha256_ret(const unsigned char *input,
                         unsigned char output[64],
                         int is384)
 {
-    int errCode = 0;
+    int return_code = 0;
     if(input == NULL || output == NULL)
     {
         return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
@@ -306,12 +295,12 @@ int mbedtls_sha256_ret(const unsigned char *input,
 
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != tokenSessionInit)
     {
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     if(MCUXCLSESSION_STATUS_OK != restSessionInit)
     {
-        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
@@ -319,25 +308,22 @@ int mbedtls_sha256_ret(const unsigned char *input,
 
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClHash_compute) != tokenCompute)
     {
-        errCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
     if(MCUXCLHASH_STATUS_OK != retCopmute)
     {
-        errCode = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
-        return ret;
-#endif
-    return 0;
+
+    return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
         return ret;
 #endif
-    return errCode;
+    return return_code;
 }
 
 #endif /* defined(MBEDTLS_SHA256_CTX_ALT) && defined(MBEDTLS_SHA256_STARTS_ALT) && defined(MBEDTLS_SHA256_UPDATE_ALT) && defined(MBEDTLS_SHA256_FINISH_ALT) && defined(MBEDTLS_SHA256_FULL_ALT) */

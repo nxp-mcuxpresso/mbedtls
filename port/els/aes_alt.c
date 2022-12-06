@@ -347,10 +347,6 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
             return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             goto cleanup;
         }
-#if defined(MBEDTLS_THREADING_C)
-        if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
-            return ret;
-#endif
     }
     
     return_code = 0;

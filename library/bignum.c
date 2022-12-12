@@ -91,7 +91,8 @@ void mbedtls_mpi_init( mbedtls_mpi *X )
     X->n = 0;
     X->p = NULL;
 }
-
+/* NXP added for HW accelerators support */
+#if !defined(MBEDTLS_MPI_FREE_ALT)
 /*
  * Unallocate one MPI
  */
@@ -110,6 +111,7 @@ void mbedtls_mpi_free( mbedtls_mpi *X )
     X->n = 0;
     X->p = NULL;
 }
+#endif /* MBEDTLS_MPI_FREE_ALT */
 
 /*
  * Enlarge to the specified number of limbs
@@ -1112,7 +1114,7 @@ int mbedtls_mpi_cmp_int( const mbedtls_mpi *X, mbedtls_mpi_sint z )
 /*
  * Unsigned addition: X = |A| + |B|  (HAC 14.7)
  */
-/* NXP added for HW accelerators support */ 
+/* NXP added for HW accelerators support */
 #if defined(MBEDTLS_MPI_ADD_ABS_ALT)
 int mbedtls_mpi_add_abs_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
 #else
@@ -1210,7 +1212,7 @@ static mbedtls_mpi_uint mpi_sub_hlp( size_t n,
 /*
  * Unsigned subtraction: X = |A| - |B|  (HAC 14.9, 14.10)
  */
-/* NXP added for HW accelerators support */ 
+/* NXP added for HW accelerators support */
 #if defined(MBEDTLS_MPI_SUB_ABS_ALT)
 int mbedtls_mpi_sub_abs_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
 #else
@@ -1464,7 +1466,7 @@ void mpi_mul_hlp( size_t i,
 /*
  * Baseline multiplication: X = A * B  (HAC 14.12)
  */
-/* NXP added for HW accelerators support */ 
+/* NXP added for HW accelerators support */
 #if defined(MBEDTLS_MPI_MUL_MPI_ALT)
 int mbedtls_mpi_mul_mpi_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
 #else
@@ -1802,7 +1804,7 @@ int mbedtls_mpi_div_int( mbedtls_mpi *Q, mbedtls_mpi *R,
 /*
  * Modulo: R = A mod B
  */
-/* NXP added for HW accelerators support */ 
+/* NXP added for HW accelerators support */
 #if defined(MBEDTLS_MPI_MOD_MPI_ALT)
 int mbedtls_mpi_mod_mpi_orig( mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi *B )
 #else

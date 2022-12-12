@@ -133,6 +133,7 @@
 static unsigned long add_count, dbl_count, mul_count;
 #endif
 
+#if !defined(MBEDTLS_ECP_MUL_COMB_ALT)
 #if !defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
 /*
  * Currently ecp_mul() takes a RNG function as an argument, used for
@@ -269,7 +270,9 @@ cleanup:
 #else
 #error "Invalid configuration detected. Include check_config.h to ensure that the configuration is valid."
 #endif /* DRBG modules */
+
 #endif /* MBEDTLS_ECP_NO_INTERNAL_RNG */
+#endif /*(MBEDTLS_ECP_MUL_COMB_ALT) */
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 /*

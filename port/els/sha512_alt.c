@@ -290,7 +290,7 @@ int mbedtls_sha512_ret(const unsigned char *input,
             workarea,
             sizeof(workarea),
             NULL,
-            NULL));
+            0U));
 
     if(MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != tokenSessionInit)
     {

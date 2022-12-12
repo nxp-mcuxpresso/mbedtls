@@ -20,6 +20,12 @@ extern "C" {
 int fsl_mbedtls_printf(const char *fmt_s, ...);
 status_t CRYPTO_InitHardware(void);
 
+#if defined(MBEDTLS_THREADING_C)
+/* MUTEX FOR HW Modules*/
+extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_css_mutex;
+extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_pkc_mutex;
+#endif /* defined(MBEDTLS_THREADING_C) */
+
 #ifdef __cplusplus
 }
 #endif

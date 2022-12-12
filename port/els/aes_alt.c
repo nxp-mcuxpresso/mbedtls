@@ -21,6 +21,11 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#include "els_pkc_mbedtls.h"
+#endif
+
 #include <stdint.h>
 #include <mcuxClCss.h>
 #include <mcuxClMemory.h>
@@ -45,9 +50,8 @@
 static int mbedtls_aes_setkey_alt( mbedtls_aes_context *ctx,
                                    const unsigned char *key,
                                    unsigned int keybits )
-{
+{    
     int retCode = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
     if ((NULL == ctx) || (NULL == key))
     {
         retCode = MBEDTLS_ERR_AES_BAD_INPUT_DATA;
@@ -61,6 +65,11 @@ static int mbedtls_aes_setkey_alt( mbedtls_aes_context *ctx,
     else
     {
         uint32_t keyByteLen = (uint32_t) keybits / 8u;
+#if defined(MBEDTLS_THREADING_C)
+        int ret;
+        if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+            return ret;
+#endif    
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retMemCpy, tokenMemCpy,
             mcuxClMemory_copy((uint8_t *) ctx->pKey, key, keyByteLen, keyByteLen) );
 
@@ -70,8 +79,11 @@ static int mbedtls_aes_setkey_alt( mbedtls_aes_context *ctx,
             ctx->keyLength = keyByteLen;
             retCode = 0;
         }
+#if defined(MBEDTLS_THREADING_C)
+        if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+            return ret;
+#endif
     }
-
     return retCode;
 }
 
@@ -108,6 +120,13 @@ static int mbedtls_internal_aes_css( mbedtls_aes_context *ctx,
                                      unsigned char *pIv,
                                      size_t length )
 {
+    int return_code = 0;
+#if defined(MBEDTLS_THREADING_C)
+    int ret;
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
+    
     /* Call Css to process one block. */
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retCssCipherAsync, tokenCssCipherAsync,
         mcuxClCss_Cipher_Async(cssCipherOption,
@@ -123,7 +142,8 @@ static int mbedtls_internal_aes_css( mbedtls_aes_context *ctx,
     {
         /* _Cipher_Async shall not return _SW_CANNOT_INTERRUPT after successfully returning from _WaitForOperation. */
         /* _Cipher_Async shall not return _SW_INVALID_PARAM if parameters are set properly. */
-        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        goto cleanup;
     }
 
     /* Wait for mcuxClCss_Cipher_Async. */
@@ -131,14 +151,23 @@ static int mbedtls_internal_aes_css( mbedtls_aes_context *ctx,
         mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR) );
     if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenCssWaitCipher)
     {
-        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        goto cleanup;
     }
     if (MCUXCLCSS_STATUS_OK != retCssWaitCipher)
     {
-        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+       return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+       goto cleanup;
     }
 
-    return 0;
+    return_code = 0;
+
+cleanup:
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
+    return return_code;  
 }
 
 
@@ -149,6 +178,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
                                   const unsigned char input[16],
                                   unsigned char output[16] )
 {
+    int return_code = 0;
     mcuxClCss_CipherOption_t cipherOption = (mcuxClCss_CipherOption_t) {
         .bits.dcrpt  = MCUXCLCSS_CIPHER_ENCRYPT,
         .bits.cphmde = MCUXCLCSS_CIPHERPARAM_ALGORITHM_AES_ECB,
@@ -156,14 +186,33 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         .bits.cphsie = MCUXCLCSS_CIPHER_STATE_IN_DISABLE,
         .bits.extkey = MCUXCLCSS_CIPHER_EXTERNAL_KEY };
 
+#if defined(MBEDTLS_THREADING_C)
+    int ret;
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
+
     /* Initialize CSS */
     int ret_hw_init = mbedtls_hw_init();
     if(0!=ret_hw_init)
     {
-        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto cleanup;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
+    
     return mbedtls_internal_aes_css(ctx, input, output, cipherOption, NULL, 16u);
+
+cleanup:
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
+    return return_code;
 }
 
 
@@ -174,6 +223,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
                                   const unsigned char input[16],
                                   unsigned char output[16] )
 {
+    int return_code = 0;
     mcuxClCss_CipherOption_t cipherOption = (mcuxClCss_CipherOption_t) {
         .bits.dcrpt  = MCUXCLCSS_CIPHER_DECRYPT,
         .bits.cphmde = MCUXCLCSS_CIPHERPARAM_ALGORITHM_AES_ECB,
@@ -181,14 +231,32 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
         .bits.cphsie = MCUXCLCSS_CIPHER_STATE_IN_DISABLE,
         .bits.extkey = MCUXCLCSS_CIPHER_EXTERNAL_KEY };
 
+#if defined(MBEDTLS_THREADING_C)
+    int ret;
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
+
     /* Initialize CSS */
     int ret_hw_init = mbedtls_hw_init();
     if(0!=ret_hw_init)
     {
-        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto cleanup;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
     return mbedtls_internal_aes_css(ctx, input, output, cipherOption, NULL, 16u);
+    
+cleanup:
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
+    return return_code;
 }
 
 
@@ -203,8 +271,14 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
                            const unsigned char *input,
                            unsigned char *output )
 {
+    int return_code = 0;
     uint32_t temp[4];
-
+#if defined(MBEDTLS_THREADING_C)
+    int ret;
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+        return ret;
+#endif
+          
     if ((NULL == ctx) || (NULL == iv) || (NULL == input) || (NULL == output)
         || ((MBEDTLS_AES_ENCRYPT != mode) && (MBEDTLS_AES_DECRYPT != mode)) )
     {
@@ -239,35 +313,49 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
                 mcuxClMemory_copy((uint8_t *) temp, input, 16u, 16u) );
             if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMemory_copy) != tokenMemCpy)
                 || (0u != retMemCpy0) )
-            {
-                return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            {             
+                return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+                goto cleanup;
             }
         }
-
         /* Initialize CSS */
         int ret_hw_init = mbedtls_hw_init();
         if(0!=ret_hw_init)
         {
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            goto cleanup;
         }
-
+#if defined(MBEDTLS_THREADING_C)
+        if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+            return ret;
+#endif
         int retCode = mbedtls_internal_aes_css(ctx, input, output, cipherOption, iv, length);
         if (0 != retCode)
         {
             return retCode;
         }
-
+#if defined(MBEDTLS_THREADING_C)
+        if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+            return ret;
+#endif
         /* Copy new IV to iv[]. */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retMemCpy1, tokenMemCpy,
             mcuxClMemory_copy(iv, pNewIv, 16u, 16u) );
         if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMemory_copy) != tokenMemCpy)
             || (0u != retMemCpy1) )
         {
-            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            goto cleanup;
         }
     }
-
-    return 0;
+    
+    return_code = 0;
+cleanup:
+#if defined(MBEDTLS_THREADING_C)
+     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+         return ret;
+#endif
+     return return_code;
 }
 #endif  /* MBEDTLS_CIPHER_MODE_CBC && MBEDTLS_AES_CBC_ALT */
 
@@ -321,14 +409,25 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
             .bits.cphsoe = MCUXCLCSS_CIPHER_STATE_OUT_ENABLE,
             .bits.cphsie = MCUXCLCSS_CIPHER_STATE_IN_ENABLE,
             .bits.extkey = MCUXCLCSS_CIPHER_EXTERNAL_KEY };
-
+#if defined(MBEDTLS_THREADING_C)
+        int ret;
+        if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+            return ret;
+#endif
         /* Initialize CSS */
         int ret_hw_init = mbedtls_hw_init();
         if(0!=ret_hw_init)
         {
+#if defined(MBEDTLS_THREADING_C)
+            if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+                return ret;
+#endif
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
-
+#if defined(MBEDTLS_THREADING_C)
+        if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_css_mutex)) != 0)
+            return ret;
+#endif
         /* En/decrypt full block(s) with CSS. */
         uint32_t remainLengthFullBlock = remainLength & (~ (uint32_t) 15u);
         if (0u != remainLengthFullBlock)
@@ -340,7 +439,6 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
                 return retCode;
             }
         }
-
         pInput += remainLengthFullBlock;
         pOutput += remainLengthFullBlock;
         remainLength &= 15u;
@@ -360,9 +458,10 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
                 stream_block[i] = 0u;
                 i++;
             } while (i < 16u);
-
+            
             /* En/decrypt the last block. */
             int retCode = mbedtls_internal_aes_css(ctx, stream_block, stream_block, cipherOption, nonce_counter, 16u);
+
             if (0 != retCode)
             {
                 /* unexpected error. */
@@ -391,7 +490,6 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
 
         *nc_off = offset & 15u;
     }
-
     return 0;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CTR && MBEDTLS_AES_CTR_ALT */

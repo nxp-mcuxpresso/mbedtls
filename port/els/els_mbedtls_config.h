@@ -391,7 +391,7 @@
 //#define MBEDTLS_DHM_ALT
 //#define MBEDTLS_ECJPAKE_ALT
 //#define MBEDTLS_GCM_ALT
-#define MBEDTLS_AES_GCM_ALT
+//#define MBEDTLS_AES_GCM_ALT
 //#define MBEDTLS_NIST_KW_ALT
 //#define MBEDTLS_MD2_ALT
 //#define MBEDTLS_MD4_ALT
@@ -3884,6 +3884,14 @@
  *
  */
 #define MBEDTLS_CCM_USE_AES_CBC_MAC
+
+/**
+ * \def MBEDTLS_CBC_MAC_USE_CMAC
+ *
+ * Uncomment this macro in case AES CBC-MAC should be used with CSS CMAC command.
+ *
+ */
+//#define MBEDTLS_CBC_MAC_USE_CMAC
 
 /* \} name SECTION: Customisation configuration options */
 

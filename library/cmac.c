@@ -561,6 +561,7 @@ static const unsigned char aes_128_expected_result[NB_CMAC_TESTS_PER_KEY][MBEDTL
 };
 
 /* NXP added for HW accelerators support */
+#ifdef MBEDTLS_CIPHER_CMAC_ALT
 #ifndef MBEDTLS_AES_ALT_NO_192
 /* CMAC-AES192 Test Data */
 static const unsigned char aes_192_key[24] = {
@@ -603,6 +604,7 @@ static const unsigned char aes_192_expected_result[NB_CMAC_TESTS_PER_KEY][MBEDTL
     }
 };
 #endif /* MBEDTLS_AES_ALT_NO_192 */
+#endif /* MBEDTLS_CIPHER_CMAC_ALT */
 /* NXP added for HW accelerators support */
 
 /* CMAC-AES256 Test Data */
@@ -993,7 +995,7 @@ int mbedtls_cmac_self_test( int verbose )
         return( ret );
     }
 /* NXP added for HW accelerators support */	
-#if !defined(MBEDTLS_AES_ALT_NO_192)
+#if defined(MBEDTLS_CIPHER_CMAC_ALT) && !defined(MBEDTLS_AES_ALT_NO_192)
     /* AES-192 */
     if( ( ret = cmac_test_subkeys( verbose,
                                    "AES 192",
@@ -1020,7 +1022,7 @@ int mbedtls_cmac_self_test( int verbose )
     {
         return( ret );
     }
-#endif /* !MBEDTLS_AES_ALT_NO_192 */
+#endif /* MBEDTLS_CIPHER_CMAC_ALT && !MBEDTLS_AES_ALT_NO_192 */
 
     /* AES-256 */
     if( ( ret = cmac_test_subkeys( verbose,

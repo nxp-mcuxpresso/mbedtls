@@ -3298,6 +3298,8 @@ int mbedtls_ecp_gen_keypair( mbedtls_ecp_group *grp,
     return( mbedtls_ecp_gen_keypair_base( grp, &grp->G, d, Q, f_rng, p_rng ) );
 }
 
+/* NXP added for HW accelerators support */
+#if !defined(MBEDTLS_ECP_GENKEY_ALT)
 /*
  * Generate a keypair, prettier wrapper
  */
@@ -3313,6 +3315,7 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
 
     return( mbedtls_ecp_gen_keypair( &key->grp, &key->d, &key->Q, f_rng, p_rng ) );
 }
+#endif /* MBEDTLS_ECP_GENKEY_ALT */
 
 #define ECP_CURVE25519_KEY_SIZE 32
 /*

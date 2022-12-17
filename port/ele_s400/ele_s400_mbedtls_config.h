@@ -392,11 +392,6 @@
 //#define MBEDTLS_POLY1305_ALT
 //#define MBEDTLS_RIPEMD160_ALT
 //#define MBEDTLS_RSA_ALT
-//#define MBEDTLS_RSA_PRIVATE_ALT
-//#define MBEDTLS_RSA_PUBLIC_ALT
-#define MBEDTLS_RSA_KEYGEN_ALT
-#define MBEDTLS_PKCS1_V15_ALT
-#define MBEDTLS_PKCS1_V21_ALT
 //#define MBEDTLS_SHA1_ALT
 //#define MBEDTLS_SHA256_ALT
 //#define MBEDTLS_SHA512_ALT
@@ -1377,7 +1372,7 @@
  * Uncomment this macro to disable the use of CRT in RSA.
  *
  */
-#define MBEDTLS_RSA_NO_CRT
+//#define MBEDTLS_RSA_NO_CRT
 
 /**
  * \def MBEDTLS_SELF_TEST

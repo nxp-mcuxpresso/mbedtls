@@ -1579,8 +1579,9 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
     }
 }
 
-#if defined(MBEDTLS_PKCS1_V21)
-static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
+/* NXP added !MBEDTLS_PKCS1_V21_ALT and removed static */
+#if defined(MBEDTLS_PKCS1_V21) && !defined(MBEDTLS_PKCS1_V21_ALT)
+int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng,
                          int mode,
@@ -1711,7 +1712,9 @@ exit:
             ? mbedtls_rsa_public(  ctx, sig, sig )
             : mbedtls_rsa_private( ctx, f_rng, p_rng, sig, sig ) );
 }
+#endif /* MBEDTLS_PKCS1_V21 && !MBEDTLS_PKCS1_V21_ALT */
 
+#if defined(MBEDTLS_PKCS1_V21)
 /*
  * Implementation of the PKCS#1 v2.1 RSASSA-PSS-SIGN function with
  * the option to pass in the salt length.
@@ -1882,6 +1885,7 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
     return( 0 );
 }
 
+#if !defined(MBEDTLS_PKCS1_V15_ALT)
 /*
  * Do an RSA operation to sign the message digest
  */
@@ -1964,6 +1968,7 @@ cleanup:
         memset( sig, '!', ctx->len );
     return( ret );
 }
+#endif /* !MBEDTLS_PKCS1_V15_ALT */
 #endif /* MBEDTLS_PKCS1_V15 */
 
 /*
@@ -2005,7 +2010,8 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
     }
 }
 
-#if defined(MBEDTLS_PKCS1_V21)
+/* NXP added !MBEDTLS_PKCS1_V21_ALT */
+#if defined(MBEDTLS_PKCS1_V21) && !defined(MBEDTLS_PKCS1_V21_ALT)
 /*
  * Implementation of the PKCS#1 v2.1 RSASSA-PSS-VERIFY function
  */
@@ -2155,7 +2161,9 @@ exit:
 
     return( ret );
 }
+#endif /* MBEDTLS_PKCS1_V21 && !MBEDTLS_PKCS1_V21_ALT */
 
+#if defined(MBEDTLS_PKCS1_V21)
 /*
  * Simplified PKCS#1 v2.1 RSASSA-PSS-VERIFY function
  */
@@ -2189,7 +2197,7 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
 }
 #endif /* MBEDTLS_PKCS1_V21 */
 
-#if defined(MBEDTLS_PKCS1_V15)
+#if defined(MBEDTLS_PKCS1_V15) && !defined(MBEDTLS_PKCS1_V15_ALT)
 /*
  * Implementation of the PKCS#1 v2.1 RSASSA-PKCS1-v1_5-VERIFY function
  */
@@ -2271,7 +2279,7 @@ cleanup:
 
     return( ret );
 }
-#endif /* MBEDTLS_PKCS1_V15 */
+#endif /* MBEDTLS_PKCS1_V15 && !MBEDTLS_PKCS1_V15_ALT */
 
 /*
  * Do an RSA operation and check the message digest
@@ -2459,7 +2467,6 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
  * Checkup routine
  */
 int mbedtls_rsa_self_test( int verbose )
-#if 1 //NXP  TBD add test for bigger key
 {
     int ret = 0;
 #if defined(MBEDTLS_PKCS1_V15)
@@ -2471,10 +2478,17 @@ int mbedtls_rsa_self_test( int verbose )
 #if defined(MBEDTLS_SHA1_C)
     unsigned char sha1sum[20];
 #endif
+#if defined(MBEDTLS_SHA256_C)
+    unsigned char sha256sum[32];
+#endif
 
+    
     mbedtls_mpi K;
 
     mbedtls_mpi_init( &K );
+
+#if defined(MBEDTLS_PKCS1_V15) && !defined(MBEDTLS_MCUX_ELE_S400_API)
+
     mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &K, 16, RSA_N  ) );
@@ -2488,8 +2502,6 @@ int mbedtls_rsa_self_test( int verbose )
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &K, 16, RSA_E  ) );
     MBEDTLS_MPI_CHK( mbedtls_rsa_import( &rsa, NULL, NULL, NULL, NULL, &K ) );
 
-    MBEDTLS_MPI_CHK( mbedtls_rsa_complete( &rsa ) );
-
     if( verbose != 0 )
         mbedtls_printf( "  RSA key validation: " );
 
@@ -2502,17 +2514,64 @@ int mbedtls_rsa_self_test( int verbose )
         ret = 1;
         goto cleanup;
     }
-
-#if defined(MBEDTLS_PKCS1_V21) && defined(MBEDTLS_MCUX_ELE_S400_API)
-    mbedtls_rsa_context rsav2;
     
-    mbedtls_rsa_init( &rsav2, MBEDTLS_RSA_PKCS_V21, MBEDTLS_MD_SHA256 );
-    mbedtls_rsa_gen_key( &rsav2, NULL, NULL, 2048, 65537 );
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n");
+#else
+    
+    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_SHA256 );
+    
+    if( verbose != 0 )
+        mbedtls_printf( "  RSA key #1 generation: " );
 
+    if(mbedtls_rsa_gen_key( &rsa, NULL, NULL, 2048, 65537 ) != 0)
+        goto cleanup;
+
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n" );
+    
     /* Compute P and Q in CTX. */
     /* Not needed for RSA operation, only to pass MbedTLS ctx check (not mandatory). */
-    mbedtls_rsa_complete(&rsav2);
+    /*if(mbedtls_rsa_complete(&rsa) != 0)
+        goto cleanup;    
+ 
+    if( verbose != 0 )
+        mbedtls_printf( "  RSA key validation: " );
     
+    if( mbedtls_rsa_check_pubkey( &rsa ) != 0 ||
+    mbedtls_rsa_check_privkey( &rsa ) != 0 )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "failed\n" );
+
+        ret = 1;
+        goto cleanup;
+    }
+
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n");*/
+#if defined(MBEDTLS_PKCS1_V21) && defined(MBEDTLS_MCUX_ELE_S400_API)
+    mbedtls_rsa_context rsav2;
+
+    mbedtls_rsa_init( &rsav2, MBEDTLS_RSA_PKCS_V21, MBEDTLS_MD_SHA256 );
+    
+    if( verbose != 0 )
+        mbedtls_printf( "  RSA key #2 generation: " );
+    
+    if(mbedtls_rsa_gen_key( &rsav2, NULL, NULL, 2048, 65537 ) != 0)
+        goto cleanup;
+    
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n" );
+    
+    /* Compute P and Q in CTX. */
+    /* Not needed for RSA operation, only to pass MbedTLS ctx check (not mandatory). */
+    /*
+    if(mbedtls_rsa_complete(&rsav2) != 0)
+        goto cleanup;
+
+    if( verbose != 0 )
+        mbedtls_printf( "  RSA key validation: " );
     
     if( mbedtls_rsa_check_pubkey(  &rsav2 ) != 0 ||
     mbedtls_rsa_check_privkey( &rsav2 ) != 0 )
@@ -2523,10 +2582,14 @@ int mbedtls_rsa_self_test( int verbose )
         ret = 1;
         goto cleanup;
     }
-#endif
     
     if( verbose != 0 )
-        mbedtls_printf( "passed\n  PKCS#1 encryption : " );
+        mbedtls_printf( "passed\n");*/
+#endif /* defined(MBEDTLS_PKCS1_V21) && defined(MBEDTLS_MCUX_ELE_S400_API) */
+#endif /* defined(MBEDTLS_PKCS1_V15) && !defined(MBEDTLS_MCUX_ELE_S400_API) */
+    
+    if( verbose != 0 )
+        mbedtls_printf( "  PKCS#1 encryption : " );
 
     memcpy( rsa_plaintext, RSA_PT, PT_LEN );
 
@@ -2610,11 +2673,12 @@ int mbedtls_rsa_self_test( int verbose )
         mbedtls_printf( "passed\n" );
 #endif /* MBEDTLS_PKCS1_V21 */
     
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_SHA1_C) && !defined(MBEDTLS_MCUX_ELE_S400_API)
+
     if( verbose != 0 )
         mbedtls_printf( "  PKCS#1 data sign  : " );
 
-    if( mbedtls_sha1_ret( rsa_plaintext, PT_LEN, sha1sum ) != 0 )
+    if( mbedtls_sha1_ret( rsa_plaintext, PT_LEN, sha1sum) != 0 )
     {
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
@@ -2649,11 +2713,12 @@ int mbedtls_rsa_self_test( int verbose )
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
-#if defined(MBEDTLS_PKCS1_V21) && defined(MBEDTLS_MCUX_ELE_S400_API)
-    if( verbose != 0 )
-        mbedtls_printf( "  PKCS PSS data sign  : " );
+#elif defined(MBEDTLS_MCUX_ELE_S400_API) && defined(MBEDTLS_SHA256_C)
 
-    if( mbedtls_sha1_ret( rsa_plaintext, PT_LEN, sha1sum ) != 0 )
+    if( verbose != 0 )
+        mbedtls_printf( "  PKCS#1 data sign  : " );
+
+    if( mbedtls_sha256_ret( rsa_plaintext, PT_LEN, sha256sum, 0) != 0 )
     {
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
@@ -2661,9 +2726,9 @@ int mbedtls_rsa_self_test( int verbose )
         return( 1 );
     }
 
-    if( mbedtls_rsa_pkcs1_sign( &rsav2, myrand, NULL,
-                                MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_SHA1, 0,
-                                sha1sum, rsa_ciphertext ) != 0 )
+    if( mbedtls_rsa_pkcs1_sign( &rsa, myrand, NULL,
+                                MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_SHA256, 0,
+                                sha256sum, rsa_ciphertext ) != 0 )
     {
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
@@ -2673,11 +2738,53 @@ int mbedtls_rsa_self_test( int verbose )
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\n PKCS PSS sig. verify: " );
+        mbedtls_printf( "passed\n  PKCS#1 sig. verify: " );
+
+    if( mbedtls_rsa_pkcs1_verify( &rsa, NULL, NULL,
+                                  MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA256, 0,
+                                  sha256sum, rsa_ciphertext ) != 0 )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "failed\n" );
+
+        ret = 1;
+        goto cleanup;
+    }
+
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n" );
+
+#elif defined(MBEDTLS_MCUX_ELE_S400_API) && defined(MBEDTLS_SHA256_C)
+#endif /* MBEDTLS_SHA1_C */    
+#if defined(MBEDTLS_PKCS1_V21) && defined(MBEDTLS_MCUX_ELE_S400_API) && defined(MBEDTLS_SHA256_C)
+    if( verbose != 0 )
+        mbedtls_printf( "  PKCS PSS data sign  : " );
+
+    if( mbedtls_sha256_ret( rsa_plaintext, PT_LEN, sha256sum, 0) != 0 )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "failed\n" );
+
+        return( 1 );
+    }
+
+    if( mbedtls_rsa_pkcs1_sign( &rsav2, myrand, NULL,
+                                MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_SHA256, 0,
+                                sha256sum, rsa_ciphertext ) != 0 )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "failed\n" );
+
+        ret = 1;
+        goto cleanup;
+    }
+
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n  PKCS PSS sig. verify: " );
 
     if( mbedtls_rsa_pkcs1_verify( &rsav2, NULL, NULL,
-                                  MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA1, 0,
-                                  sha1sum, rsa_ciphertext ) != 0 )
+                                  MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA256, 0,
+                                  sha256sum, rsa_ciphertext ) != 0 )
     {
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
@@ -2689,7 +2796,6 @@ int mbedtls_rsa_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
 #endif /* MBEDTLS_PKCS1_V21 */
-#endif /* MBEDTLS_SHA1_C */
 
     if( verbose != 0 )
         mbedtls_printf( "\n" );
@@ -2806,7 +2912,6 @@ cleanup:
     
     return( 0 );
 }
-#endif
 
 #endif /* MBEDTLS_SELF_TEST */
 

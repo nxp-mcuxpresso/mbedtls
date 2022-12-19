@@ -70,6 +70,8 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
     pub_exponent = __REV(exponent);
 
     ele_generic_rsa_t GenericRsaKeygen;
+    memset( &GenericRsaKeygen, 0, sizeof(ele_generic_rsa_t));
+    
     GenericRsaKeygen.modulus            = (uint32_t)modulo_tmp;
     GenericRsaKeygen.priv_exponent      = (uint32_t)priv_exp_tmp;
     GenericRsaKeygen.priv_exponent_size = nbits / 8u;
@@ -100,6 +102,7 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
     //MBEDTLS_MPI_CHK( mbedtls_rsa_check_privkey( ctx ) );
 
 cleanup:
+    mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
     mbedtls_free(modulo_tmp);
     mbedtls_free(priv_exp_tmp);   
   
@@ -161,6 +164,8 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
     /* Read public exponent data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->E, (unsigned char *) &pub_exp, sizeof(uint32_t));
     
+    memset( &GenericRsaEnc, 0, sizeof(ele_generic_rsa_t));
+    
     /* Set ELE RSA structure */
     GenericRsaEnc.algo     = RSA_PKCS1_V1_5_CRYPT;   
     GenericRsaEnc.mode     = kEncryption;
@@ -208,7 +213,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t ilen, nbits;
-    ele_generic_rsa_t GenericRsaEnc;
+    ele_generic_rsa_t GenericRsaDec;
     uint32_t *modulo_tmp, *priv_exp_tmp;
 
     RSA_VALIDATE_RET( ctx != NULL );
@@ -241,41 +246,247 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     /* Read private exponent data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->D, (unsigned char *) priv_exp_tmp, ilen);
    
+    memset( &GenericRsaDec, 0, sizeof(ele_generic_rsa_t));
+    
     /* Set ELE RSA structure */
-    GenericRsaEnc.algo     = RSA_PKCS1_V1_5_CRYPT;
-    GenericRsaEnc.mode     = kDecryption;
-    GenericRsaEnc.key_size = nbits;
+    GenericRsaDec.algo     = RSA_PKCS1_V1_5_CRYPT;
+    GenericRsaDec.mode     = kDecryption;
+    GenericRsaDec.key_size = nbits;
     /* Public exponent */
-    GenericRsaEnc.priv_exponent      = (uint32_t)priv_exp_tmp;
-    GenericRsaEnc.priv_exponent_size = ilen;
+    GenericRsaDec.priv_exponent      = (uint32_t)priv_exp_tmp;
+    GenericRsaDec.priv_exponent_size = ilen;
     /* Modulus */
-    GenericRsaEnc.modulus      = (uint32_t)modulo_tmp;
-    GenericRsaEnc.modulus_size = ilen;
+    GenericRsaDec.modulus      = (uint32_t)modulo_tmp;
+    GenericRsaDec.modulus_size = ilen;
     /* Plaintext */
-    GenericRsaEnc.plaintext      = (uint32_t)output;
-    GenericRsaEnc.plaintext_size = (uint32_t)output_max_len;
+    GenericRsaDec.plaintext      = (uint32_t)output;
+    GenericRsaDec.plaintext_size = (uint32_t)output_max_len;
     /* Ciphertext */
-    GenericRsaEnc.ciphertext      = (uint32_t)input;
-    GenericRsaEnc.ciphertext_size = ilen;
+    GenericRsaDec.ciphertext      = (uint32_t)input;
+    GenericRsaDec.ciphertext_size = ilen;
 
-    if (ELE_GenericRsa(S3MU, &GenericRsaEnc) != kStatus_Success)
+    if (ELE_GenericRsa(S3MU, &GenericRsaDec) != kStatus_Success)
     {
         ret = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
         goto cleanup;
     }
     else
     {
-        *olen = GenericRsaEnc.out_plaintext_len;
+        *olen = GenericRsaDec.out_plaintext_len;
         ret = 0;
     }
 
 
 cleanup:
+    mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
     mbedtls_free(modulo_tmp);
     mbedtls_free(priv_exp_tmp);
     
     return( ret );
-}                                        
+}
+
+/*
+ * Do an RSA operation to sign the message digest
+ */
+int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
+                               int (*f_rng)(void *, unsigned char *, size_t),
+                               void *p_rng,
+                               int mode,
+                               mbedtls_md_type_t md_alg,
+                               unsigned int hashlen,
+                               const unsigned char *hash,
+                               unsigned char *sig )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t olen, nbits;
+    ele_generic_rsa_t GenericRsaPssSign;
+    uint32_t *modulo_tmp, *priv_exp_tmp;
+
+    RSA_VALIDATE_RET( ctx != NULL );
+    RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
+                      mode == MBEDTLS_RSA_PUBLIC );
+    RSA_VALIDATE_RET( ( md_alg  == MBEDTLS_MD_NONE &&
+                        hashlen == 0 ) ||
+                      hash != NULL );
+    RSA_VALIDATE_RET( sig != NULL );
+
+    if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    olen = ctx->len;
+    nbits = ctx->len * 8u;
+    
+    memset( sig, 0, olen );
+    
+    memset( &GenericRsaPssSign, 0, sizeof(ele_generic_rsa_t));
+
+    /* Alocate MPI structure for Public modulus */
+    modulo_tmp = mbedtls_calloc(nbits / 8u, 8u);
+    if(modulo_tmp == NULL)
+      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    
+    /* Alocate MPI structure for Private exponent */
+    priv_exp_tmp = mbedtls_calloc(nbits / 8u, 8u);
+    if(priv_exp_tmp == NULL)
+      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
+
+    /* Read motulus data from MPI ctx structure */
+    mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, olen);
+
+    /* Read private exponent data from MPI ctx structure */
+    mbedtls_mpi_write_binary(&ctx->D, (unsigned char *) priv_exp_tmp, olen);
+    
+    /* Set MGF (HASH) algo */
+    switch(ctx->hash_id)
+    {
+        case (MBEDTLS_MD_SHA224):
+            GenericRsaPssSign.algo     = RSA_PKCS1_V1_5_SHA224_SIGN;
+            break;
+        case (MBEDTLS_MD_SHA256):
+            GenericRsaPssSign.algo     = RSA_PKCS1_V1_5_SHA256_SIGN;
+            break;
+        case (MBEDTLS_MD_SHA384):
+            GenericRsaPssSign.algo     = RSA_PKCS1_V1_5_SHA384_SIGN;
+            break;
+        case (MBEDTLS_MD_SHA512):
+            GenericRsaPssSign.algo     = RSA_PKCS1_V1_5_SHA512_SIGN;
+            break;
+        case (MBEDTLS_MD_NONE):
+        default:
+            goto cleanup;
+    }
+    
+    /* Set ELE structure */
+    GenericRsaPssSign.mode     = kSignGen;
+    GenericRsaPssSign.key_size = nbits;
+    /* Private exponent */
+    GenericRsaPssSign.priv_exponent      = (uint32_t)priv_exp_tmp;
+    GenericRsaPssSign.priv_exponent_size = olen;
+    /* Modulus */
+    GenericRsaPssSign.modulus      = (uint32_t)modulo_tmp;
+    GenericRsaPssSign.modulus_size = olen;
+    /* Digest */
+    GenericRsaPssSign.digest      = (uint32_t)hash;
+    GenericRsaPssSign.digest_size = hashlen;
+    /* Signature destination */
+    GenericRsaPssSign.signature      = (uint32_t)sig;
+    GenericRsaPssSign.signature_size = olen;
+
+    if (ELE_GenericRsa(S3MU, &GenericRsaPssSign) != kStatus_Success)
+    {
+        ret = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
+        goto cleanup;
+    }
+    else
+    {
+        ret = 0u;
+    }
+
+cleanup:
+    mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
+    mbedtls_free(modulo_tmp);
+    mbedtls_free(priv_exp_tmp);
+
+    return( ret );
+}
+
+/*
+ * Implementation of the PKCS#1 v2.1 RSASSA-PKCS1-v1_5-VERIFY function
+ */
+int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
+                                 int (*f_rng)(void *, unsigned char *, size_t),
+                                 void *p_rng,
+                                 int mode,
+                                 mbedtls_md_type_t md_alg,
+                                 unsigned int hashlen,
+                                 const unsigned char *hash,
+                                 const unsigned char *sig )
+{
+    int ret = 0;
+    size_t sig_len, nbits;
+    unsigned char *encoded = NULL, *encoded_expected = NULL;
+    ele_generic_rsa_t GenericRsaPssVerif;
+    uint32_t *modulo_tmp;
+    uint32_t pub_exp;
+    
+    RSA_VALIDATE_RET( ctx != NULL );
+    RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PUBLIC );
+    RSA_VALIDATE_RET( sig != NULL );
+    RSA_VALIDATE_RET( ( md_alg  == MBEDTLS_MD_NONE &&
+                        hashlen == 0 ) ||
+                      hash != NULL );
+
+    sig_len = ctx->len;
+    nbits = ctx->len * 8u;
+
+    if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    memset( &GenericRsaPssVerif, 0, sizeof(ele_generic_rsa_t));
+    
+    /* Set MGF (HASH) algo */
+    switch(ctx->hash_id)
+    {
+        case (MBEDTLS_MD_SHA224):
+            GenericRsaPssVerif.algo     = RSA_PKCS1_V1_5_SHA224_SIGN;
+            break;
+        case (MBEDTLS_MD_SHA256):
+            GenericRsaPssVerif.algo     = RSA_PKCS1_V1_5_SHA256_SIGN;
+            break;
+        case (MBEDTLS_MD_SHA384):
+            GenericRsaPssVerif.algo     = RSA_PKCS1_V1_5_SHA384_SIGN;
+            break;
+        case (MBEDTLS_MD_SHA512):
+            GenericRsaPssVerif.algo     = RSA_PKCS1_V1_5_SHA512_SIGN;
+            break;
+        case (MBEDTLS_MD_NONE):
+        default:
+            goto cleanup;
+    }
+    
+    /* Alocate MPI structure for Public modulus */
+    modulo_tmp = mbedtls_calloc(nbits / 8u, 8u);
+    if(modulo_tmp == NULL)
+      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    
+    /* Read motulus data from MPI ctx structure */
+    mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, sig_len);
+
+    /* Read public exponent data from MPI ctx structure */
+    mbedtls_mpi_write_binary(&ctx->E, (unsigned char *) &pub_exp, sizeof(uint32_t));
+    
+    GenericRsaPssVerif.mode     = kVerification;
+    GenericRsaPssVerif.key_size = nbits;
+    /* Public exponent */
+    GenericRsaPssVerif.pub_exponent      = (uint32_t)&pub_exp;
+    GenericRsaPssVerif.pub_exponent_size = sizeof(pub_exp);
+    /* Modulus */
+    GenericRsaPssVerif.modulus      = (uint32_t)modulo_tmp;
+    GenericRsaPssVerif.modulus_size = sig_len;
+    /* Digest */
+    GenericRsaPssVerif.digest      = (uint32_t)hash;
+    GenericRsaPssVerif.digest_size = hashlen;
+    /* Signature destination */
+    GenericRsaPssVerif.signature      = (uint32_t)sig;
+    GenericRsaPssVerif.signature_size = sig_len;
+
+    if ((ELE_GenericRsa(S3MU, &GenericRsaPssVerif) == kStatus_Success) &&
+        (GenericRsaPssVerif.verify_status == kVerifySuccess))
+    {
+        ret = 0u;
+    }
+    else
+    {
+        ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
+        goto cleanup;
+    }
+
+cleanup:
+
+
+    return( ret );
+}
+
 #endif /* MBEDTLS_PKCS1_V15_ALT */
 
 
@@ -325,7 +536,8 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     memset( output, 0, olen );
-
+    memset( &GenericRsaEnc, 0, sizeof(ele_generic_rsa_t));
+    
     /* Set MGF (HASH) algo */
     switch(ctx->hash_id)
     {
@@ -359,7 +571,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
 
     /* Read public exponent data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->E, (unsigned char *) &pub_exp, sizeof(uint32_t));
-    
+
     /* Set ELE RSA structure */
     GenericRsaEnc.mode     = kEncryption;
     GenericRsaEnc.key_size = nbits;
@@ -418,13 +630,11 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     unsigned int hlen;
     const mbedtls_md_info_t *md_info;
     mbedtls_md_context_t md_ctx;
-    ele_generic_rsa_t GenericRsaEnc;
+    ele_generic_rsa_t GenericRsaDec;
     uint32_t *modulo_tmp, *priv_exp_tmp;
-    uint32_t pub_exp;
     
     RSA_VALIDATE_RET( ctx != NULL );
-    RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
-                      mode == MBEDTLS_RSA_PUBLIC );
+    RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE);
     RSA_VALIDATE_RET( output_max_len == 0 || output != NULL );
     RSA_VALIDATE_RET( label_len == 0 || label != NULL );
     RSA_VALIDATE_RET( input != NULL );
@@ -451,25 +661,26 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     // checking for integer underflow
     if( 2 * hlen + 2 > ilen )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-/*********************************************************************/
+    
+    memset( &GenericRsaDec, 0, sizeof(ele_generic_rsa_t));
 
     /* Set MGF (HASH) algo */
     switch(ctx->hash_id)
     {
         case (MBEDTLS_MD_SHA1):
-            GenericRsaEnc.algo     = RSA_PKCS1_OAEP_SHA1;
+            GenericRsaDec.algo     = RSA_PKCS1_OAEP_SHA1;
             break;
         case (MBEDTLS_MD_SHA224):
-            GenericRsaEnc.algo     = RSA_PKCS1_OAEP_SHA224;
+            GenericRsaDec.algo     = RSA_PKCS1_OAEP_SHA224;
             break;
         case (MBEDTLS_MD_SHA256):
-            GenericRsaEnc.algo     = RSA_PKCS1_OAEP_SHA256;
+            GenericRsaDec.algo     = RSA_PKCS1_OAEP_SHA256;
             break;
         case (MBEDTLS_MD_SHA384):
-            GenericRsaEnc.algo     = RSA_PKCS1_OAEP_SHA384;
+            GenericRsaDec.algo     = RSA_PKCS1_OAEP_SHA384;
             break;
         case (MBEDTLS_MD_SHA512):
-            GenericRsaEnc.algo     = RSA_PKCS1_OAEP_SHA512;
+            GenericRsaDec.algo     = RSA_PKCS1_OAEP_SHA512;
             break;
         case (MBEDTLS_MD_NONE):
         default:
@@ -493,44 +704,325 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     mbedtls_mpi_write_binary(&ctx->D, (unsigned char *) priv_exp_tmp, ilen);
     
     /* Set ELE RSA structure */
-    GenericRsaEnc.mode     = kDecryption;
-    GenericRsaEnc.key_size = nbits;
+    GenericRsaDec.mode     = kDecryption;
+    GenericRsaDec.key_size = nbits;
     /* Public exponent */
-    GenericRsaEnc.priv_exponent      = (uint32_t)priv_exp_tmp;
-    GenericRsaEnc.priv_exponent_size = ilen;
+    GenericRsaDec.priv_exponent      = (uint32_t)priv_exp_tmp;
+    GenericRsaDec.priv_exponent_size = ilen;
     /* Modulus */
-    GenericRsaEnc.modulus      = (uint32_t)modulo_tmp;
-    GenericRsaEnc.modulus_size = ilen;
+    GenericRsaDec.modulus      = (uint32_t)modulo_tmp;
+    GenericRsaDec.modulus_size = ilen;
     /* Plaintext */
-    GenericRsaEnc.plaintext      = (uint32_t)output;
-    GenericRsaEnc.plaintext_size = (uint32_t)output_max_len;
+    GenericRsaDec.plaintext      = (uint32_t)output;
+    GenericRsaDec.plaintext_size = (uint32_t)output_max_len;
     /* Ciphertext */
-    GenericRsaEnc.ciphertext      = (uint32_t)input;
-    GenericRsaEnc.ciphertext_size = ilen;
+    GenericRsaDec.ciphertext      = (uint32_t)input;
+    GenericRsaDec.ciphertext_size = ilen;
     /* Label */
-    GenericRsaEnc.label      = (uint32_t)label;
-    GenericRsaEnc.label_size = label_len;
+    GenericRsaDec.label      = (uint32_t)label;
+    GenericRsaDec.label_size = label_len;
     
-    if (ELE_GenericRsa(S3MU, &GenericRsaEnc) != kStatus_Success)
+    if (ELE_GenericRsa(S3MU, &GenericRsaDec) != kStatus_Success)
     {
         ret = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
         goto cleanup;
     }
     else
     {
-        *olen = GenericRsaEnc.out_plaintext_len;
+        *olen = GenericRsaDec.out_plaintext_len;
         ret = 0;
     }
 
-/*********************************************************************/
-
 cleanup:
+    mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
     mbedtls_free(modulo_tmp);
     mbedtls_free(priv_exp_tmp);
-
+    mbedtls_md_free( &md_ctx );
+    
     return( ret );
 }
 
+int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng,
+                         int mode,
+                         mbedtls_md_type_t md_alg,
+                         unsigned int hashlen,
+                         const unsigned char *hash,
+                         int saltlen,
+                         unsigned char *sig )
+{
+    size_t olen;
+    unsigned char *p = sig;
+    unsigned char *salt = NULL;
+    size_t slen, min_slen, hlen, nbits;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t msb;
+    const mbedtls_md_info_t *md_info;
+    mbedtls_md_context_t md_ctx;
+    ele_generic_rsa_t GenericRsaPssSign;
+    uint32_t *modulo_tmp, *priv_exp_tmp;
+
+    RSA_VALIDATE_RET( ctx != NULL );
+    RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE);
+    RSA_VALIDATE_RET( ( md_alg  == MBEDTLS_MD_NONE &&
+                        hashlen == 0 ) ||
+                      hash != NULL );
+    RSA_VALIDATE_RET( sig != NULL );
+
+    if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V21 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    olen = ctx->len;
+    nbits = ctx->len * 8u;
+    
+    if( md_alg != MBEDTLS_MD_NONE )
+    {
+        /* Gather length of hash to sign */
+        md_info = mbedtls_md_info_from_type( md_alg );
+        if( md_info == NULL )
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+        hashlen = mbedtls_md_get_size( md_info );
+    }
+
+    md_info = mbedtls_md_info_from_type( (mbedtls_md_type_t) ctx->hash_id );
+    if( md_info == NULL )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    hlen = mbedtls_md_get_size( md_info );
+
+    if (saltlen == MBEDTLS_RSA_SALT_LEN_ANY)
+    {
+       /* Calculate the largest possible salt length, up to the hash size.
+        * Normally this is the hash length, which is the maximum salt length
+        * according to FIPS 185-4 §5.5 (e) and common practice. If there is not
+        * enough room, use the maximum salt length that fits. The constraint is
+        * that the hash length plus the salt length plus 2 bytes must be at most
+        * the key length. This complies with FIPS 186-4 §5.5 (e) and RFC 8017
+        * (PKCS#1 v2.2) §9.1.1 step 3. */
+        min_slen = hlen - 2;
+        if( olen < hlen + min_slen + 2 )
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+        else if( olen >= hlen + hlen + 2 )
+            slen = hlen;
+        else
+            slen = olen - hlen - 2;
+    }
+    else if ( (saltlen < 0) || (saltlen + hlen + 2 > olen) )
+    {
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    }
+    else
+    {
+        slen = (size_t) saltlen;
+    }
+
+    memset( sig, 0, olen );
+    
+    memset( &GenericRsaPssSign, 0, sizeof(ele_generic_rsa_t));
+
+    /* Alocate MPI structure for Public modulus */
+    modulo_tmp = mbedtls_calloc(nbits / 8u, 8u);
+    if(modulo_tmp == NULL)
+      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    
+    /* Alocate MPI structure for Private exponent */
+    priv_exp_tmp = mbedtls_calloc(nbits / 8u, 8u);
+    if(priv_exp_tmp == NULL)
+      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
+
+    /* Read motulus data from MPI ctx structure */
+    mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, olen);
+
+    /* Read private exponent data from MPI ctx structure */
+    mbedtls_mpi_write_binary(&ctx->D, (unsigned char *) priv_exp_tmp, olen);
+    
+    /* Set MGF (HASH) algo */
+    switch(ctx->hash_id)
+    {
+        case (MBEDTLS_MD_SHA224):
+            GenericRsaPssSign.algo     = RSA_PKCS1_PSS_MGF1_SHA224;
+            break;
+        case (MBEDTLS_MD_SHA256):
+            GenericRsaPssSign.algo     = RSA_PKCS1_PSS_MGF1_SHA256;
+            break;
+        case (MBEDTLS_MD_SHA384):
+            GenericRsaPssSign.algo     = RSA_PKCS1_PSS_MGF1_SHA384;
+            break;
+        case (MBEDTLS_MD_SHA512):
+            GenericRsaPssSign.algo     = RSA_PKCS1_PSS_MGF1_SHA512;
+            break;
+        case (MBEDTLS_MD_NONE):
+        default:
+            goto exit;
+    }
+    
+    /* Set ELE structure */
+    GenericRsaPssSign.mode     = kSignGen;
+    GenericRsaPssSign.key_size = nbits;
+    /* Private exponent */
+    GenericRsaPssSign.priv_exponent      = (uint32_t)priv_exp_tmp;
+    GenericRsaPssSign.priv_exponent_size = olen;
+    /* Modulus */
+    GenericRsaPssSign.modulus      = (uint32_t)modulo_tmp;
+    GenericRsaPssSign.modulus_size = olen;
+    /* Digest */
+    GenericRsaPssSign.digest      = (uint32_t)hash;
+    GenericRsaPssSign.digest_size = hashlen;
+    /* Signature destination */
+    GenericRsaPssSign.signature      = (uint32_t)sig;
+    GenericRsaPssSign.signature_size = olen;
+    /* Salt */
+    GenericRsaPssSign.salt_size = slen;
+
+    if (ELE_GenericRsa(S3MU, &GenericRsaPssSign) != kStatus_Success)
+    {
+        ret = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
+        goto exit;
+    }
+    else
+    {
+        ret = 0u;
+    }
+
+exit:
+    mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
+    mbedtls_free(modulo_tmp);
+    mbedtls_free(priv_exp_tmp);
+    mbedtls_md_free( &md_ctx );
+
+    if( ret != 0 )
+        return( ret );
+    
+    return ( 0 );
+}
+
+/*
+ * Implementation of the PKCS#1 v2.1 RSASSA-PSS-VERIFY function
+ * Note: In this alt implementation, md_alg is always same as mgf1_hash function
+ */
+int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
+                               int (*f_rng)(void *, unsigned char *, size_t),
+                               void *p_rng,
+                               int mode,
+                               mbedtls_md_type_t md_alg,
+                               unsigned int hashlen,
+                               const unsigned char *hash,
+                               mbedtls_md_type_t mgf1_hash_id,
+                               int expected_salt_len,
+                               const unsigned char *sig )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t siglen, nbits;
+    unsigned int hlen;
+    const mbedtls_md_info_t *md_info;
+    mbedtls_md_context_t md_ctx;
+    ele_generic_rsa_t GenericRsaPssVerif;
+    uint32_t *modulo_tmp;
+    uint32_t pub_exp;
+
+    RSA_VALIDATE_RET( ctx != NULL );
+    RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
+                      mode == MBEDTLS_RSA_PUBLIC );
+    RSA_VALIDATE_RET( sig != NULL );
+    RSA_VALIDATE_RET( ( md_alg  == MBEDTLS_MD_NONE &&
+                        hashlen == 0 ) ||
+                      hash != NULL );
+
+    if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V21 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    siglen = ctx->len;
+    nbits = ctx->len * 8u;
+
+    if( md_alg != MBEDTLS_MD_NONE )
+    {
+        /* Gather length of hash to sign */
+        md_info = mbedtls_md_info_from_type( md_alg );
+        if( md_info == NULL )
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+        hashlen = mbedtls_md_get_size( md_info );
+    }
+
+    md_info = mbedtls_md_info_from_type( mgf1_hash_id );
+    if( md_info == NULL )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    hlen = mbedtls_md_get_size( md_info );
+
+    if( siglen < hlen + 2 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    memset( &GenericRsaPssVerif, 0, sizeof(ele_generic_rsa_t));
+    
+    /* Set MGF (HASH) algo */
+    switch(md_alg)
+    {
+        case (MBEDTLS_MD_SHA224):
+            GenericRsaPssVerif.algo     = RSA_PKCS1_PSS_MGF1_SHA224;
+            break;
+        case (MBEDTLS_MD_SHA256):
+            GenericRsaPssVerif.algo     = RSA_PKCS1_PSS_MGF1_SHA256;
+            break;
+        case (MBEDTLS_MD_SHA384):
+            GenericRsaPssVerif.algo     = RSA_PKCS1_PSS_MGF1_SHA384;
+            break;
+        case (MBEDTLS_MD_SHA512):
+            GenericRsaPssVerif.algo     = RSA_PKCS1_PSS_MGF1_SHA512;
+            break;
+        case (MBEDTLS_MD_NONE):
+        default:
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    }
+    
+    /* Alocate MPI structure for Public modulus */
+    modulo_tmp = mbedtls_calloc(nbits / 8u, 8u);
+    if(modulo_tmp == NULL)
+      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    
+    /* Read motulus data from MPI ctx structure */
+    mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, siglen);
+
+    /* Read public exponent data from MPI ctx structure */
+    mbedtls_mpi_write_binary(&ctx->E, (unsigned char *) &pub_exp, sizeof(uint32_t));
+    
+    GenericRsaPssVerif.mode     = kVerification;
+    GenericRsaPssVerif.key_size = nbits;
+    /* Public exponent */
+    GenericRsaPssVerif.pub_exponent      = (uint32_t)&pub_exp;
+    GenericRsaPssVerif.pub_exponent_size = sizeof(pub_exp);
+    /* Modulus */
+    GenericRsaPssVerif.modulus      = (uint32_t)modulo_tmp;
+    GenericRsaPssVerif.modulus_size = siglen;
+    /* Digest */
+    GenericRsaPssVerif.digest      = (uint32_t)hash;
+    GenericRsaPssVerif.digest_size = hashlen;
+    /* Signature destination */
+    GenericRsaPssVerif.signature      = (uint32_t)sig;
+    GenericRsaPssVerif.signature_size = siglen;
+    /* Salt size */
+    GenericRsaPssVerif.salt_size = expected_salt_len;
+
+    if ((ELE_GenericRsa(S3MU, &GenericRsaPssVerif) == kStatus_Success) &&
+        (GenericRsaPssVerif.verify_status == kVerifySuccess))
+    {
+        ret = 0u;
+    }
+    else
+    {
+        ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
+        goto exit;
+    }
+    
+exit:
+    mbedtls_md_free( &md_ctx );
+    mbedtls_free(modulo_tmp);
+    
+    return( ret );
+}
+                                         
 #endif /* MBEDTLS_PKCS1_V21_ALT */                                     
 
 #endif /* MBEDTLS_RSA_ALT || MBEDTLS_PKCS1_V15_ALT || MBEDTLS_PKCS1_V21_ALT */

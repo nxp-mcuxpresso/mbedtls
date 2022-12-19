@@ -152,6 +152,11 @@ mbedtls_rsa_context;
 #include "rsa_alt.h"
 #endif /* MBEDTLS_RSA_ALT */
 
+/* NXP added to suport alt implementation */
+#if defined(MBEDTLS_PKCS1_V21_ALT)
+#include "rsa_alt.h"
+#endif /* MBEDTLS_PKCS1_V21_ALT */
+
 /**
  * \brief          This function initializes an RSA context.
  *

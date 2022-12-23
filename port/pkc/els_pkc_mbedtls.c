@@ -77,7 +77,7 @@ int mbedtls_hw_init(void)
     if(g_isCryptoHWInitialized == ELS_PKC_CRYPTOHW_NONINITIALIZED)
     {
         /* Enable ELS and related clocks */
-        status = CSS_PowerDownWakeupInit(CSS);
+        status = CSS_PowerDownWakeupInit(ELS);
         if (status != kStatus_Success)
         {
             return status;
@@ -125,7 +125,7 @@ status_t CRYPTO_InitHardware(void)
 #endif /* (MBEDTLS_THREADING_C) */  
     /* Enable CSS and related clocks */
     // TODO: use ELS component when available
-    status = CSS_PowerDownWakeupInit(CSS);
+    status = CSS_PowerDownWakeupInit(ELS);
     if (status != kStatus_Success)
     {
         return kStatus_Fail;

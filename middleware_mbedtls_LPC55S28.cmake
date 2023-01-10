@@ -108,4 +108,3 @@ target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
 
 
 include(utility_debug_console)
-include(middleware_mbedtls_lpc1)

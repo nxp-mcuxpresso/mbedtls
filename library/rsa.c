@@ -2478,7 +2478,7 @@ int mbedtls_rsa_self_test( int verbose )
 #if defined(MBEDTLS_SHA1_C)
     unsigned char sha1sum[20];
 #endif
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_MCUX_ELE_S400_API)
     unsigned char sha256sum[32];
 #endif
 

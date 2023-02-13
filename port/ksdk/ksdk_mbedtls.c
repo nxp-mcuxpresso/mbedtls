@@ -6128,6 +6128,7 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 
 /*---------HEAP_4 calloc --------------------------------------------------*/
 #if defined(configFRTOS_MEMORY_SCHEME) && (configFRTOS_MEMORY_SCHEME == 4)
+#if (tskKERNEL_VERSION_MAJOR <= 10) && (tskKERNEL_VERSION_MINOR < 5)
 void *pvPortCalloc(size_t num, size_t size)
 {
     void *ptr;
@@ -6144,6 +6145,7 @@ void *pvPortCalloc(size_t num, size_t size)
     }
     return ptr;
 }
+#endif // (tskKERNEL_VERSION_MAJOR <= 10) && (tskKERNEL_VERSION_MINOR < 5)
 #else // HEAP_3
 void *pvPortCalloc(size_t num, size_t size)
 {

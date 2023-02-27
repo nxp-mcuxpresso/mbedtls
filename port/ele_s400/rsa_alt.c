@@ -22,6 +22,10 @@
 #include "ele_crypto.h"
 #include "ele_mbedtls.h"
 
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
+
 #define RSA_VALIDATE_RET( cond ) \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_RSA_BAD_INPUT )
 #define RSA_VALIDATE( cond ) \
@@ -42,7 +46,7 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     RSA_VALIDATE_RET( ctx != NULL );
-    uint32_t *modulo_tmp, *priv_exp_tmp;
+    uint32_t *modulo_tmp = NULL, *priv_exp_tmp = NULL;
     uint32_t pub_exponent;
 
     /* Minimum nbit size is 2048 */
@@ -80,6 +84,11 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
     GenericRsaKeygen.pub_exponent_size  = sizeof(pub_exponent);
     GenericRsaKeygen.key_size           = nbits;
 
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif
+    
     MBEDTLS_MPI_CHK(ELE_GenericRsaKeygen(S3MU, &GenericRsaKeygen));
  
     /* Set Public Exponent in Ctx */
@@ -103,9 +112,21 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
 
 cleanup:
     mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
-    mbedtls_free(modulo_tmp);
-    mbedtls_free(priv_exp_tmp);   
-  
+    if(modulo_tmp != NULL)
+    {
+        mbedtls_free(modulo_tmp);
+    }
+
+    if(priv_exp_tmp != NULL)
+    {
+        mbedtls_free(priv_exp_tmp);
+    }
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+#endif
+
     if( ret != 0 )
     {
         mbedtls_rsa_free( ctx );
@@ -183,6 +204,11 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
     GenericRsaEnc.ciphertext      = (uint32_t)output;
     GenericRsaEnc.ciphertext_size = olen;
 
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif 
+    
     if (ELE_GenericRsa(S3MU, &GenericRsaEnc) != kStatus_Success)
     {
         ret = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
@@ -195,7 +221,12 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
 
 cleanup:
     mbedtls_free(modulo_tmp);   
-    
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+#endif
+
     return ret;
 }
 
@@ -265,6 +296,11 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     GenericRsaDec.ciphertext      = (uint32_t)input;
     GenericRsaDec.ciphertext_size = ilen;
 
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif 
+    
     if (ELE_GenericRsa(S3MU, &GenericRsaDec) != kStatus_Success)
     {
         ret = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
@@ -281,6 +317,11 @@ cleanup:
     mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
     mbedtls_free(modulo_tmp);
     mbedtls_free(priv_exp_tmp);
+ 
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+#endif
     
     return( ret );
 }
@@ -372,6 +413,11 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     GenericRsaPssSign.signature      = (uint32_t)sig;
     GenericRsaPssSign.signature_size = olen;
 
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif
+    
     if (ELE_GenericRsa(S3MU, &GenericRsaPssSign) != kStatus_Success)
     {
         ret = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
@@ -386,6 +432,11 @@ cleanup:
     mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
     mbedtls_free(modulo_tmp);
     mbedtls_free(priv_exp_tmp);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+#endif
 
     return( ret );
 }
@@ -404,7 +455,6 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
 {
     int ret = 0;
     size_t sig_len, nbits;
-    unsigned char *encoded = NULL, *encoded_expected = NULL;
     ele_generic_rsa_t GenericRsaPssVerif;
     uint32_t *modulo_tmp;
     uint32_t pub_exp;
@@ -470,6 +520,11 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
     GenericRsaPssVerif.signature      = (uint32_t)sig;
     GenericRsaPssVerif.signature_size = sig_len;
 
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif
+    
     if ((ELE_GenericRsa(S3MU, &GenericRsaPssVerif) == kStatus_Success) &&
         (GenericRsaPssVerif.verify_status == kVerifySuccess))
     {
@@ -483,7 +538,10 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
 
 cleanup:
 
-
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+#endif
     return( ret );
 }
 
@@ -505,14 +563,12 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
 {
     size_t olen, nbits;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char *p = output;
     unsigned int hlen;
     const mbedtls_md_info_t *md_info;
-    mbedtls_md_context_t md_ctx;
     ele_generic_rsa_t GenericRsaEnc;
     uint32_t *modulo_tmp;
     uint32_t pub_exp;
-      
+
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
                       mode == MBEDTLS_RSA_PUBLIC );
@@ -590,6 +646,11 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     /* Label */
     GenericRsaEnc.label      = (uint32_t)label;
     GenericRsaEnc.label_size = label_len;
+
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif
     
     if (ELE_GenericRsa(S3MU, &GenericRsaEnc) != kStatus_Success)
     {
@@ -602,9 +663,13 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     }
 
 exit:
-    mbedtls_md_free( &md_ctx );
     mbedtls_free(modulo_tmp);
 
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+#endif
+    
     if( ret != 0 )
         return( ret );
 
@@ -629,7 +694,6 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     unsigned int hlen;
     const mbedtls_md_info_t *md_info;
-    mbedtls_md_context_t md_ctx;
     ele_generic_rsa_t GenericRsaDec;
     uint32_t *modulo_tmp, *priv_exp_tmp;
     
@@ -721,6 +785,11 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     /* Label */
     GenericRsaDec.label      = (uint32_t)label;
     GenericRsaDec.label_size = label_len;
+
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif
     
     if (ELE_GenericRsa(S3MU, &GenericRsaDec) != kStatus_Success)
     {
@@ -737,7 +806,11 @@ cleanup:
     mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
     mbedtls_free(modulo_tmp);
     mbedtls_free(priv_exp_tmp);
-    mbedtls_md_free( &md_ctx );
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+#endif
     
     return( ret );
 }
@@ -753,13 +826,9 @@ int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
                          unsigned char *sig )
 {
     size_t olen;
-    unsigned char *p = sig;
-    unsigned char *salt = NULL;
     size_t slen, min_slen, hlen, nbits;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t msb;
     const mbedtls_md_info_t *md_info;
-    mbedtls_md_context_t md_ctx;
     ele_generic_rsa_t GenericRsaPssSign;
     uint32_t *modulo_tmp, *priv_exp_tmp;
 
@@ -876,6 +945,11 @@ int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     /* Salt */
     GenericRsaPssSign.salt_size = slen;
 
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif
+    
     if (ELE_GenericRsa(S3MU, &GenericRsaPssSign) != kStatus_Success)
     {
         ret = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
@@ -890,8 +964,12 @@ exit:
     mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
     mbedtls_free(modulo_tmp);
     mbedtls_free(priv_exp_tmp);
-    mbedtls_md_free( &md_ctx );
 
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+#endif
+    
     if( ret != 0 )
         return( ret );
     
@@ -917,7 +995,6 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     size_t siglen, nbits;
     unsigned int hlen;
     const mbedtls_md_info_t *md_info;
-    mbedtls_md_context_t md_ctx;
     ele_generic_rsa_t GenericRsaPssVerif;
     uint32_t *modulo_tmp;
     uint32_t pub_exp;
@@ -1005,6 +1082,11 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     /* Salt size */
     GenericRsaPssVerif.salt_size = expected_salt_len;
 
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif
+    
     if ((ELE_GenericRsa(S3MU, &GenericRsaPssVerif) == kStatus_Success) &&
         (GenericRsaPssVerif.verify_status == kVerifySuccess))
     {
@@ -1017,8 +1099,12 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     }
     
 exit:
-    mbedtls_md_free( &md_ctx );
     mbedtls_free(modulo_tmp);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+#endif
     
     return( ret );
 }

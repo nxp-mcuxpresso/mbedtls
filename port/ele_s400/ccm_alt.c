@@ -22,6 +22,10 @@
 #include "ele_crypto.h"
 #include "ele_mbedtls.h"
 
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
+
 #define CCM_VALIDATE_RET( cond ) \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_CCM_BAD_INPUT )
 #define CCM_VALIDATE( cond ) \
@@ -106,13 +110,29 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
     GenericAeadGCM.tag_size = tag_len;
     GenericAeadGCM.mode     = kEncrypt;
     GenericAeadGCM.algo     = kAES_CCM;
+    int ret = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
+    
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif
 
     if (ELE_GenericAead(S3MU, &GenericAeadGCM) != kStatus_Success)
     {
-        return MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
+        ret = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
+        goto exit;
+    }
+    else
+    {
+        ret = 0;
     }
 
-    return ( 0 );
+exit:
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+#endif
+    return ret;
 }
 
 int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
@@ -145,13 +165,29 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
     GenericAeadGCM.tag_size = tag_len;
     GenericAeadGCM.mode     = kDecrypt;
     GenericAeadGCM.algo     = kAES_CCM;
+    int ret = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
+    
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif
 
     if (ELE_GenericAead(S3MU, &GenericAeadGCM) != kStatus_Success)
     {
-        return MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
+        ret = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
+        goto exit;
+    }
+    else
+    {
+        ret = 0;
     }
 
-    return ( 0 );
+exit:
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+#endif
+    return ret;
 }
 
 #endif /* MBEDTLS_CCM_ALT */

@@ -36,6 +36,12 @@ typedef struct
     uint32_t rng_handle;
 } ele_ctx_t;
 
+#if defined(MBEDTLS_THREADING_C)
+#include "threading_alt.h"
+/* MUTEX FOR HW Modules*/
+extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_ele_mutex;
+#endif /* defined(MBEDTLS_THREADING_C) */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

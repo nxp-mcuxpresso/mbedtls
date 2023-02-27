@@ -28,6 +28,10 @@
 #include "ele_crypto.h"
 #include "ele_mbedtls.h"
 
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
+
 /* Parameter validation macros based on platform_util.h */
 #define AES_VALIDATE_RET( cond )    \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_AES_BAD_INPUT_DATA )
@@ -197,13 +201,29 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
     GenericCipherECB.iv_size  = 0;
     GenericCipherECB.mode     = kEncrypt;
     GenericCipherECB.algo     = kAES_ECB;
-
+    int ret = MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
+    
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif  
+    
     if (ELE_GenericCipher(S3MU, &GenericCipherECB) != kStatus_Success)
     {
-        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto exit;
+    }
+    else
+    {
+        ret = 0;
     }
 
-    return 0;
+exit:
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+#endif
+    return ret;
 }
 
 
@@ -223,14 +243,29 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
     GenericCipherECB.iv_size  = 0;
     GenericCipherECB.mode     = kDecrypt;
     GenericCipherECB.algo     = kAES_ECB;
-
+    int ret = MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
+    
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif  
+    
     if (ELE_GenericCipher(S3MU, &GenericCipherECB) != kStatus_Success)
     {
-        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto exit;
+    }
+    else
+    {
+        ret = 0;
     }
 
-
-    return 0;
+exit:
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+#endif
+    return ret;
 }
 
 /*
@@ -284,16 +319,27 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     GenericCipherCBC.iv       = (uint32_t)iv;
     GenericCipherCBC.iv_size  = 16u;
     GenericCipherCBC.algo     = kAES_CBC;
-
+    int ret = MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
+    
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif  
+    
     if(mode == MBEDTLS_AES_ENCRYPT)
     {
         GenericCipherCBC.mode = kEncrypt;
         
         if (ELE_GenericCipher(S3MU, &GenericCipherCBC) != kStatus_Success)
         {
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            goto exit;
         }
-        
+        else
+        {
+            ret = 0;
+        }
+
         /* Save updated IV */
         memcpy(iv, output + length - 16, 16);
     }
@@ -307,7 +353,12 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         
         if (ELE_GenericCipher(S3MU, &GenericCipherCBC) != kStatus_Success)
         {
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+            goto exit;
+        }
+        else
+        {
+            ret = 0;
         }
         
         /* Save updated IV */
@@ -315,7 +366,12 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
 
     }
     
-    return 0;
+exit:
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+#endif
+    return ret;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 

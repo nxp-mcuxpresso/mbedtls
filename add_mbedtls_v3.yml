@@ -298,7 +298,7 @@ middleware.mbedtls.port.sssapi:
       belong_to: mbedtls
     display_name: mbedtls_sssapi
   dependency:
-    anyOf:
+    allOf:
     - device:
       - KW45B41Z83
       - KW45B41Z83_NBU
@@ -341,7 +341,7 @@ middleware.mbedtls.port.ksdk:
       belong_to: mbedtls
     display_name: mbedtls_ksdk
   dependency:
-    anyOf:
+    allOf:
     - device:
       - K32L2A31A
       - K32L2A41A
@@ -428,8 +428,6 @@ middleware.mbedtls.port.ksdk:
       - MKW41Z4
     - middleware.mbedtls
     - middleware.mbedtls.template
-    - anyOf:
-      - middleware.mbedtls.kinetis
 middleware.mbedtls:
   section-type: component
   contents:
@@ -720,8 +718,8 @@ middleware.mbedtls.default_heap_stack:
               ad-flags:
               - "-Xlinker --defsym=__stack_size__=0x2000"
               - "-Xlinker --defsym=__heap_size__=0x8000"
-middleware.mbedtls.unused_files:
-  section-type: component
+container.middleware.mbedtls.unused_files:
+  section-type: container
   contents:
     repo_base_path: middleware/mbedtls
     project_base_path: mbedtls

@@ -108,6 +108,133 @@ mbedtls_selftest:
   section-type: application
   __requires__:
   - driver.port middleware.mbedtls.default_heap_stack middleware.mbedtls
+mbedtls_selftest_thread:
+  configuration:
+    tools:
+      __common__:
+        config:
+          __common__:
+            cc-define:
+              FREESCALE_KSDK_BM:
+              MBEDTLS_CONFIG_FILE: '"ksdk_mbedtls_config.h"'
+    document:
+      name: mbedtls_selftest_thread
+      readme:
+      - boards/${board}/mbedtls_examples/mbedtls_selftest_thread/board.readme
+      - middleware/mbedtls/example/mbedtls_selftest_thread/mbedtls_selftest_thread.readme
+      category: mbedtls_examples
+      brief: The mbedTLS SelfTest Thread program contains two threads that performs cryptographic algorithm testing
+        and prints results to the terminal in parallel.
+    outdir: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
+  modules:
+    demo:
+      required: true
+      cc-include:
+      - path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread
+        package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
+        project_path: board
+      files:
+      - source: middleware/mbedtls/example/mbedtls_selftest_thread/selftest.c
+        merge-to-main: main
+        package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
+        project_path: source
+      - source: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/pin_mux.c
+        package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
+        project_path: board
+      - source: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/pin_mux.h
+        package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
+        project_path: board
+    freertos_config:
+      required: true
+      cc-include:
+      - path: boards/${board}
+        package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
+        project_path: source
+      - path: middleware/mbedtls/example/mbedtls_examples/mbedtls_selftest_thread
+        package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
+        project_path: source
+      as-include:
+      - path: middleware/mbedtls/example/mbedtls_examples/mbedtls_selftest_thread
+        package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
+        project_path: source
+      - path: boards/${board}
+        package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
+        project_path: source
+      files:
+      - source: middleware/mbedtls/example/mbedtls_selftest_thread/FreeRTOSConfig.h
+        merge-to-freertosconfig: main
+        package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
+        project_path: source
+      - source: boards/${board}/FreeRTOSConfigBoard.h
+        merge-to-freertosconfig: sub
+        package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/multicore_foldername}
+        project_path: source
+    pinset:
+      required: true
+      cc-include:
+      - path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
+        project_path: "${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}"
+      files:
+      - source: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}/hardware_init.c
+        merge-to-main: sub
+        project_path: "${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}"
+      - source: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}/app.h
+        merge-to-main: sub
+        project_path: "${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}"
+  section-type: application
+  __requires__:
+  - driver.port middleware.mbedtls.default_heap_stack middleware.mbedtls driver.clock middleware.freertos-kernel.heap_4
+mbedtls_selftest_css:
+  configuration:
+    tools:
+      __common__:
+        config:
+          __common__:
+            cc-define:
+              FREESCALE_KSDK_BM:
+              MBEDTLS_CONFIG_FILE: '"ksdk_mbedtls_config.h"'
+    document:
+      name: mbedtls_selftest_css
+      readme:
+      - boards/${board}/mbedtls_examples/mbedtls_selftest_css/board.readme
+      - middleware/mbedtls/example/mbedtls_selftest_css/mbedtls_selftest.readme
+      category: mbedtls_examples
+      brief: The mbdedTLS SelfTest program performs cryptographic algorithm testing
+        and prints results to the terminal.
+    outdir: boards/${board}/mbedtls_examples/mbedtls_selftest_css/${multicore_foldername}
+  modules:
+    demo:
+      required: true
+      cc-include:
+      - path: boards/${board}/mbedtls_examples/mbedtls_selftest_css
+        package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_css/${multicore_foldername}
+        project_path: board
+      files:
+      - source: middleware/mbedtls/example/mbedtls_selftest_css/selftest.c
+        merge-to-main: main
+        package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_css/${multicore_foldername}
+        project_path: source
+      - source: boards/${board}/mbedtls_examples/mbedtls_selftest_css/pin_mux.c
+        package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_css/${multicore_foldername}
+        project_path: board
+      - source: boards/${board}/mbedtls_examples/mbedtls_selftest_css/pin_mux.h
+        package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_css/${multicore_foldername}
+        project_path: board
+    pinset:
+      required: true
+      cc-include:
+      - path: boards/${board}/mbedtls_examples/mbedtls_selftest_css/${multicore_foldername}
+        project_path: "${board}/mbedtls_examples/mbedtls_selftest_css/${multicore_foldername}"
+      files:
+      - source: boards/${board}/mbedtls_examples/mbedtls_selftest_css/${multicore_foldername}/hardware_init.c
+        merge-to-main: sub
+        project_path: "${board}/mbedtls_examples/mbedtls_selftest_css/${multicore_foldername}"
+      - source: boards/${board}/mbedtls_examples/mbedtls_selftest_css/${multicore_foldername}/app.h
+        merge-to-main: sub
+        project_path: "${board}/mbedtls_examples/mbedtls_selftest_css/${multicore_foldername}"
+  section-type: application
+  __requires__:
+  - driver.port middleware.mbedtls.default_heap_stack middleware.mbedtls
 mbedtls_benchmark:
   configuration:
     tools:

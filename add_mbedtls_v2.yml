@@ -415,6 +415,11 @@ middleware.mbedtls.port.ksdk.devices:
     - device.MIMXRT595S
     - device.MIMXRT633S
     - device.MIMXRT685S
+    - device.MIMX8UD7
+    - device.MIMX8UD5
+    - device.MIMX8UD3
+    - device.MIMX8US5
+    - device.MIMX8US3
     - device.MK11DA5
     - device.MK11DA5WS
     - device.MK21DA5

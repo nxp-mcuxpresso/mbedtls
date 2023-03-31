@@ -26,6 +26,10 @@ endif()
 # on non-POSIX platforms.
 add_definitions("-D_POSIX_C_SOURCE=200809L")
 
+# If SKIP_TEST_SUITES is not defined with -D, get it from the environment.
+if((NOT DEFINED SKIP_TEST_SUITES) AND (DEFINED ENV{SKIP_TEST_SUITES}))
+    set(SKIP_TEST_SUITES $ENV{SKIP_TEST_SUITES})
+endif()
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
 # "foo" as a skip pattern skips "test_suite_foo" and "test_suite_foo.bar"
 # but not "test_suite_foobar".
@@ -46,7 +50,9 @@ function(add_test_suite suite_name)
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_test_code.py ${mbedtls_target} ${CMAKE_CURRENT_SOURCE_DIR}/suites/helpers.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/host_test.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${data_name}.data
     )
 
-    add_executable(test_suite_${data_name} test_suite_${data_name}.c $<TARGET_OBJECTS:mbedtls_test>)
+    add_executable(test_suite_${data_name} test_suite_${data_name}.c
+                   $<TARGET_OBJECTS:mbedtls_test>
+                   $<TARGET_OBJECTS:mbedtls_test_helpers>)
     target_link_libraries(test_suite_${data_name} ${libs})
     # Include test-specific header files from ./include and private header
     # files (used by some invasive tests) from ../library. Public header
@@ -93,6 +99,7 @@ if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/seedfile")
         link_to_source(seedfile)
     endif()
+    link_to_source(Descriptions.txt)
     link_to_source(compat.sh)
     link_to_source(context-info.sh)
     link_to_source(data_files)

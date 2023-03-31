@@ -1,6 +1,6 @@
 ---
 __variable__:
-  mbedtls_version: 2.28.1
+  mbedtls_version: 2.28.3
 middleware.mbedtls.template:
   section-type: component
   __requires__:

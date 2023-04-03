@@ -36,13 +36,13 @@
 /**
  * The AES CMAC context structure.
  */
-typedef struct
-{
+typedef struct {
     mcuxClSession_Descriptor_t macSession;
     mcuxClKey_Descriptor_t     macKey;
     mcuxClMac_Context_t        macContext;
-    uint32_t *                macKeyDestination;
-    uint32_t                  macCpuWa[(MCUXCLMAC_WA_SIZE_MAX + (sizeof(uint32_t)) - 1u) / (sizeof(uint32_t))];
+    uint32_t *macKeyDestination;
+    uint32_t                  macCpuWa[(MCUXCLMAC_WA_SIZE_MAX + (sizeof(uint32_t)) - 1u) /
+                                       (sizeof(uint32_t))];
 } mbedtls_aes_cmac_context_t;
 
 /**
@@ -62,7 +62,7 @@ typedef struct
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED on error
  */
-int mbedtls_cipher_aes_cmac_starts( mbedtls_cipher_context_t *ctx );
+int mbedtls_cipher_aes_cmac_starts(mbedtls_cipher_context_t *ctx);
 
 /**
  * \brief               This function feeds an input buffer into an ongoing AES CMAC
@@ -80,9 +80,9 @@ int mbedtls_cipher_aes_cmac_starts( mbedtls_cipher_context_t *ctx );
  * \return              #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED on other error
  *
  */
-int mbedtls_cipher_aes_cmac_update( mbedtls_cipher_context_t *ctx,
-                                    const unsigned char *input,
-                                    size_t ilen );
+int mbedtls_cipher_aes_cmac_update(mbedtls_cipher_context_t *ctx,
+                                   const unsigned char *input,
+                                   size_t ilen);
 
 /**
  * \brief               This function finishes the AES CMAC operation, and writes
@@ -99,8 +99,8 @@ int mbedtls_cipher_aes_cmac_update( mbedtls_cipher_context_t *ctx,
  * \return              #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED on other error
  *
  */
-int mbedtls_cipher_aes_cmac_finish( mbedtls_cipher_context_t *ctx,
-                                    unsigned char *output );
+int mbedtls_cipher_aes_cmac_finish(mbedtls_cipher_context_t *ctx,
+                                   unsigned char *output);
 #endif  /* MBEDTLS_AES_CMAC_ALT */
 
 #endif  /* MBEDTLS_CMAC_ALT_H */

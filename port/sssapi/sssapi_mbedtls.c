@@ -34,52 +34,37 @@ static uint32_t g_isCryptoHWInitialized = SSS_CRYPTOHW_NONINITIALIZED;
 status_t CRYPTO_InitHardware(void)
 {
     status_t ret = kStatus_Fail;
-    if (g_isCryptoHWInitialized == SSS_CRYPTOHW_NONINITIALIZED)
-    {
+    if (g_isCryptoHWInitialized == SSS_CRYPTOHW_NONINITIALIZED) {
         sss_sscp_rng_t rctx;
-        if (SNT_mu_wait_for_ready(ELEMUA, SSS_MAX_SUBSYTEM_WAIT) != kStatus_Success)
-        {
+        if (SNT_mu_wait_for_ready(ELEMUA, SSS_MAX_SUBSYTEM_WAIT) != kStatus_Success) {
         }
 #if (defined(SNT_HAS_LOADABLE_FW) && SNT_HAS_LOADABLE_FW)
-        else if (SNT_loadFwLocal(ELEMUA) != kStatus_SNT_Success)
-        {
+        else if (SNT_loadFwLocal(ELEMUA) != kStatus_SNT_Success) {
         }
 #endif /* SNT_HAS_LOADABLE_FW */
-        else if (sscp_mu_init(&g_sscpContext, (MU_Type *)(uintptr_t)ELEMUA) != kStatus_SSCP_Success)
-        {
-        }
-        else if (sss_sscp_open_session(&g_sssSession, SSS_SUBSYSTEM, &g_sscpContext, 0u, NULL) != kStatus_SSS_Success)
-        {
-        }
-        else if (sss_sscp_key_store_context_init(&g_keyStore, &g_sssSession) != kStatus_SSS_Success)
-        {
-        }
-        else if (sss_sscp_key_store_allocate(&g_keyStore, 0u) != kStatus_SSS_Success)
-        {
+        else if (sscp_mu_init(&g_sscpContext,
+                              (MU_Type *) (uintptr_t) ELEMUA) != kStatus_SSCP_Success) {
+        } else if (sss_sscp_open_session(&g_sssSession, SSS_SUBSYSTEM, &g_sscpContext, 0u,
+                                         NULL) != kStatus_SSS_Success) {
+        } else if (sss_sscp_key_store_context_init(&g_keyStore,
+                                                   &g_sssSession) != kStatus_SSS_Success) {
+        } else if (sss_sscp_key_store_allocate(&g_keyStore, 0u) != kStatus_SSS_Success) {
         }
         /* RNG call used to init Sentinel TRNG required e.g. by sss_sscp_key_store_generate_key service
-        if TRNG inicialization is no needed for used operations, the following code can be removed
-        to increase the performance.*/
-        else if (sss_sscp_rng_context_init(&g_sssSession, &rctx, SSS_HIGH_QUALITY_RNG) != kStatus_SSS_Success)
-        {
+           if TRNG inicialization is no needed for used operations, the following code can be removed
+           to increase the performance.*/
+        else if (sss_sscp_rng_context_init(&g_sssSession, &rctx,
+                                           SSS_HIGH_QUALITY_RNG) != kStatus_SSS_Success) {
         }
         /*Providing NULL output buffer, as we just need to initialize TRNG, not get random data*/
-        else if (sss_sscp_rng_get_random(&rctx, NULL, 0x0u) != kStatus_SSS_Success)
-        {
-        }
-        else if (sss_sscp_rng_free(&rctx) != kStatus_SSS_Success)
-        {
-        }
-        else
-        {
+        else if (sss_sscp_rng_get_random(&rctx, NULL, 0x0u) != kStatus_SSS_Success) {
+        } else if (sss_sscp_rng_free(&rctx) != kStatus_SSS_Success) {
+        } else {
             g_isCryptoHWInitialized = SSS_CRYPTOHW_INITIALIZED;
             ret                     = kStatus_Success;
         }
-    }
-    else
-    {
-        if (g_isCryptoHWInitialized == SSS_CRYPTOHW_INITIALIZED)
-        {
+    } else {
+        if (g_isCryptoHWInitialized == SSS_CRYPTOHW_INITIALIZED) {
             ret = kStatus_Success;
         }
     }
@@ -135,49 +120,35 @@ static uint32_t g_isCryptoHWInitialized = SSS_CRYPTOHW_NONINITIALIZED;
 status_t CRYPTO_InitHardware(void)
 {
     status_t ret = kStatus_Fail;
-    if (g_isCryptoHWInitialized == SSS_CRYPTOHW_NONINITIALIZED)
-    {
+    if (g_isCryptoHWInitialized == SSS_CRYPTOHW_NONINITIALIZED) {
         sss_sscp_rng_t rctx;
-        if (SNT_mu_wait_for_ready(ELEMUA, SSS_MAX_SUBSYTEM_WAIT) != kStatus_Success)
-        {
+        if (SNT_mu_wait_for_ready(ELEMUA, SSS_MAX_SUBSYTEM_WAIT) != kStatus_Success) {
         }
 #if (defined(SNT_HAS_LOADABLE_FW) && SNT_HAS_LOADABLE_FW)
-        else if (SNT_loadFwLocal(ELEMUA) != kStatus_SNT_Success)
-        {
+        else if (SNT_loadFwLocal(ELEMUA) != kStatus_SNT_Success) {
         }
 #endif /* SNT_HAS_LOADABLE_FW */
-        else if (sscp_mu_init(&g_sscpContext, (MU_Type *)(uintptr_t)ELEMUA) != kStatus_SSCP_Success)
-        {
-        }
-        else if (sss_sscp_open_session(&g_sssSession, 0u, SSS_SUBSYSTEM, &g_sscpContext) != kStatus_SSS_Success)
-        {
-        }
-        else if (sss_sscp_key_store_init(&g_keyStore, &g_sssSession) != kStatus_SSS_Success)
-        {
+        else if (sscp_mu_init(&g_sscpContext,
+                              (MU_Type *) (uintptr_t) ELEMUA) != kStatus_SSCP_Success) {
+        } else if (sss_sscp_open_session(&g_sssSession, 0u, SSS_SUBSYSTEM,
+                                         &g_sscpContext) != kStatus_SSS_Success) {
+        } else if (sss_sscp_key_store_init(&g_keyStore, &g_sssSession) != kStatus_SSS_Success) {
         }
         /* RNG call used to init Sentinel TRNG required e.g. by sss_sscp_key_store_generate_key service
-        if TRNG inicialization is no needed for used operations, the following code can be removed
-        to increase the performance.*/
-        else if (sss_sscp_rng_context_init(&g_sssSession, &rctx, SSS_HIGH_QUALITY_RNG) != kStatus_SSS_Success)
-        {
+           if TRNG inicialization is no needed for used operations, the following code can be removed
+           to increase the performance.*/
+        else if (sss_sscp_rng_context_init(&g_sssSession, &rctx,
+                                           SSS_HIGH_QUALITY_RNG) != kStatus_SSS_Success) {
         }
         /*Providing NULL output buffer, as we just need to initialize TRNG, not get random data*/
-        else if (sss_sscp_rng_get_random(&rctx, NULL, 0x0u) != kStatus_SSS_Success)
-        {
-        }
-        else if (sss_sscp_rng_free(&rctx) != kStatus_SSS_Success)
-        {
-        }
-        else
-        {
+        else if (sss_sscp_rng_get_random(&rctx, NULL, 0x0u) != kStatus_SSS_Success) {
+        } else if (sss_sscp_rng_free(&rctx) != kStatus_SSS_Success) {
+        } else {
             g_isCryptoHWInitialized = SSS_CRYPTOHW_INITIALIZED;
             ret                     = kStatus_Success;
         }
-    }
-    else
-    {
-        if (g_isCryptoHWInitialized == SSS_CRYPTOHW_INITIALIZED)
-        {
+    } else {
+        if (g_isCryptoHWInitialized == SSS_CRYPTOHW_INITIALIZED) {
             ret = kStatus_Success;
         }
     }

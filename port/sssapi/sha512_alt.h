@@ -55,8 +55,7 @@ extern "C" {
  *                 checksum calculations. The choice between these two is
  *                 made in the call to mbedtls_sha512_starts_ret().
  */
-typedef struct mbedtls_sha512_context
-{
+typedef struct mbedtls_sha512_context {
     uint64_t total[2];         /*!< The number of Bytes processed. */
     uint64_t state[8];         /*!< The intermediate digest state. */
     unsigned char buffer[128]; /*!< The data block being processed. */
@@ -71,4 +70,3 @@ typedef struct mbedtls_sha512_context
 #endif
 
 #endif /* mbedtls_sha512_alt.h */
-

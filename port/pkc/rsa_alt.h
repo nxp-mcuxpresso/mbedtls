@@ -35,8 +35,7 @@
  *          is deprecated. All manipulation should instead be done through
  *          the public interface functions.
  */
-typedef struct mbedtls_rsa_context
-{
+typedef struct mbedtls_rsa_context {
     int ver;                    /*!<  Always 0.*/
     size_t len;                 /*!<  The size of \p N in Bytes. */
 
@@ -60,8 +59,8 @@ typedef struct mbedtls_rsa_context
     mbedtls_mpi Vf;             /*!<  The cached un-blinding value. */
 
     int padding;                /*!< Selects padding mode:
-                                     #MBEDTLS_RSA_PKCS_V15 for 1.5 padding and
-                                     #MBEDTLS_RSA_PKCS_V21 for OAEP or PSS. */
+                                 #MBEDTLS_RSA_PKCS_V15 for 1.5 padding and
+                                 #MBEDTLS_RSA_PKCS_V21 for OAEP or PSS. */
     int hash_id;                /*!< Hash identifier of mbedtls_md_type_t type,
                                      as specified in md.h for use in the MGF
                                      mask generating function used in the
@@ -80,7 +79,7 @@ typedef struct mbedtls_rsa_context
 mbedtls_rsa_context;
 
 
-extern int rsa_check_context( mbedtls_rsa_context const *ctx, int is_priv,
-                              int blinding_needed );
+extern int rsa_check_context(mbedtls_rsa_context const *ctx, int is_priv,
+                             int blinding_needed);
 
 #endif /* MBEDTLS_RSA_ALT_H */

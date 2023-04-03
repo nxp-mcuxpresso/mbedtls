@@ -36,8 +36,7 @@
  *                 checksum calculations. The choice between these two is
  *                 made in the call to mbedtls_sha256_starts_ret().
  */
-typedef struct mbedtls_sha256_context
-{
+typedef struct mbedtls_sha256_context {
     mcuxClHash_Context_t context;
 }
 mbedtls_sha256_context;

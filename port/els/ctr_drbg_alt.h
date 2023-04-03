@@ -18,8 +18,7 @@
 
 #if defined(MBEDTLS_CTR_DRBG_ALT)
 
-typedef struct mbedtls_ctr_drbg_context
-{
+typedef struct mbedtls_ctr_drbg_context {
     int prediction_resistance;          /*!< This implementation does not support reseeding
                                             setting this option will result in errors when requesting rng values */
 

@@ -36,8 +36,7 @@
  *                 checksum calculations. The choice between these two is
  *                 made in the call to mbedtls_sha512_starts_ret().
  */
-typedef struct mbedtls_sha512_context
-{
+typedef struct mbedtls_sha512_context {
     mcuxClHash_Context_t context;
 }
 mbedtls_sha512_context;

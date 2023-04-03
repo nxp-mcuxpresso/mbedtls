@@ -25,8 +25,10 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 
     /* Call CSS to get random data */
     MCUX_CSSL_FP_FUNCTION_CALL_BEGIN(result, token, mcuxClCss_Prng_GetRandom(output, len));
-    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Prng_GetRandom) != token) || (MCUXCLCSS_STATUS_OK != result))
+    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Prng_GetRandom) != token) ||
+        (MCUXCLCSS_STATUS_OK != result)) {
         return kStatus_Fail;
+    }
     MCUX_CSSL_FP_FUNCTION_CALL_END();
 
 

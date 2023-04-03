@@ -35,9 +35,9 @@
  *
  * \return
  */
-int mbedtls_aes_cbc_mac  ( mbedtls_aes_context *ctx,
-                           size_t length,
-                           unsigned char *iv,
-                           const unsigned char *pInput );
+int mbedtls_aes_cbc_mac(mbedtls_aes_context *ctx,
+                        size_t length,
+                        unsigned char *iv,
+                        const unsigned char *pInput);
 
 #endif /* MBEDTLS_CBC_MAC_ALT_H */

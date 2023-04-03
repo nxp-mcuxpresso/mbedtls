@@ -57,8 +57,7 @@
  *                  ECDSA context is not supported; objects of this type
  *                  should not be shared between multiple threads.
  */
-typedef struct mbedtls_ecdsa_context
-{
+typedef struct mbedtls_ecdsa_context {
     mbedtls_ecp_group grp; /*!<  Elliptic curve and base point     */
     mbedtls_mpi d;         /*!<  our secret value                  */
     mbedtls_ecp_point Q;   /*!<  our public value                  */
@@ -68,4 +67,3 @@ typedef struct mbedtls_ecdsa_context
 #endif /* MBEDTLS_ECDSA_ALT */
 
 #endif /* MBEDTLS_ECDSA_ALT_H */
-

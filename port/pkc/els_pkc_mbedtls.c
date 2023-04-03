@@ -18,7 +18,8 @@
 #include "threading_alt.h"
 #endif
 
-#if !defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) && defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
+#if !defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) && defined(MBEDTLS_THREADING_C) && \
+    defined(MBEDTLS_THREADING_ALT)
 extern void CRYPTO_ConfigureThreading(void);
 #endif
 
@@ -67,31 +68,28 @@ __WEAK uint32_t __stack_chk_guard;
 
 __WEAK void __stack_chk_fail(void)
 {
-    while(1){};
+    while (1) {
+    }
+    ;
 }
 
 int mbedtls_hw_init(void)
 {
     status_t status;
-    
-    if(g_isCryptoHWInitialized == ELS_PKC_CRYPTOHW_NONINITIALIZED)
-    {
+
+    if (g_isCryptoHWInitialized == ELS_PKC_CRYPTOHW_NONINITIALIZED) {
         /* Enable ELS and related clocks */
         status = CSS_PowerDownWakeupInit(ELS);
-        if (status != kStatus_Success)
-        {
+        if (status != kStatus_Success) {
             return status;
         }
 
         /* Enable PKC related clocks without RAM zeroize */
         status = PKC_InitNoZeroize(PKC);
-        if (status != kStatus_Success)
-        {
+        if (status != kStatus_Success) {
             return status;
         }
-    }
-    else
-    {
+    } else {
         return kStatus_Success;
     }
 
@@ -118,28 +116,26 @@ status_t CRYPTO_InitHardware(void)
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init(&mbedtls_threading_hwcrypto_css_mutex);
-#endif /* (MBEDTLS_THREADING_C) */    
+#endif /* (MBEDTLS_THREADING_C) */
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init(&mbedtls_threading_hwcrypto_pkc_mutex);
-#endif /* (MBEDTLS_THREADING_C) */  
+#endif /* (MBEDTLS_THREADING_C) */
     /* Enable CSS and related clocks */
     // TODO: use ELS component when available
     status = CSS_PowerDownWakeupInit(ELS);
-    if (status != kStatus_Success)
-    {
+    if (status != kStatus_Success) {
         return kStatus_Fail;
     }
 
     /* Enable PKC related clocks and RAM zeroize */
     status = PKC_PowerDownWakeupInit(PKC);
-    if (status != kStatus_Success)
-    {
+    if (status != kStatus_Success) {
         return kStatus_Fail;
     }
-    
+
     g_isCryptoHWInitialized = ELS_PKC_CRYPTOHW_INITIALIZED;
-    
+
     return status;
 }
 
@@ -160,12 +156,9 @@ void mcux_mbedtls_mutex_init(mbedtls_threading_mutex_t *mutex)
 {
     mutex->mutex = xSemaphoreCreateMutex();
 
-    if (mutex->mutex != NULL)
-    {
+    if (mutex->mutex != NULL) {
         mutex->is_valid = 1;
-    }
-    else
-    {
+    } else {
         mutex->is_valid = 0;
     }
 }
@@ -176,8 +169,7 @@ void mcux_mbedtls_mutex_init(mbedtls_threading_mutex_t *mutex)
  */
 void mcux_mbedtls_mutex_free(mbedtls_threading_mutex_t *mutex)
 {
-    if (mutex->is_valid == 1)
-    {
+    if (mutex->is_valid == 1) {
         vSemaphoreDelete(mutex->mutex);
         mutex->is_valid = 0;
     }
@@ -193,14 +185,10 @@ int mcux_mbedtls_mutex_lock(mbedtls_threading_mutex_t *mutex)
 {
     int ret = MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
 
-    if (mutex->is_valid == 1)
-    {
-        if (xSemaphoreTake(mutex->mutex, portMAX_DELAY))
-        {
+    if (mutex->is_valid == 1) {
+        if (xSemaphoreTake(mutex->mutex, portMAX_DELAY)) {
             ret = 0;
-        }
-        else
-        {
+        } else {
             ret = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
         }
     }
@@ -218,14 +206,10 @@ int mcux_mbedtls_mutex_unlock(mbedtls_threading_mutex_t *mutex)
 {
     int ret = MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
 
-    if (mutex->is_valid == 1)
-    {
-        if (xSemaphoreGive(mutex->mutex))
-        {
+    if (mutex->is_valid == 1) {
+        if (xSemaphoreGive(mutex->mutex)) {
             ret = 0;
-        }
-        else
-        {
+        } else {
             ret = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
         }
     }
@@ -236,7 +220,9 @@ int mcux_mbedtls_mutex_unlock(mbedtls_threading_mutex_t *mutex)
 static void CRYPTO_ConfigureThreadingMcux(void)
 {
     /* Configure mbedtls to use FreeRTOS mutexes. */
-    mbedtls_threading_set_alt(mcux_mbedtls_mutex_init, mcux_mbedtls_mutex_free, mcux_mbedtls_mutex_lock,
+    mbedtls_threading_set_alt(mcux_mbedtls_mutex_init,
+                              mcux_mbedtls_mutex_free,
+                              mcux_mbedtls_mutex_lock,
                               mcux_mbedtls_mutex_unlock);
 }
 #endif /* defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) */

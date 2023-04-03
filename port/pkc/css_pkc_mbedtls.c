@@ -24,31 +24,28 @@ __WEAK uint32_t __stack_chk_guard;
 
 __WEAK void __stack_chk_fail(void)
 {
-    while(1){};
+    while (1) {
+    }
+    ;
 }
 
 int mbedtls_hw_init(void)
 {
     status_t status;
-    
-    if(g_isCryptoHWInitialized == CSS_PKC_CRYPTOHW_NONINITIALIZED)
-    {
+
+    if (g_isCryptoHWInitialized == CSS_PKC_CRYPTOHW_NONINITIALIZED) {
         /* Enable CSS and related clocks */
         status = CSS_PowerDownWakeupInit(CSS);
-        if (status != kStatus_Success)
-        {
+        if (status != kStatus_Success) {
             return status;
         }
 
         /* Enable PKC related clocks without RAM zeroize */
         status = PKC_InitNoZeroize(PKC);
-        if (status != kStatus_Success)
-        {
+        if (status != kStatus_Success) {
             return status;
         }
-    }
-    else
-    {
+    } else {
         return kStatus_Success;
     }
 
@@ -70,19 +67,17 @@ status_t CRYPTO_InitHardware(void)
 
     /* Enable CSS and related clocks */
     status = CSS_PowerDownWakeupInit(CSS);
-    if (status != kStatus_Success)
-    {
+    if (status != kStatus_Success) {
         return kStatus_Fail;
     }
 
     /* Enable PKC related clocks and RAM zeroize */
     status = PKC_PowerDownWakeupInit(PKC);
-    if (status != kStatus_Success)
-    {
+    if (status != kStatus_Success) {
         return kStatus_Fail;
     }
-    
+
     g_isCryptoHWInitialized = CSS_PKC_CRYPTOHW_INITIALIZED;
-    
+
     return status;
 }

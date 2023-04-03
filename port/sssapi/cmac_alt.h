@@ -51,8 +51,7 @@ extern "C" {
 /**
  * The CMAC context structure.
  */
-struct mbedtls_cmac_context_t
-{
+struct mbedtls_cmac_context_t {
     /** The internal state of the CMAC algorithm.  */
     unsigned char state[MBEDTLS_CIPHER_BLKSIZE_MAX];
 
@@ -123,8 +122,7 @@ extern "C" {
 /**
  * The CMAC context structure.
  */
-struct mbedtls_cmac_context_t
-{
+struct mbedtls_cmac_context_t {
     /** The internal state of the CMAC algorithm.  */
     unsigned char state[MBEDTLS_CIPHER_BLKSIZE_MAX];
 

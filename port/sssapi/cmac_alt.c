@@ -72,23 +72,19 @@ static int cmac_multiply_by_u(unsigned char *output, const unsigned char *input,
     unsigned char overflow = 0x00;
     int i;
 
-    if (blocksize == MBEDTLS_AES_BLOCK_SIZE)
-    {
+    if (blocksize == MBEDTLS_AES_BLOCK_SIZE) {
         R_n = R_128;
     }
 #if defined MBEDTLS_DES_C
-    else if (blocksize == MBEDTLS_DES3_BLOCK_SIZE)
-    {
+    else if (blocksize == MBEDTLS_DES3_BLOCK_SIZE) {
         R_n = R_64;
     }
 #endif
-    else
-    {
-        return (MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA);
+    else {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-    for (i = (int)blocksize - 1; i >= 0; i--)
-    {
+    for (i = (int) blocksize - 1; i >= 0; i--) {
         output[i] = input[i] << 1 | overflow;
         overflow  = input[i] >> 7;
     }
@@ -109,7 +105,7 @@ static int cmac_multiply_by_u(unsigned char *output, const unsigned char *input,
 
     output[blocksize - 1u] ^= R_n & mask;
 
-    return (0);
+    return 0;
 }
 
 /*
@@ -117,7 +113,8 @@ static int cmac_multiply_by_u(unsigned char *output, const unsigned char *input,
  *
  * - as specified by RFC 4493, section 2.3 Subkey Generation Algorithm
  */
-static int cmac_generate_subkeys(mbedtls_cipher_context_t *ctx, unsigned char *K1, unsigned char *K2)
+static int cmac_generate_subkeys(mbedtls_cipher_context_t *ctx, unsigned char *K1,
+                                 unsigned char *K2)
 {
     int ret;
     unsigned char L[MBEDTLS_CIPHER_BLKSIZE_MAX];
@@ -128,28 +125,25 @@ static int cmac_generate_subkeys(mbedtls_cipher_context_t *ctx, unsigned char *K
     block_size = ctx->cipher_info->block_size;
 
     /* Calculate Ek(0) */
-    if ((ret = mbedtls_cipher_update(ctx, L, block_size, L, &olen)) != 0)
-    {
+    if ((ret = mbedtls_cipher_update(ctx, L, block_size, L, &olen)) != 0) {
         goto exit;
     }
 
     /*
      * Generate K1 and K2
      */
-    if ((ret = cmac_multiply_by_u(K1, L, block_size)) != 0)
-    {
+    if ((ret = cmac_multiply_by_u(K1, L, block_size)) != 0) {
         goto exit;
     }
 
-    if ((ret = cmac_multiply_by_u(K2, K1, block_size)) != 0)
-    {
+    if ((ret = cmac_multiply_by_u(K2, K1, block_size)) != 0) {
         goto exit;
     }
 
 exit:
     mbedtls_platform_zeroize(L, sizeof(L));
 
-    return (ret);
+    return ret;
 }
 
 static void cmac_xor_block(unsigned char *output,
@@ -159,8 +153,7 @@ static void cmac_xor_block(unsigned char *output,
 {
     size_t idx;
 
-    for (idx = 0; idx < block_size; idx++)
-    {
+    for (idx = 0; idx < block_size; idx++) {
         output[idx] = input1[idx] ^ input2[idx];
     }
 }
@@ -178,43 +171,36 @@ static void cmac_pad(unsigned char padded_block[MBEDTLS_CIPHER_BLKSIZE_MAX],
 {
     size_t j;
 
-    for (j = 0; j < padded_block_len; j++)
-    {
-        if (j < last_block_len)
-        {
+    for (j = 0; j < padded_block_len; j++) {
+        if (j < last_block_len) {
             padded_block[j] = last_block[j];
-        }
-        else if (j == last_block_len)
-        {
+        } else if (j == last_block_len) {
             padded_block[j] = 0x80;
-        }
-        else
-        {
+        } else {
             padded_block[j] = 0x00;
         }
     }
 }
 
-int mbedtls_cipher_cmac_starts(mbedtls_cipher_context_t *ctx, const unsigned char *key, size_t keybits)
+int mbedtls_cipher_cmac_starts(mbedtls_cipher_context_t *ctx,
+                               const unsigned char *key,
+                               size_t keybits)
 {
     mbedtls_cipher_type_t type;
     mbedtls_cmac_context_t *cmac_ctx;
     int retval;
 
-    if (ctx == NULL || ctx->cipher_info == NULL || key == NULL)
-    {
-        return (MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA);
+    if (ctx == NULL || ctx->cipher_info == NULL || key == NULL) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-    if ((retval = mbedtls_cipher_setkey(ctx, key, (int)keybits, MBEDTLS_ENCRYPT)) != 0)
-    {
-        return (retval);
+    if ((retval = mbedtls_cipher_setkey(ctx, key, (int) keybits, MBEDTLS_ENCRYPT)) != 0) {
+        return retval;
     }
 
     type = ctx->cipher_info->type;
 
-    switch (type)
-    {
+    switch (type) {
         case MBEDTLS_CIPHER_AES_128_ECB:
         case MBEDTLS_CIPHER_AES_192_ECB:
         case MBEDTLS_CIPHER_AES_256_ECB:
@@ -223,15 +209,14 @@ int mbedtls_cipher_cmac_starts(mbedtls_cipher_context_t *ctx, const unsigned cha
 #endif
             break;
         default:
-            return (MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA);
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
     /* Allocated and initialise in the cipher context memory for the CMAC
      * context */
     cmac_ctx = mbedtls_calloc(1, sizeof(mbedtls_cmac_context_t));
-    if (cmac_ctx == NULL)
-    {
-        return (MBEDTLS_ERR_CIPHER_ALLOC_FAILED);
+    if (cmac_ctx == NULL) {
+        return MBEDTLS_ERR_CIPHER_ALLOC_FAILED;
     }
 
     ctx->cmac_ctx = cmac_ctx;
@@ -241,16 +226,17 @@ int mbedtls_cipher_cmac_starts(mbedtls_cipher_context_t *ctx, const unsigned cha
     return 0;
 }
 
-int mbedtls_cipher_cmac_update(mbedtls_cipher_context_t *ctx, const unsigned char *input, size_t ilen)
+int mbedtls_cipher_cmac_update(mbedtls_cipher_context_t *ctx,
+                               const unsigned char *input,
+                               size_t ilen)
 {
     mbedtls_cmac_context_t *cmac_ctx;
     unsigned char *state;
     int ret = 0;
     size_t n, j, olen, block_size;
 
-    if (ctx == NULL || ctx->cipher_info == NULL || input == NULL || ctx->cmac_ctx == NULL)
-    {
-        return (MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA);
+    if (ctx == NULL || ctx->cipher_info == NULL || input == NULL || ctx->cmac_ctx == NULL) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
     cmac_ctx   = ctx->cmac_ctx;
@@ -259,15 +245,13 @@ int mbedtls_cipher_cmac_update(mbedtls_cipher_context_t *ctx, const unsigned cha
 
     /* Is there data still to process from the last call, that's greater in
      * size than a block? */
-    if (cmac_ctx->unprocessed_len > 0 && ilen > block_size - cmac_ctx->unprocessed_len)
-    {
-        (void)memcpy(&cmac_ctx->unprocessed_block[cmac_ctx->unprocessed_len], input,
-                     block_size - cmac_ctx->unprocessed_len);
+    if (cmac_ctx->unprocessed_len > 0 && ilen > block_size - cmac_ctx->unprocessed_len) {
+        (void) memcpy(&cmac_ctx->unprocessed_block[cmac_ctx->unprocessed_len], input,
+                      block_size - cmac_ctx->unprocessed_len);
 
         cmac_xor_block(state, cmac_ctx->unprocessed_block, state, block_size);
 
-        if ((ret = mbedtls_cipher_update(ctx, state, block_size, state, &olen)) != 0)
-        {
+        if ((ret = mbedtls_cipher_update(ctx, state, block_size, state, &olen)) != 0) {
             goto exit;
         }
 
@@ -281,12 +265,10 @@ int mbedtls_cipher_cmac_update(mbedtls_cipher_context_t *ctx, const unsigned cha
 
     /* Iterate across the input data in block sized chunks, excluding any
      * final partial or complete block */
-    for (j = 1; j < n; j++)
-    {
+    for (j = 1; j < n; j++) {
         cmac_xor_block(state, input, state, block_size);
 
-        if ((ret = mbedtls_cipher_update(ctx, state, block_size, state, &olen)) != 0)
-        {
+        if ((ret = mbedtls_cipher_update(ctx, state, block_size, state, &olen)) != 0) {
             goto exit;
         }
 
@@ -295,14 +277,13 @@ int mbedtls_cipher_cmac_update(mbedtls_cipher_context_t *ctx, const unsigned cha
     }
 
     /* If there is data left over that wasn't aligned to a block */
-    if (ilen > 0)
-    {
-        (void)memcpy(&cmac_ctx->unprocessed_block[cmac_ctx->unprocessed_len], input, ilen);
+    if (ilen > 0) {
+        (void) memcpy(&cmac_ctx->unprocessed_block[cmac_ctx->unprocessed_len], input, ilen);
         cmac_ctx->unprocessed_len += ilen;
     }
 
 exit:
-    return (ret);
+    return ret;
 }
 
 int mbedtls_cipher_cmac_finish(mbedtls_cipher_context_t *ctx, unsigned char *output)
@@ -315,9 +296,8 @@ int mbedtls_cipher_cmac_finish(mbedtls_cipher_context_t *ctx, unsigned char *out
     int ret;
     size_t olen, block_size;
 
-    if (ctx == NULL || ctx->cipher_info == NULL || ctx->cmac_ctx == NULL || output == NULL)
-    {
-        return (MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA);
+    if (ctx == NULL || ctx->cipher_info == NULL || ctx->cmac_ctx == NULL || output == NULL) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
     cmac_ctx   = ctx->cmac_ctx;
@@ -326,29 +306,25 @@ int mbedtls_cipher_cmac_finish(mbedtls_cipher_context_t *ctx, unsigned char *out
 
     mbedtls_platform_zeroize(K1, sizeof(K1));
     mbedtls_platform_zeroize(K2, sizeof(K2));
-    (void)cmac_generate_subkeys(ctx, K1, K2);
+    (void) cmac_generate_subkeys(ctx, K1, K2);
 
     last_block = cmac_ctx->unprocessed_block;
 
     /* Calculate last block */
-    if (cmac_ctx->unprocessed_len < block_size)
-    {
+    if (cmac_ctx->unprocessed_len < block_size) {
         cmac_pad(M_last, block_size, last_block, cmac_ctx->unprocessed_len);
         cmac_xor_block(M_last, M_last, K2, block_size);
-    }
-    else
-    {
+    } else {
         /* Last block is complete block */
         cmac_xor_block(M_last, last_block, K1, block_size);
     }
 
     cmac_xor_block(state, M_last, state, block_size);
-    if ((ret = mbedtls_cipher_update(ctx, state, block_size, state, &olen)) != 0)
-    {
+    if ((ret = mbedtls_cipher_update(ctx, state, block_size, state, &olen)) != 0) {
         goto exit;
     }
 
-    (void)memcpy(output, state, block_size);
+    (void) memcpy(output, state, block_size);
 
 exit:
     /* Wipe the generated keys on the stack, and any other transients to avoid
@@ -360,16 +336,15 @@ exit:
     mbedtls_platform_zeroize(cmac_ctx->unprocessed_block, sizeof(cmac_ctx->unprocessed_block));
 
     mbedtls_platform_zeroize(state, MBEDTLS_CIPHER_BLKSIZE_MAX);
-    return (ret);
+    return ret;
 }
 
 int mbedtls_cipher_cmac_reset(mbedtls_cipher_context_t *ctx)
 {
     mbedtls_cmac_context_t *cmac_ctx;
 
-    if (ctx == NULL || ctx->cipher_info == NULL || ctx->cmac_ctx == NULL)
-    {
-        return (MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA);
+    if (ctx == NULL || ctx->cipher_info == NULL || ctx->cmac_ctx == NULL) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
     cmac_ctx = ctx->cmac_ctx;
@@ -379,7 +354,7 @@ int mbedtls_cipher_cmac_reset(mbedtls_cipher_context_t *ctx)
     mbedtls_platform_zeroize(cmac_ctx->unprocessed_block, sizeof(cmac_ctx->unprocessed_block));
     mbedtls_platform_zeroize(cmac_ctx->state, sizeof(cmac_ctx->state));
 
-    return (0);
+    return 0;
 }
 
 int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
@@ -392,57 +367,46 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
     mbedtls_cipher_type_t type;
     type = cipher_info->type;
     int ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    if (cipher_info == NULL || key == NULL || input == NULL || output == NULL)
-    {
-        return (MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA);
+    if (cipher_info == NULL || key == NULL || input == NULL || output == NULL) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
     if (((type == MBEDTLS_CIPHER_AES_128_ECB) && (keylen != 128u)) ||
         ((type == MBEDTLS_CIPHER_AES_192_ECB) && (keylen != 192u)) ||
-        ((type == MBEDTLS_CIPHER_AES_256_ECB) && (keylen != 256u)))
-          return (MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA);
-    switch (type)
-    {
+        ((type == MBEDTLS_CIPHER_AES_256_ECB) && (keylen != 256u))) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+    }
+    switch (type) {
         case MBEDTLS_CIPHER_AES_128_ECB:
         case MBEDTLS_CIPHER_AES_192_ECB:
         case MBEDTLS_CIPHER_AES_256_ECB:
         {
             cmac_aes_context_t ctx;
-            if (SSS_aes_cmac(&ctx, key, keylen, input, ilen, output) == kStatus_Success)
-            {
+            if (SSS_aes_cmac(&ctx, key, keylen, input, ilen, output) == kStatus_Success) {
                 ret = 0;
             }
-          }
-          break;
+        }
+        break;
 #if defined MBEDTLS_DES_C
         case MBEDTLS_CIPHER_DES_EDE3_ECB:
-          {
+        {
             mbedtls_cipher_context_t mbedctx;
             mbedtls_cipher_init(&mbedctx);
-            if ((ret = mbedtls_cipher_setup(&mbedctx, cipher_info)) != 0)
-            {
-            }
-            else if ((ret = mbedtls_cipher_cmac_starts(&mbedctx, key, keylen)) != 0)
-            {
-            }
-            else if ((ret = mbedtls_cipher_cmac_update(&mbedctx, input, ilen)) != 0)
-            {
-            }
-            else if ((ret = mbedtls_cipher_cmac_finish(&mbedctx, output)) != 0)
-            {
-            }
-            else
-            {
+            if ((ret = mbedtls_cipher_setup(&mbedctx, cipher_info)) != 0) {
+            } else if ((ret = mbedtls_cipher_cmac_starts(&mbedctx, key, keylen)) != 0) {
+            } else if ((ret = mbedtls_cipher_cmac_update(&mbedctx, input, ilen)) != 0) {
+            } else if ((ret = mbedtls_cipher_cmac_finish(&mbedctx, output)) != 0) {
+            } else {
                 ret = 0;
             }
             mbedtls_cipher_free(&mbedctx);
-          }
+        }
 #endif
-          break;
+            break;
         default:
-            return (MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA);
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
             break;
     }
-    return (ret);
+    return ret;
 }
 
 #if defined(MBEDTLS_AES_C)
@@ -450,38 +414,36 @@ int mbedtls_cipher_cmac(const mbedtls_cipher_info_t *cipher_info,
  * Implementation of AES-CMAC-PRF-128 defined in RFC 4615
  */
 int mbedtls_aes_cmac_prf_128(
-    const unsigned char *key, size_t key_len, const unsigned char *input, size_t in_len, unsigned char output[16])
+    const unsigned char *key,
+    size_t key_len,
+    const unsigned char *input,
+    size_t in_len,
+    unsigned char output[16])
 {
     int ret;
     const mbedtls_cipher_info_t *cipher_info;
     unsigned char zero_key[MBEDTLS_AES_BLOCK_SIZE];
     unsigned char int_key[MBEDTLS_AES_BLOCK_SIZE];
 
-    if (key == NULL || input == NULL || output == NULL)
-    {
-        return (MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA);
+    if (key == NULL || input == NULL || output == NULL) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
     cipher_info = mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_128_ECB);
-    if (cipher_info == NULL)
-    {
+    if (cipher_info == NULL) {
         /* Failing at this point must be due to a build issue */
         ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
         goto exit;
     }
 
-    if (key_len == MBEDTLS_AES_BLOCK_SIZE)
-    {
+    if (key_len == MBEDTLS_AES_BLOCK_SIZE) {
         /* Use key as is */
-        (void)memcpy(int_key, key, MBEDTLS_AES_BLOCK_SIZE);
-    }
-    else
-    {
-        (void)memset(zero_key, 0, MBEDTLS_AES_BLOCK_SIZE);
+        (void) memcpy(int_key, key, MBEDTLS_AES_BLOCK_SIZE);
+    } else {
+        (void) memset(zero_key, 0, MBEDTLS_AES_BLOCK_SIZE);
 
         ret = mbedtls_cipher_cmac(cipher_info, zero_key, 128, key, key_len, int_key);
-        if (ret != 0)
-        {
+        if (ret != 0) {
             goto exit;
         }
     }
@@ -491,7 +453,7 @@ int mbedtls_aes_cmac_prf_128(
 exit:
     mbedtls_platform_zeroize(int_key, sizeof(int_key));
 
-    return (ret);
+    return ret;
 }
 #endif /* MBEDTLS_AES_C */
 #endif /* MBEDTLS_CMAC_ALT */

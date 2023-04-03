@@ -30,4 +30,4 @@ extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_pkc_mutex;
 }
 #endif
 
-#endif /* CSS_PKC_MBEDTLS_H */
+#endif /* ELS_PKC_MBEDTLS_H */

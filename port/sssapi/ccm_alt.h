@@ -75,8 +75,7 @@ extern "C" {
  * \brief    The CCM context-type definition. The CCM context is passed
  *           to the APIs called.
  */
-typedef struct mbedtls_ccm_context
-{
+typedef struct mbedtls_ccm_context {
     sss_sscp_object_t key;
 
     sss_sscp_aead_t aead_ctx;

@@ -1,4 +1,5 @@
----
+# yaml-language-server: $schema=../../bin/generator/sdk_generator/data/sdk_data_schema/v3/software_set_and_project_schema.json
+
 __variable__:
   mbedtls_version: 2.28.3
 middleware.mbedtls.template:
@@ -71,8 +72,11 @@ middleware.mbedtls.els_pkc.config:
     project_base_path: mbedtls
     cc-include:
     - repo_relative_path: port/pkc
+      target_file:
+      - els_pkc_mbedtls_config.h
     files:
     - source: port/pkc/els_pkc_mbedtls_config.h
+      attribute: config
     configuration:
       cc-define:
         MBEDTLS_CONFIG_FILE: '"els_pkc_mbedtls_config.h"'
@@ -83,6 +87,8 @@ middleware.mbedtls.els_pkc.config:
     type: software_component
     full_name: els_pkc config
     user_visible: never
+    taxonomy:
+      csub: template
     display_name: els_pkc_config
 middleware.mbedtls.port.els_pkc:
   section-type: component
@@ -950,8 +956,8 @@ scr.middleware.mbedtls:
     license:
     - license.mbedtls_license
     Name: Mbed TLS
-    Version: 2.28.1
+    Version: "${mbedtls_version}"
     Format: source code
     Description: Cryptographic and SSL/TLS Library
     Location: middleware/mbedtls
-    Origin: ARM(Apache-2.0) - https://github.com/Mbed-TLS/mbedtls/releases/tag/v2.28.1
+    Origin: ARM(Apache-2.0) - https://github.com/Mbed-TLS/mbedtls/releases/tag/v2.28.3

@@ -242,6 +242,7 @@ int mbedtls_cipher_cmac_update(mbedtls_cipher_context_t *ctx,
     if (ctx == NULL || ctx->cipher_info == NULL || input == NULL ||
         ctx->cmac_ctx == NULL) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+		}
 
 /* NXP added */
 #if defined(MBEDTLS_AES_CMAC_ALT)
@@ -316,9 +317,9 @@ int mbedtls_cipher_cmac_finish(mbedtls_cipher_context_t *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t olen, block_size;
 
-    if (ctx == NULL || ctx->cipher_info == NULL || ctx->cmac_ctx == NULL ||
-        output == NULL) {
-        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+    if( ctx == NULL || ctx->cipher_info == NULL || ctx->cmac_ctx == NULL){ /* NXP edited */
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
+		}
 
 /* NXP added */
 #if defined(MBEDTLS_AES_CMAC_ALT)
@@ -993,7 +994,8 @@ int mbedtls_cmac_self_test(int verbose)
                                     NB_CMAC_TESTS_PER_KEY)) != 0) {
         return ret;
     }
-
+/* NXP added for HW accelerators support */	
+#if defined(MBEDTLS_CIPHER_CMAC_ALT) && !defined(MBEDTLS_AES_ALT_NO_192)
     /* AES-192 */
     if ((ret = cmac_test_subkeys(verbose,
                                  "AES 192",
@@ -1018,6 +1020,7 @@ int mbedtls_cmac_self_test(int verbose)
                                     NB_CMAC_TESTS_PER_KEY)) != 0) {
         return ret;
     }
+#endif /* MBEDTLS_CIPHER_CMAC_ALT && !MBEDTLS_AES_ALT_NO_192 */
 
     /* AES-256 */
     if ((ret = cmac_test_subkeys(verbose,

@@ -911,30 +911,20 @@ set.middleware.mbedtls:
     anyOf:
     - ip:
       - DriverType_LPC_AES
-    - ip:
       - DriverType_LTC
-    - ip:
       - DriverType_CAAM
-    - ip:
       - DriverType_cau3
-    - anyOf:
-      - device:
-        - LPC54628
-        - LPC54018
-        - LPC54S018
-        - LPC54S018M
-      - ip:
-        - DriverType_LPC_SHA
-    - ip:
+      - DriverType_LPC_SHA
       - DriverType_LPC_CASPER
-    - ip:
       - DriverType_DCP
-    - ip:
       - DriverType_TRNG
-    - ip:
       - DriverType_RNG
-    - ip:
       - DriverType_SNT
+    - device:
+      - LPC54628
+      - LPC54018
+      - LPC54S018
+      - LPC54S018M
     - set.middleware.mmcau
     - set.component.css_pkc
     - set.component.ele_crypto

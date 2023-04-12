@@ -348,97 +348,60 @@ middleware.mbedtls.port.ksdk:
     display_name: mbedtls_ksdk
   dependency:
     allOf:
-    - device:
-      - K32L2A31A
-      - K32L2A41A
-      - K32L3A60
-      - LPC54005
-      - LPC54016
-      - LPC54018
-      - LPC54018M
-      - LPC54605
-      - LPC54606
-      - LPC54607
-      - LPC54608
-      - LPC54616
-      - LPC54618
-      - LPC54628
-      - LPC54S005
-      - LPC54S016
-      - LPC54S018
-      - LPC54S018M
-      - LPC55S04
-      - LPC55S06
-      - LPC55S14
-      - LPC55S16
-      - LPC55S26
-      - LPC55S28
-      - LPC55S66
-      - LPC55S69
-      - MIMXRT1011
-      - MIMXRT1021
-      - MIMXRT1024
-      - MIMXRT1041
-      - MIMXRT1042
-      - MIMXRT1051
-      - MIMXRT1052
-      - MIMXRT1061
-      - MIMXRT1062
-      - MIMXRT1064
-      - MIMXRT1165
-      - MIMXRT1166
-      - MIMXRT1171
-      - MIMXRT1172
-      - MIMXRT1173
-      - MIMXRT1175
-      - MIMXRT1176
-      - MIMXRT533S
-      - MIMXRT555S
-      - MIMXRT595S
-      - MIMXRT633S
-      - MIMXRT685S
-      - MIMX8UD7
-      - MIMX8UD5
-      - MIMX8UD3
-      - MIMX8US5
-      - MIMX8US3
-      - MK11DA5
-      - MK11DA5WS
-      - MK21DA5
-      - MK21DA5WS
-      - MK21FA12
-      - MK21FA12WS
-      - MK24F25612
-      - MK24F25612
-      - MK26F18
-      - MK28F15
-      - MK28FA15
-      - MK52D10
-      - MK53D10
-      - MK60D10
-      - MK63F12
-      - MK63F12WS
-      - MK64F12
-      - MK65F18
-      - MK65F18WS
-      - MK80F25615
-      - MK81F25615
-      - MK82F25615
-      - MKL28Z7
-      - MKL34Z4
-      - MKL81Z7
-      - MKL82Z7
-      - MKM35Z7
-      - MKV56F24
-      - MKV58F24
-      - MKW21D5
-      - MKW21D5WS
-      - MKW22D5
-      - MKW22D5WS
-      - MKW24D5WS
-      - MKW41Z4
     - middleware.mbedtls
     - middleware.mbedtls.template
+    - anyOf:
+        - allOf:
+          - driver.sha
+          - driver.rng
+          - driver.aes
+          - device:
+             - LPC54S005
+             - LPC54S016
+             - LPC54S018
+             - LPC54S018M
+        - allOf:
+          - driver.sha
+          - driver.rng
+          - device:
+             - LPC54005
+             - LPC54016
+             - LPC54018
+             - LPC54018M
+             - LPC54628
+        - allOf:
+          - driver.rng
+          - device:
+             - LPC54605
+             - LPC54606
+             - LPC54607
+             - LPC54608
+             - LPC54616
+             - LPC54618
+        - allOf:
+          - driver.rng_1
+          - driver.casper
+          - driver.hashcrypt
+          - device:
+             - LPC55S04
+             - LPC55S06
+             - LPC55S14
+             - LPC55S16
+             - LPC55S26
+             - LPC55S28
+             - LPC55S66
+             - LPC55S69
+        - allOf:
+          - driver.trng
+          - driver.casper
+          - driver.hashcrypt
+          - device:
+             - MIMXRT533S
+             - MIMXRT555S
+             - MIMXRT585S
+             - MIMXRT595S
+             - MIMXRT633S
+             - MIMXRT685S
 middleware.mbedtls:
   section-type: component
   contents:
@@ -684,7 +647,7 @@ middleware.mbedtls:
     description: mbedTLS library
     type: middleware
     version: "${mbedtls_version}"
-    user_visible: never
+    user_visible: always
     full_name: MbedTLS open source SSL library
     taxonomy:
       csub: mbedtls
@@ -916,6 +879,7 @@ set.middleware.mbedtls:
       - DriverType_cau3
       - DriverType_LPC_SHA
       - DriverType_LPC_CASPER
+      - DriverType_LPC_HASHCRYPT
       - DriverType_DCP
       - DriverType_TRNG
       - DriverType_RNG

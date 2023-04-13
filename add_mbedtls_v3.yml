@@ -305,13 +305,20 @@ middleware.mbedtls.port.sssapi:
     display_name: mbedtls_sssapi
   dependency:
     allOf:
-    - device:
-      - KW45B41Z83
-      - KW45B41Z83_NBU
-      - K32L4A
-      - K32W1480
     - middleware.mbedtls
     - middleware.secure-subsystem.snt.port_kw45_k4w1
+    - device:
+      - K32W1480
+      - KW45B41Z52
+      - KW45B41Z53
+      - KW45B41Z82
+      - KW45B41Z83
+      - KW45Z41052
+      - KW45Z41053
+      - KW45Z41082
+      - KW45Z41083
+      - KW45B41Z83_NBU
+      - K32L4A
 middleware.mbedtls.port.ksdk:
   section-type: component
   contents:
@@ -398,10 +405,98 @@ middleware.mbedtls.port.ksdk:
           - device:
              - MIMXRT533S
              - MIMXRT555S
-             - MIMXRT585S
              - MIMXRT595S
              - MIMXRT633S
              - MIMXRT685S
+        - allOf:
+          - driver.dcp
+          - driver.trng
+          - driver.cache_armv7_m7
+          - device:
+             - MIMXRT1011
+             - MIMXRT1021
+             - MIMXRT1024
+             - MIMXRT1041
+             - MIMXRT1042
+             - MIMXRT1051
+             - MIMXRT1052
+             - MIMXRT1061
+             - MIMXRT1062
+             - MIMXRT1064
+        - allOf:
+          - driver.trng
+          - middleware.mmcau.cm0p
+          - device:
+             - K32L2A31A
+             - K32L2A41A
+        - allOf:
+          - driver.trng
+          - middleware.mmcau.cm4_cm7
+          - device:
+             - K32L2A41A
+             - MK28FA15
+             - MK80F25615
+             - MKL28Z7
+             - MKV56F24
+             - MKV58F24
+        - allOf:
+          - driver.rnga
+          - middleware.mmcau.cm4_cm7
+          - device:
+             - MK11DA5
+             - MK11DA5WS
+             - MK21DA5WS
+             - MK21FA12
+             - MK21FA12WS
+             - MK24F12
+             - MK24F25612
+             - MK26F18
+             - MK26F18
+             - MK52D10
+             - MK53D10
+             - MK60D10
+             - MK63F12
+             - MK63F12WS
+             - MK64F12
+             - MK65F18
+             - MK65F18WS
+             - MK66F18
+             - MKL34Z4
+             - MKM35Z7
+             - MKW21D5
+             - MKW22D5
+             - MKW22D5WS
+             - MKW24D5
+             - MKW24D5WS
+        - allOf:
+          - driver.cau3
+          - driver.trng
+          - device:
+             - K32L3A60
+        - allOf:
+          - driver.trng
+          - driver.ltc
+          - middleware.mmcau.cm4_cm7
+          - device:
+             - MK81F25615
+             - MK82F25615
+        - allOf:
+          - driver.trng
+          - driver.ltc
+          - device:
+             - MKL81Z7
+             - MKL82Z7
+             - MKW41Z4
+        - allOf:
+          - driver.caam
+          - device:
+             - MIMXRT1165
+             - MIMXRT1166
+             - MIMXRT1171
+             - MIMXRT1172
+             - MIMXRT1173
+             - MIMXRT1175
+             - MIMXRT1176
 middleware.mbedtls:
   section-type: component
   contents:

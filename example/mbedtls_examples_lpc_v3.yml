@@ -4,8 +4,8 @@ __hierarchy__:
   tmp_mbedtls_examples_lpc_settings:
     section-type: application
     belong_to:
-    kex_package: set.board.${board}
-    cmsis_pack: set.board.${board}.mbedtls
+      kex_package: set.board.${board}
+      cmsis_pack: set.board.${board}.mbedtls
     dependency:
     - driver.common
     - driver.clock

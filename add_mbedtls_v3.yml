@@ -757,6 +757,12 @@ middleware.mbedtls:
   dependency:
     allOf:
     - utility.debug_console
+    - anyOf:
+      - middleware.mbedtls.port.ksdk
+      - middleware.mbedtls.port.sssapi
+      - middleware.mbedtls.port.ele_s400
+      - middleware.mbedtls.port.els_pkc
+      - middleware.mbedtls.port.css_pkc
 middleware.mbedtls.default_heap_stack:
   section-type: project_segment
   belong_to: set.board.${board}

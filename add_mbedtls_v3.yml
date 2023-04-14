@@ -469,6 +469,11 @@ middleware.mbedtls.port.ksdk:
              - MKW24D5
              - MKW24D5WS
         - allOf:
+          - driver.rnga
+          - middleware.mmcau.cm0p
+          - device:
+             - MKM35Z7
+        - allOf:
           - driver.cau3
           - driver.trng
           - device:
@@ -480,6 +485,7 @@ middleware.mbedtls.port.ksdk:
           - device:
              - MK81F25615
              - MK82F25615
+             - MCIMX7U5
         - allOf:
           - driver.trng
           - driver.ltc

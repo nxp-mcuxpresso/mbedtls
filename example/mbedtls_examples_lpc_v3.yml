@@ -3,7 +3,9 @@
 __hierarchy__:
   tmp_mbedtls_examples_lpc_settings:
     section-type: application
-    belong_to: set.board.${board}
+    belong_to:
+    kex_package: set.board.${board}
+    cmsis_pack: set.board.${board}.mbedtls
     dependency:
     - driver.common
     - driver.clock
@@ -68,7 +70,9 @@ __hierarchy__:
             project_path: doc
 mbedtls_selftest:
   section-type: application
-  belong_to: set.board.${board}
+  belong_to:
+    kex_package: set.board.${board}
+    cmsis_pack: set.board.${board}.mbedtls
   dependency:
   - middleware.mbedtls
   - driver.lpc_iocon
@@ -126,7 +130,9 @@ mbedtls_selftest:
           project_path: "${board}/mbedtls_examples/mbedtls_selftest/${multicore_foldername}"
 mbedtls_selftest_thread:
   section-type: application
-  belong_to: set.board.${board}
+  belong_to:
+    kex_package: set.board.${board}
+    cmsis_pack: set.board.${board}.mbedtls
   dependency:
   - driver.lpc_iocon
   - middleware.mbedtls
@@ -209,7 +215,9 @@ mbedtls_selftest_thread:
           project_path: "${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}"
 mbedtls_selftest_css:
   section-type: application
-  belong_to: set.board.${board}
+  belong_to:
+    kex_package: set.board.${board}
+    cmsis_pack: set.board.${board}.mbedtls
   dependency:
   - middleware.mbedtls
   - driver.lpc_iocon
@@ -265,7 +273,9 @@ mbedtls_selftest_css:
           project_path: "${board}/mbedtls_examples/mbedtls_selftest_css/${multicore_foldername}"
 mbedtls_benchmark:
   section-type: application
-  belong_to: set.board.${board}
+  belong_to:
+    kex_package: set.board.${board}
+    cmsis_pack: set.board.${board}.mbedtls
   dependency:
   - middleware.mbedtls
   - driver.lpc_iocon

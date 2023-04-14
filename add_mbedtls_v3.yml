@@ -962,7 +962,10 @@ set.middleware.mbedtls:
         - scr.middleware.mbedtls
       cmsis_pack:
         vendor: NXP
-        supported: false
+        # supported: false
+        pack_root:
+          pack_type: SWP
+          pack_name: NXP_MBEDTLS
         scr:
         - scr.middleware.mbedtls
     component_taxonomy:

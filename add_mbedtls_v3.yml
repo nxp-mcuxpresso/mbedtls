@@ -25,6 +25,7 @@ middleware.mbedtls.template:
     full_name: mbedTLS Template
     user_visible: never
     taxonomy:
+      belong_to: mbedtls
       csub: template
     display_name: mbedtls_template
 middleware.mbedtls.port.ele_s400:
@@ -88,7 +89,8 @@ middleware.mbedtls.els_pkc.config:
     full_name: els_pkc config
     user_visible: never
     taxonomy:
-      csub: template
+      belong_to: mbedtls
+      csub: els_pkc_config
     display_name: els_pkc_config
 middleware.mbedtls.port.els_pkc:
   section-type: component
@@ -1025,3 +1027,42 @@ scr.middleware.mbedtls:
     Description: Cryptographic and SSL/TLS Library
     Location: middleware/mbedtls
     Origin: ARM(Apache-2.0) - https://github.com/Mbed-TLS/mbedtls/releases/tag/v2.28.3
+
+set.board.${board}.mbedtls:
+  section-type: set
+  belong_to: set.board.${board}.mbedtls
+  section_info:
+    fixed_id: board_${board}
+    display_name: "${board}"
+    full_name: NXP board ${board}
+    description: NXP MCUXpresso board ${board} examples for mbedtls
+    type: board
+    version: 1.0.0
+    set_location:
+      repo_base_path: "./boards/${board}/mbedtls_examples"
+    product:
+      cmsis_pack:
+        scr:
+          - scr.board.${board}.mbedtls
+        vendor: NXP
+        pack_root:
+          pack_type: sBSP
+          pack_name: "${board}_MBEDTLS_BSP"
+      kex_package:
+        supported: false
+  dependency:
+    allOf:
+      - set.middleware.mbedtls
+
+scr.board.${board}.mbedtls:
+  section-type: scr
+  belong_to: set.board.${board}.mbedtls
+  contents:
+    Name: SDK MBEDTLS examples
+    license:
+      - license.bsd-3
+    Format: source code, binary, project files, linker files
+    Description: SDK out of box examples to show how to use peripheral drivers and
+      integrate middleware.
+    Origin: NXP (BSD-3-Clause)
+    Location: "./boards/${board}/mbedtls_examples"

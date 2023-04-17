@@ -2493,6 +2493,9 @@ static int myrand(void *rng_state, unsigned char *output, size_t len)
     return 0;
 }
 #endif /* MBEDTLS_PKCS1_V15 */
+#endif /* MBEDTLS_SELF_TEST */
+
+#if defined(MBEDTLS_SELF_TEST) && !defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
 
 /*
  * Checkup routine
@@ -2869,7 +2872,11 @@ cleanup:
     return ret;
 }
 
-#else
+#endif /* MBEDTLS_SELF_TEST */
+
+#if defined(MBEDTLS_SELF_TEST) && defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+
+int mbedtls_rsa_self_test(int verbose)
 {
     int ret = 0;
 #if defined(MBEDTLS_PKCS1_V15)
@@ -2981,6 +2988,6 @@ cleanup:
     return 0;
 }
 
-#endif /* MBEDTLS_SELF_TEST */
+#endif /* MBEDTLS_SELF_TEST || (FREESCALE_PKHA_LONG_OPERANDS_ENABLE) */
 
 #endif /* MBEDTLS_RSA_C */

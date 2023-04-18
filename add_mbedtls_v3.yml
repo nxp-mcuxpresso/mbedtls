@@ -973,7 +973,7 @@ set.middleware.mbedtls:
         # supported: false
         pack_root:
           pack_type: SWP
-          pack_name: NXP_MBEDTLS
+          pack_name: MBEDTLS
         scr:
         - scr.middleware.mbedtls
     component_taxonomy:

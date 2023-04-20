@@ -974,6 +974,7 @@ set.middleware.mbedtls:
         pack_root:
           pack_type: SWP
           pack_name: MBEDTLS
+          pack_version: 1.0.0
         scr:
         - scr.middleware.mbedtls
     component_taxonomy:

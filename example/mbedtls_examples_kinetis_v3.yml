@@ -170,7 +170,7 @@ mbedtls_selftest_thread:
           package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
           project_path: board
         files:
-        - source: middleware/mbedtls/example/mbedtls_selftest_thread/selftest.c
+        - source: middleware/mbedtls/example/mbedtls_selftest_thread/selftest_thread.c
           merge-to-main: main
           package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
           project_path: source

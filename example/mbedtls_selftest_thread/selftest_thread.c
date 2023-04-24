@@ -308,23 +308,10 @@ int mbedtls_ecdh_self_test(int verbose)
       int ret = 1;
       mbedtls_ecdh_context ecdh;
       unsigned char buf[1024] = {0}; 
-      mbedtls_mpi z;
+
 #if defined(MBEDTLS_ECP_C)
-    mbedtls_ecp_curve_info single_curve[2] = {
-        { MBEDTLS_ECP_DP_NONE, 0, 0, NULL },
-        { MBEDTLS_ECP_DP_NONE, 0, 0, NULL },
-    };
     const mbedtls_ecp_curve_info *curve_list = mbedtls_ecp_curve_list( );
 #endif
-      const mbedtls_ecp_curve_info montgomery_curve_list[] = {
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-            { MBEDTLS_ECP_DP_CURVE25519, 0, 0, "Curve25519" },
-#endif
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
-            { MBEDTLS_ECP_DP_CURVE448, 0, 0, "Curve448" },
-#endif
-            { MBEDTLS_ECP_DP_NONE, 0, 0, 0 }
-       };
        const mbedtls_ecp_curve_info *curve_info;
        size_t olen;
 
@@ -535,22 +522,15 @@ static int bench_print_features(void)
 
     return 0;
 }
-    mbedtls_ecp_curve_info single_curve[2] = {
-        { MBEDTLS_ECP_DP_NONE, 0, 0, NULL },
-        { MBEDTLS_ECP_DP_NONE, 0, 0, NULL },
-    };
 
 int main(int argc, char *argv[])
 {
-#if defined(MBEDTLS_SELF_TEST)
-    const selftest_t *test;
-#endif /* MBEDTLS_SELF_TEST */
+
 #if !defined(FREESCALE_KSDK_BM)
     char **argp;
     int exclude_mode = 0;
 #endif
-    int v             = 1; /* v=1 for verbose mode */
-    int suites_tested = 0, suites_failed = 0;
+
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && defined(MBEDTLS_SELF_TEST)
     unsigned char buf[1000000];
 #endif

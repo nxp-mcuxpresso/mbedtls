@@ -730,21 +730,6 @@ middleware.mbedtls:
     - source: library/x509write_crt.c
     - source: library/x509write_csr.c
     - source: library/xtea.c
-    configuration:
-      tools:
-        iar:
-          cx-flags:
-          - "--diag_suppress Pa167,Pe177,Pe546"
-        mdk:
-          cc-flags:
-          - "--diag_suppress=177"
-        armgcc:
-          cc-flags:
-          - "-fomit-frame-pointer"
-          - "-Wno-unused-function"
-        mcux:
-          cc-flags:
-          - "-fomit-frame-pointer"
   belong_to: set.middleware.mbedtls
   section_info:
     description: mbedTLS library
@@ -774,12 +759,16 @@ middleware.mbedtls.default_heap_stack:
         iar:
           config:
             __common__:
+              cx-flags:
+              - "--diag_suppress Pa167,Pe177,Pe546"
               ad-flags:
               - __stack_size__=0x2000
               - __heap_size__=0x8000
         mdk:
           config:
             __common__:
+              cc-flags:
+              - "--diag_suppress=177"
               ad-flags:
               - --predefine="-D__stack_size__=0x2000"
               - --predefine="-D__heap_size__=0x8000"
@@ -792,12 +781,17 @@ middleware.mbedtls.default_heap_stack:
         armgcc:
           config:
             __common__:
+              cc-flags:
+              - "-fomit-frame-pointer"
+              - "-Wno-unused-function"
               ad-flags:
               - "-Xlinker --defsym=__stack_size__=0x2000"
               - "-Xlinker --defsym=__heap_size__=0x8000"
         mcux:
           config:
             __common__:
+              cc-flags:
+              - "-fomit-frame-pointer"
               ad-flags:
               - "-Xlinker --defsym=__stack_size__=0x2000"
               - "-Xlinker --defsym=__heap_size__=0x8000"

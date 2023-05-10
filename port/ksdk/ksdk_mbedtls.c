@@ -1261,20 +1261,21 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
     }
 #endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_DCP_AES)
-    if (!crypto_key_is_loaded(ctx)) {
 #if defined(MBEDTLS_THREADING_C)
         if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0) {
             return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
         }
 #endif /* MBEDTLS_THREADING_C */
+    if (!crypto_key_is_loaded(ctx)) {
+
         ret = DCP_AES_SetKey(DCP, &s_dcpHandle, key, (uint32_t) ctx->nr);
 
-#if defined(MBEDTLS_THREADING_C)
-        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0) {
-            return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
-        }
-#endif /* MBEDTLS_THREADING_C */
         if (ret != kStatus_Success) {
+            #if defined(MBEDTLS_THREADING_C)
+                if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0) {
+                    return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+                }
+            #endif /* MBEDTLS_THREADING_C */
             return MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
         }
         crypto_attach_ctx_to_key_slot(ctx, (uint8_t) s_dcpHandle.keySlot);
@@ -1305,19 +1306,7 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
         outputPtr = (uint32_t *) (uintptr_t) output_buff;
     }
 
-#if defined(MBEDTLS_THREADING_C)
-    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0) {
-        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
-    }
-#endif /* MBEDTLS_THREADING_C */
-
     ret = DCP_AES_EncryptEcb(DCP, &s_dcpHandle, (uint8_t *) inputPtr, (uint8_t *) outputPtr, 16);
-
-#if defined(MBEDTLS_THREADING_C)
-    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0) {
-        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
-    }
-#endif /* MBEDTLS_THREADING_C */
 
     /* Ivalidate output */
     DCACHE_InvalidateByRange((uint32_t) outputPtr, 16);
@@ -1326,22 +1315,17 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
     if (!IS_CACHE_ALIGNED(output)) {
         (void) memmove(output, (uint8_t *) outputPtr, 16);
     }
-
 #else /* __DCACHE_PRESENT && DCP_USE_DCACHE */
-#if defined(MBEDTLS_THREADING_C)
-    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0) {
-        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
-    }
-#endif /* MBEDTLS_THREADING_C */
 
     ret = DCP_AES_EncryptEcb(DCP, &s_dcpHandle, input, output, 16);
+
+#endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
 
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0) {
         return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
     }
 #endif /* MBEDTLS_THREADING_C */
-#endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
 #endif
 
     if (ret != kStatus_Success) {
@@ -1430,11 +1414,6 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
         return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
     }
 #endif /* MBEDTLS_THREADING_C */
-#if defined(MBEDTLS_THREADING_C)
-    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_aes_mutex) != 0) {
-        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
-    }
-#endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_CAAM_AES)
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_caam_mutex) != 0) {
@@ -1454,21 +1433,22 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
     }
 #endif /* MBEDTLS_THREADING_C */
 #elif defined(MBEDTLS_FREESCALE_DCP_AES)
-    if (!crypto_key_is_loaded(ctx)) {
 #if defined(MBEDTLS_THREADING_C)
         if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0) {
             return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
         }
 #endif /* MBEDTLS_THREADING_C */
+    if (!crypto_key_is_loaded(ctx)) {
+
         ret = DCP_AES_SetKey(DCP, &s_dcpHandle, key, (uint32_t) ctx->nr);
 
-#if defined(MBEDTLS_THREADING_C)
-        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0) {
-            return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
-        }
-#endif /* MBEDTLS_THREADING_C */
         crypto_attach_ctx_to_key_slot(ctx, (uint8_t) s_dcpHandle.keySlot);
         if (ret != kStatus_Success) {
+            #if defined(MBEDTLS_THREADING_C)
+                if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0) {
+                    return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+                }
+            #endif /* MBEDTLS_THREADING_C */
             return MBEDTLS_ERR_AES_HW_ACCEL_FAILED;
         }
     }
@@ -1497,20 +1477,7 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
     } else {
         outputPtr = (uint32_t *) (uintptr_t) output_buff;
     }
-
-#if defined(MBEDTLS_THREADING_C)
-    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0) {
-        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
-    }
-#endif /* MBEDTLS_THREADING_C */
-
     ret = DCP_AES_DecryptEcb(DCP, &s_dcpHandle, (uint8_t *) inputPtr, (uint8_t *) outputPtr, 16);
-
-#if defined(MBEDTLS_THREADING_C)
-    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0) {
-        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
-    }
-#endif /* MBEDTLS_THREADING_C */
 
     /* Ivalidate output */
     DCACHE_InvalidateByRange((uint32_t) outputPtr, 16);
@@ -1520,21 +1487,16 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
     }
 
 #else /* __DCACHE_PRESENT && DCP_USE_DCACHE */
-#if defined(MBEDTLS_THREADING_C)
-    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0) {
-        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
-    }
-#endif /* MBEDTLS_THREADING_C */
 
     ret = DCP_AES_DecryptEcb(DCP, &s_dcpHandle, input, output, 16);
 
-#if defined(MBEDTLS_THREADING_C)
-    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0) {
-        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
-    }
-#endif /* MBEDTLS_THREADING_C */
 
 #endif /* __DCACHE_PRESENT && DCP_USE_DCACHE */
+#if defined(MBEDTLS_THREADING_C)
+        if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_dcp_mutex) != 0) {
+            return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+        }
+#endif /* MBEDTLS_THREADING_C */
 #endif
 
     if (ret != kStatus_Success) {

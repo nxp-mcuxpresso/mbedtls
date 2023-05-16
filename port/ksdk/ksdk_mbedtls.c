@@ -4818,7 +4818,7 @@ static int mbedtls_mpi_exp_mod_shim(mbedtls_mpi *X,
 #if defined(MBEDTLS_THREADING_C)
     int _ret;
     if ((_ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_casper_mutex)) != 0) {
-        return _ret;
+        CLEAN_RETURN(_ret);
     }
 #endif
 

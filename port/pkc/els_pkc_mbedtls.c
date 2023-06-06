@@ -12,22 +12,19 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_THREADING_C)
-/* Threading mutex implementations for mbedTLS. */
-#include "mbedtls/threading.h"
-#include "threading_alt.h"
-#endif
-
-#if !defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) && defined(MBEDTLS_THREADING_C) && \
-    defined(MBEDTLS_THREADING_ALT)
+#if !defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) && defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
 extern void CRYPTO_ConfigureThreading(void);
 #endif
 
-#include "fsl_css.h"           // Power Down Wake-up Init
-#include "fsl_pkc.h"           // Power Down Wake-up Init
+#include "mcux_els.h" // Power Down Wake-up Init
+#include "mcux_pkc.h" // Power Down Wake-up Init
 #include "platform_hw_ip.h"
 #include "els_pkc_mbedtls.h"
 #include "fsl_common.h"
+
+#ifndef PKC
+#define PKC PKC0
+#endif
 
 /******************************************************************************/
 /*************************** Mutex ********************************************/
@@ -46,7 +43,7 @@ extern void CRYPTO_ConfigureThreading(void);
 /*
  * Define global mutexes for HW accelerator
  */
-mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_css_mutex;
+mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_els_mutex;
 mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_pkc_mutex;
 
 #if defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT)
@@ -68,28 +65,33 @@ __WEAK uint32_t __stack_chk_guard;
 
 __WEAK void __stack_chk_fail(void)
 {
-    while (1) {
-    }
-    ;
+    while (1)
+    {
+    };
 }
 
 int mbedtls_hw_init(void)
 {
     status_t status;
 
-    if (g_isCryptoHWInitialized == ELS_PKC_CRYPTOHW_NONINITIALIZED) {
+    if (g_isCryptoHWInitialized == ELS_PKC_CRYPTOHW_NONINITIALIZED)
+    {
         /* Enable ELS and related clocks */
-        status = CSS_PowerDownWakeupInit(ELS);
-        if (status != kStatus_Success) {
+        status = ELS_PowerDownWakeupInit(ELS);
+        if (status != kStatus_Success)
+        {
             return status;
         }
 
         /* Enable PKC related clocks without RAM zeroize */
         status = PKC_InitNoZeroize(PKC);
-        if (status != kStatus_Success) {
+        if (status != kStatus_Success)
+        {
             return status;
         }
-    } else {
+    }
+    else
+    {
         return kStatus_Success;
     }
 
@@ -115,22 +117,23 @@ status_t CRYPTO_InitHardware(void)
 #endif /* (MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT) */
 
 #if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_init(&mbedtls_threading_hwcrypto_css_mutex);
+    mbedtls_mutex_init(&mbedtls_threading_hwcrypto_els_mutex);
 #endif /* (MBEDTLS_THREADING_C) */
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init(&mbedtls_threading_hwcrypto_pkc_mutex);
 #endif /* (MBEDTLS_THREADING_C) */
-    /* Enable CSS and related clocks */
-    // TODO: use ELS component when available
-    status = CSS_PowerDownWakeupInit(ELS);
-    if (status != kStatus_Success) {
+    /* Enable ELS and related clocks */
+    status = ELS_PowerDownWakeupInit(ELS);
+    if (status != kStatus_Success)
+    {
         return kStatus_Fail;
     }
 
     /* Enable PKC related clocks and RAM zeroize */
     status = PKC_PowerDownWakeupInit(PKC);
-    if (status != kStatus_Success) {
+    if (status != kStatus_Success)
+    {
         return kStatus_Fail;
     }
 
@@ -156,9 +159,12 @@ void mcux_mbedtls_mutex_init(mbedtls_threading_mutex_t *mutex)
 {
     mutex->mutex = xSemaphoreCreateMutex();
 
-    if (mutex->mutex != NULL) {
+    if (mutex->mutex != NULL)
+    {
         mutex->is_valid = 1;
-    } else {
+    }
+    else
+    {
         mutex->is_valid = 0;
     }
 }
@@ -169,7 +175,8 @@ void mcux_mbedtls_mutex_init(mbedtls_threading_mutex_t *mutex)
  */
 void mcux_mbedtls_mutex_free(mbedtls_threading_mutex_t *mutex)
 {
-    if (mutex->is_valid == 1) {
+    if (mutex->is_valid == 1)
+    {
         vSemaphoreDelete(mutex->mutex);
         mutex->is_valid = 0;
     }
@@ -185,10 +192,14 @@ int mcux_mbedtls_mutex_lock(mbedtls_threading_mutex_t *mutex)
 {
     int ret = MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
 
-    if (mutex->is_valid == 1) {
-        if (xSemaphoreTake(mutex->mutex, portMAX_DELAY)) {
+    if (mutex->is_valid == 1)
+    {
+        if (xSemaphoreTake(mutex->mutex, portMAX_DELAY))
+        {
             ret = 0;
-        } else {
+        }
+        else
+        {
             ret = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
         }
     }
@@ -206,10 +217,14 @@ int mcux_mbedtls_mutex_unlock(mbedtls_threading_mutex_t *mutex)
 {
     int ret = MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
 
-    if (mutex->is_valid == 1) {
-        if (xSemaphoreGive(mutex->mutex)) {
+    if (mutex->is_valid == 1)
+    {
+        if (xSemaphoreGive(mutex->mutex))
+        {
             ret = 0;
-        } else {
+        }
+        else
+        {
             ret = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
         }
     }
@@ -220,9 +235,7 @@ int mcux_mbedtls_mutex_unlock(mbedtls_threading_mutex_t *mutex)
 static void CRYPTO_ConfigureThreadingMcux(void)
 {
     /* Configure mbedtls to use FreeRTOS mutexes. */
-    mbedtls_threading_set_alt(mcux_mbedtls_mutex_init,
-                              mcux_mbedtls_mutex_free,
-                              mcux_mbedtls_mutex_lock,
+    mbedtls_threading_set_alt(mcux_mbedtls_mutex_init, mcux_mbedtls_mutex_free, mcux_mbedtls_mutex_lock,
                               mcux_mbedtls_mutex_unlock);
 }
 #endif /* defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) */

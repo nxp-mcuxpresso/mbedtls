@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 NXP
+ * Copyright 2021-2023 NXP
  * All rights reserved.
  *
  *
@@ -16,7 +16,8 @@
  * @brief Mutex struct used to synchronize mbed TLS operations.
  *
  */
-typedef struct {
+typedef struct
+{
     SemaphoreHandle_t mutex; /**< @brief FreeRTOS semaphore. */
     char is_valid;           /**< @brief Flag used by mbedTLS to track wether a mutex is valid. */
 } mbedtls_threading_mutex_t;

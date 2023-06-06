@@ -12,7 +12,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "fsl_css.h"           // Power Down Wake-up Init
+#include "mcux_els.h" // Power Down Wake-up Init
 #include "platform_hw_ip.h"
 #include "els_mbedtls.h"
 #include "fsl_common.h"
@@ -25,29 +25,31 @@ __WEAK uint32_t __stack_chk_guard;
 
 __WEAK void __stack_chk_fail(void)
 {
-    while (1) {
-    }
-    ;
+    while (1)
+    {
+    };
 }
 
 int mbedtls_hw_init(void)
 {
     status_t status;
 
-    if (g_isCryptoHWInitialized == ELS_PKC_CRYPTOHW_NONINITIALIZED) {
-        /* Enable CSS and related clocks */
-        status = CSS_PowerDownWakeupInit(CSS);
-        if (status != kStatus_Success) {
+    if (g_isCryptoHWInitialized == ELS_PKC_CRYPTOHW_NONINITIALIZED)
+    {
+        /* Enable ELS and related clocks */
+        status = ELS_PowerDownWakeupInit(ELS);
+        if (status != kStatus_Success)
+        {
             return status;
         }
-
-    } else {
+    }
+    else
+    {
         return kStatus_Success;
     }
 
     return status;
 }
-
 
 /******************************************************************************/
 /******************** CRYPTO_InitHardware **************************************/
@@ -62,10 +64,10 @@ status_t CRYPTO_InitHardware(void)
 {
     status_t status;
 
-    /* Enable CSS and related clocks */
-    // TODO: use ELS component when available
-    status = CSS_PowerDownWakeupInit(CSS);
-    if (status != kStatus_Success) {
+    /* Enable ELS and related clocks */
+    status = ELS_PowerDownWakeupInit(ELS);
+    if (status != kStatus_Success)
+    {
         return kStatus_Fail;
     }
 

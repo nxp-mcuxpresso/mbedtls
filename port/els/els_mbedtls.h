@@ -9,13 +9,12 @@
 #ifndef ELS_MBEDTLS_H
 #define ELS_MBEDTLS_H
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define ELS_PKC_CRYPTOHW_INITIALIZED       (0xF0F0F0F0)
-#define ELS_PKC_CRYPTOHW_NONINITIALIZED    (0x0F0F0F0F)
+#define ELS_PKC_CRYPTOHW_INITIALIZED    (0xF0F0F0F0)
+#define ELS_PKC_CRYPTOHW_NONINITIALIZED (0x0F0F0F0F)
 
 int fsl_mbedtls_printf(const char *fmt_s, ...);
 status_t CRYPTO_InitHardware(void);

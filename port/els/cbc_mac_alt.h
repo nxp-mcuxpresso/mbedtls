@@ -12,7 +12,7 @@
 /*--------------------------------------------------------------------------*/
 
 /** @file  cbc_mac.h
- *  @brief header of alternative AES CBC-MAC with CSS IP
+ *  @brief header of alternative AES CBC-MAC with ELS IP
  */
 
 #ifndef MBEDTLS_CBC_MAC_ALT_H
@@ -35,9 +35,6 @@
  *
  * \return
  */
-int mbedtls_aes_cbc_mac(mbedtls_aes_context *ctx,
-                        size_t length,
-                        unsigned char *iv,
-                        const unsigned char *pInput);
+int mbedtls_aes_cbc_mac(mbedtls_aes_context *ctx, size_t length, unsigned char *iv, const unsigned char *pInput);
 
 #endif /* MBEDTLS_CBC_MAC_ALT_H */

@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------------------*/
-/* Copyright 2021 NXP                                                       */
+/* Copyright 2021, 2023 NXP                                                 */
 /*                                                                          */
 /* NXP Confidential. This software is owned or controlled by NXP and may    */
 /* only be used strictly in accordance with the applicable license terms.   */
@@ -12,7 +12,7 @@
 /*--------------------------------------------------------------------------*/
 
 /** @file  rsa_alt.c
- *  @brief alternative RSA implementation with CSS and PKC IPs
+ *  @brief alternative RSA implementation with ELS and PKC IPs
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -20,6 +20,8 @@
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
+
+#if defined(MBEDTLS_MCUX_PKC_RSA) && MBEDTLS_MCUX_PKC_RSA
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
@@ -40,58 +42,56 @@
 #include "mbedtls/platform_util.h"
 
 /* If ELS-PKC is used, then expectation is CL-EAR2 is being used, Hence, a few mappings are required from CL-EAR2
-   to exsiting CL #defines, to support exisiting ALT implementation. The defines are mainly required due to renaming in CL EAR2*/
+to exsiting CL #defines, to support exisiting ALT implementation. The defines are mainly required due to renaming in CL EAR2*/
 #if defined(MBEDTLS_MCUX_ELS_PKC_API)
 #define MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WACPU_SIZE MCUXCLRSA_VERIFY_NOVERIFY_WACPU_SIZE
 #define MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WAPKC_SIZE MCUXCLRSA_VERIFY_WAPKC_SIZE
-#define MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_2048_WACPU_SIZE \
-    MCUXCLRSA_SIGN_CRT_NOENCODE_2048_WACPU_SIZE
+#define MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_2048_WACPU_SIZE MCUXCLRSA_SIGN_CRT_NOENCODE_2048_WACPU_SIZE
 #define MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_WACPU_SIZE MCUXCLRSA_SIGN_CRT_NOENCODE_WACPU_SIZE
 #define MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_WAPKC_SIZE MCUXCLRSA_SIGN_CRT_WAPKC_SIZE
 #endif /* MBEDTLS_MCUX_ELS_PKC_API */
 
 
-#if !defined(MBEDTLS_RSA_CTX_ALT) || !defined(MBEDTLS_RSA_PUBLIC_ALT) || \
-    !defined(MBEDTLS_RSA_PRIVATE_ALT)
-#error \
-    This implmenetation requires that all 3 alternative implementation options are enabled together.
+#if !defined(MBEDTLS_RSA_CTX_ALT) || !defined(MBEDTLS_RSA_PUBLIC_ALT) || !defined(MBEDTLS_RSA_PRIVATE_ALT)
+#error This implementation requires that all 3 alternative implementation options are enabled together.
 #else
 
 /* Parameter validation macros */
-#define RSA_VALIDATE_RET(cond)                                       \
-    MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_RSA_BAD_INPUT_DATA)
-#define RSA_VALIDATE(cond)                                           \
-    MBEDTLS_INTERNAL_VALIDATE(cond)
+#define RSA_VALIDATE_RET( cond )                                       \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_RSA_BAD_INPUT_DATA )
+#define RSA_VALIDATE( cond )                                           \
+    MBEDTLS_INTERNAL_VALIDATE( cond )
 
 /*
  * Do an RSA public key operation
  */
-int mbedtls_rsa_public(mbedtls_rsa_context *ctx,
-                       const unsigned char *input,
-                       unsigned char *output)
+int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
+                const unsigned char *input,
+                unsigned char *output )
 {
     int return_code =  0;
-    RSA_VALIDATE_RET(ctx != NULL);
-    RSA_VALIDATE_RET(input != NULL);
-    RSA_VALIDATE_RET(output != NULL);
+    RSA_VALIDATE_RET( ctx != NULL );
+    RSA_VALIDATE_RET( input != NULL );
+    RSA_VALIDATE_RET( output != NULL );
 
-    if (rsa_check_context(ctx, 0 /* public */, 0 /* no blinding */)) {
-        return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
+    if( rsa_check_context( ctx, 0 /* public */, 0 /* no blinding */ ) )
+    {
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
 
     /**************************************************************************/
     /* Preparation                                                            */
     /**************************************************************************/
-
 #if defined(MBEDTLS_THREADING_C)
     int ret;
-    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0) {
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
         return ret;
-    }
 #endif
+
     /* Initialize Hardware */
     int ret_hw_init = mbedtls_hw_init();
-    if (0 != ret_hw_init) {
+    if(0!=ret_hw_init)
+    {
         return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
@@ -107,29 +107,22 @@ int mbedtls_rsa_public(mbedtls_rsa_context *ctx,
     /* PKC buffer and size */
     uint8_t *pPkcRam = (uint8_t *) MCUXCLPKC_RAM_START_ADDRESS;
     const uint32_t pkcWaSize = MCUXCLPKC_ROUNDUP_SIZE(nByteLength /* modulus */
-                                                      + nByteLength /* exponent */
-                                                      + nByteLength /* result buffer */);
+                                                   + nByteLength /* exponent */
+                                                   + nByteLength /* result buffer */);
 
     mcuxClSession_Descriptor_t sessionDesc;
     mcuxClSession_Handle_t session = &sessionDesc;
 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(si_status, si_token, mcuxClSession_init(
-                                             /* mcuxClSession_Handle_t session:      */ session,
-                                             /* uint32_t * const cpuWaBuffer:       */ cpuWaBuffer,
-                                             /* uint32_t cpuWaSize:                 */
-                                             MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WACPU_SIZE /
-                                             sizeof(uint32_t),
-                                             /* uint32_t * const pkcWaBuffer:       */ (uint32_t *)
-                                             pPkcRam,
-                                             /* uint32_t pkcWaSize:                 */ (pkcWaSize +
-                                                                                        MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WAPKC_SIZE(
-                                                                                            nByteLength
-                                                                                            * 8u)) /
-                                             sizeof(uint32_t)
-                                             ));
+                /* mcuxClSession_Handle_t session:      */ session,
+                /* uint32_t * const cpuWaBuffer:       */ cpuWaBuffer,
+                /* uint32_t cpuWaSize:                 */ MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WACPU_SIZE / sizeof(uint32_t),
+                /* uint32_t * const pkcWaBuffer:       */ (uint32_t *) pPkcRam,
+                /* uint32_t pkcWaSize:                 */ (pkcWaSize + MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WAPKC_SIZE(nByteLength * 8u)) / sizeof(uint32_t)
+                ));
 
-    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != si_token) ||
-        (MCUXCLSESSION_STATUS_OK != si_status)) {
+    if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != si_token) || (MCUXCLSESSION_STATUS_OK != si_status))
+    {
         return_code = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
         goto cleanup;
     }
@@ -146,7 +139,8 @@ int mbedtls_rsa_public(mbedtls_rsa_context *ctx,
     size_t expByteLength = (mbedtls_mpi_bitlen(&ctx->E) + 7u) / 8u;
 
     /* Check actual length with length given in the context. */
-    if (nByteLength != modByteLength) {
+    if( nByteLength != modByteLength )
+    {
         return_code = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
         goto cleanup;
     }
@@ -156,24 +150,21 @@ int mbedtls_rsa_public(mbedtls_rsa_context *ctx,
     mbedtls_mpi_write_binary(&ctx->E, pExp, expByteLength);
 
     const mcuxClRsa_KeyEntry_t kMod = {
-        .pKeyEntryData = (uint8_t *) pMod,
-        .keyEntryLength = (uint32_t) modByteLength
-    };
+                       .pKeyEntryData = (uint8_t *) pMod,
+                       .keyEntryLength = (uint32_t) modByteLength };
 
     const mcuxClRsa_KeyEntry_t kExp = {
-        .pKeyEntryData = (uint8_t *) pExp,
-        .keyEntryLength = (uint32_t) expByteLength
-    };
+                       .pKeyEntryData = (uint8_t *) pExp,
+                       .keyEntryLength = (uint32_t) expByteLength };
 
     const mcuxClRsa_Key public_key = {
-        .keytype = MCUXCLRSA_KEY_PUBLIC,
-        .pMod1 = (mcuxClRsa_KeyEntry_t *) &kMod,
-        .pMod2 = NULL,
-        .pQInv = NULL,
-        .pExp1 = (mcuxClRsa_KeyEntry_t *) &kExp,
-        .pExp2 = NULL,
-        .pExp3 = NULL
-    };
+                                     .keytype = MCUXCLRSA_KEY_PUBLIC,
+                                     .pMod1 = (mcuxClRsa_KeyEntry_t *)&kMod,
+                                     .pMod2 = NULL,
+                                     .pQInv = NULL,
+                                     .pExp1 = (mcuxClRsa_KeyEntry_t *)&kExp,
+                                     .pExp2 = NULL,
+                                     .pExp3 = NULL };
 
     ctx->rsa_key = public_key;
 
@@ -183,28 +174,29 @@ int mbedtls_rsa_public(mbedtls_rsa_context *ctx,
     /* RSA verify call                                                        */
     /**************************************************************************/
 
-    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(verify_result,
-                                         verify_token,
-                                         mcuxClRsa_verify(
-                                             /* mcuxClSession_Handle_t           pSession: */
-                                             session,
-                                             /* const mcuxClRsa_Key * const      pKey: */ &
-                                             public_key,
-                                             /* const uint8_t * const           pMessageOrDigest: */
-                                             NULL,
-                                             /* const uint32_t                  messageLength: */ 0u,
-                                             /* uint8_t * const                 pSignature: */ (
-                                                 uint8_t *) input,
-                                             /* const mcuxClRsa_SignVerifyMode   pVerifyMode: */ (
-                                                 mcuxClRsa_SignVerifyMode_t *) &
-                                             mcuxClRsa_Mode_Verify_NoVerify,
-                                             /* const uint32_t                  saltLength: */ 0u,
-                                             /* uint32_t                        options: */ 0u,
-                                             /* uint8_t * const                 pOutput: */ (uint8_t
-                                                                                             *) pBuf));
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+        return ret;
+#endif
 
-    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClRsa_verify) != verify_token) ||
-        (MCUXCLRSA_STATUS_VERIFYPRIMITIVE_OK != verify_result)) {
+    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(verify_result, verify_token, mcuxClRsa_verify(
+                /* mcuxClSession_Handle_t           pSession: */           session,
+                /* const mcuxClRsa_Key * const      pKey: */               &public_key,
+                /* const uint8_t * const           pMessageOrDigest: */   NULL,
+                /* const uint32_t                  messageLength: */      0u,
+                /* uint8_t * const                 pSignature: */         (uint8_t *)input,
+                /* const mcuxClRsa_SignVerifyMode   pVerifyMode: */        (mcuxClRsa_SignVerifyMode_t *)&mcuxClRsa_Mode_Verify_NoVerify,
+                /* const uint32_t                  saltLength: */         0u,
+                /* uint32_t                        options: */            0u,
+                /* uint8_t * const                 pOutput: */            (uint8_t *)pBuf));
+
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+        return ret;
+#endif
+
+    if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClRsa_verify) != verify_token) || (MCUXCLRSA_STATUS_VERIFYPRIMITIVE_OK != verify_result))
+    {
         return_code = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
         goto cleanup;
     }
@@ -213,10 +205,10 @@ int mbedtls_rsa_public(mbedtls_rsa_context *ctx,
 
     /* Copy result buffer to output */
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retMemCpy, tokenMemCpy,
-                                         mcuxClMemory_copy((uint8_t *) output, pBuf, nByteLength,
-                                                           nByteLength));
+            mcuxClMemory_copy((uint8_t *) output, pBuf, nByteLength, nByteLength) );
 
-    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMemory_copy) != tokenMemCpy) && (0u != retMemCpy)) {
+    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMemory_copy) != tokenMemCpy) && (0u != retMemCpy) )
+    {
         return_code = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
         goto cleanup;
     }
@@ -226,21 +218,19 @@ int mbedtls_rsa_public(mbedtls_rsa_context *ctx,
     /**************************************************************************/
 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(cleanup_result, cleanup_token, mcuxClSession_cleanup(
-                                             /* mcuxClSession_Handle_t           pSession: */
-                                             session));
+                /* mcuxClSession_Handle_t           pSession: */           session));
 
-    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_cleanup) != cleanup_token) ||
-        (MCUXCLSESSION_STATUS_OK != cleanup_result)) {
+    if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_cleanup) != cleanup_token) || (MCUXCLSESSION_STATUS_OK != cleanup_result))
+    {
         return_code = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
         goto cleanup;
     }
 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(destroy_result, destroy_token, mcuxClSession_destroy(
-                                             /* mcuxClSession_Handle_t           pSession: */
-                                             session));
+                /* mcuxClSession_Handle_t           pSession: */           session));
 
-    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_destroy) != destroy_token) ||
-        (MCUXCLSESSION_STATUS_OK != destroy_result)) {
+    if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_destroy) != destroy_token) || (MCUXCLSESSION_STATUS_OK != destroy_result))
+    {
         return_code = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
         goto cleanup;
     }
@@ -248,9 +238,8 @@ int mbedtls_rsa_public(mbedtls_rsa_context *ctx,
     return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0) {
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
         return ret;
-    }
 #endif
     return return_code;
 }
@@ -258,33 +247,37 @@ cleanup:
 /*
  * Do an RSA private key operation
  */
-int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
-                        int (*f_rng)(void *, unsigned char *, size_t),
-                        void *p_rng,
-                        const unsigned char *input,
-                        unsigned char *output)
+int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
+                 int (*f_rng)(void *, unsigned char *, size_t),
+                 void *p_rng,
+                 const unsigned char *input,
+                 unsigned char *output )
 {
     int return_code = 0;
-    RSA_VALIDATE_RET(ctx != NULL);
-    RSA_VALIDATE_RET(input != NULL);
-    RSA_VALIDATE_RET(output != NULL);
+    RSA_VALIDATE_RET( ctx != NULL );
+    RSA_VALIDATE_RET( input != NULL );
+    RSA_VALIDATE_RET( output != NULL );
 
-    if (rsa_check_context(ctx, 1 /* private */, 1 /* blinding */) != 0) {
-        return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
+    if( rsa_check_context( ctx, 1 /* private */, 1 /* blinding */ ) != 0 )
+    {
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
 
     /**************************************************************************/
     /* Preparation                                                            */
     /**************************************************************************/
+
+
 #if defined(MBEDTLS_THREADING_C)
     int ret;
-    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0) {
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
         return ret;
-    }
 #endif
+
     /* Initialize Hardware */
     int ret_hw_init = mbedtls_hw_init();
-    if (0 != ret_hw_init) {
+    if(0!=ret_hw_init)
+    {
         return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
@@ -301,31 +294,24 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
     /* PKC buffer and size */
     uint8_t *pPkcRam = (uint8_t *) MCUXCLPKC_RAM_START_ADDRESS;
     const uint32_t pkcWaSize = MCUXCLPKC_ROUNDUP_SIZE((2u * pqByteLength) /* p and q (2 * 1/2 * nByteLength) */
-                                                      + (pqByteLength)   /* q_inv */
-                                                      + (2u * pqByteLength) /* dp and dq (2 * 1/2 * nByteLength) */
-                                                      + (nByteLength)   /* e */
-                                                      + (nByteLength) /* result buffer */);
+                                                   + (pqByteLength)      /* q_inv */
+                                                   + (2u * pqByteLength) /* dp and dq (2 * 1/2 * nByteLength) */
+                                                   + (nByteLength)      /* e */
+                                                   + (nByteLength)      /* result buffer */);
 
     mcuxClSession_Descriptor_t sessionDesc;
     mcuxClSession_Handle_t session = &sessionDesc;
 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(si_status, si_token, mcuxClSession_init(
-                                             /* mcuxClSession_Handle_t session:      */ session,
-                                             /* uint32_t * const cpuWaBuffer:       */ cpuWaBuffer,
-                                             /* uint32_t cpuWaSize:                 */
-                                             MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_WACPU_SIZE(
-                                                 nByteLength * 8u) / sizeof(uint32_t),
-                                             /* uint32_t * const pkcWaBuffer:       */ (uint32_t *)
-                                             pPkcRam,
-                                             /* uint32_t pkcWaSize:                 */ (pkcWaSize +
-                                                                                        MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_WAPKC_SIZE(
-                                                                                            nByteLength
-                                                                                            * 8u)) /
-                                             sizeof(uint32_t)
-                                             ));
+                /* mcuxClSession_Handle_t session:      */ session,
+                /* uint32_t * const cpuWaBuffer:       */ cpuWaBuffer,
+                /* uint32_t cpuWaSize:                 */ MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_WACPU_SIZE(nByteLength * 8u) / sizeof(uint32_t),
+                /* uint32_t * const pkcWaBuffer:       */ (uint32_t *) pPkcRam,
+                /* uint32_t pkcWaSize:                 */ (pkcWaSize + MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_WAPKC_SIZE(nByteLength * 8u)) / sizeof(uint32_t)
+                ));
 
-    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != si_token) ||
-        (MCUXCLSESSION_STATUS_OK != si_status)) {
+    if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != si_token) || (MCUXCLSESSION_STATUS_OK != si_status))
+    {
         return_code = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
         goto cleanup;
     }
@@ -350,7 +336,8 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
     size_t eByteLength     = (mbedtls_mpi_bitlen(&ctx->E) + 7u) / 8u;
 
     /* Check actual length with length given in the context. */
-    if ((pqByteLength != pByteLength) || (pqByteLength != qByteLength)) {
+    if( (pqByteLength != pByteLength) || (pqByteLength != qByteLength) )
+    {
         return_code = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
         goto cleanup;
     }
@@ -364,44 +351,37 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
     mbedtls_mpi_write_binary(&ctx->E, pE, eByteLength);
 
     const mcuxClRsa_KeyEntry_t kP = {
-        .pKeyEntryData = (uint8_t *) pP,
-        .keyEntryLength = (uint32_t) pByteLength
-    };
+                       .pKeyEntryData = (uint8_t *) pP,
+                       .keyEntryLength = (uint32_t) pByteLength };
 
     const mcuxClRsa_KeyEntry_t kQ = {
-        .pKeyEntryData = (uint8_t *) pQ,
-        .keyEntryLength = (uint32_t) qByteLength
-    };
+                       .pKeyEntryData = (uint8_t *) pQ,
+                       .keyEntryLength = (uint32_t) qByteLength };
 
     const mcuxClRsa_KeyEntry_t kQ_inv = {
-        .pKeyEntryData = (uint8_t *) pQ_inv,
-        .keyEntryLength = (uint32_t) q_invByteLength
-    };
+                       .pKeyEntryData = (uint8_t *) pQ_inv,
+                       .keyEntryLength = (uint32_t) q_invByteLength };
 
     const mcuxClRsa_KeyEntry_t kDP = {
-        .pKeyEntryData = (uint8_t *) pDP,
-        .keyEntryLength = (uint32_t) dpByteLength
-    };
+                       .pKeyEntryData = (uint8_t *) pDP,
+                       .keyEntryLength = (uint32_t) dpByteLength };
 
     const mcuxClRsa_KeyEntry_t kDQ = {
-        .pKeyEntryData = (uint8_t *) pDQ,
-        .keyEntryLength = (uint32_t) dqByteLength
-    };
+                       .pKeyEntryData = (uint8_t *) pDQ,
+                       .keyEntryLength = (uint32_t) dqByteLength };
 
     const mcuxClRsa_KeyEntry_t kE = {
-        .pKeyEntryData = (uint8_t *) pE,
-        .keyEntryLength = (uint32_t) eByteLength
-    };
+                       .pKeyEntryData = (uint8_t *) pE,
+                       .keyEntryLength = (uint32_t) eByteLength };
 
     const mcuxClRsa_Key private_key = {
-        .keytype = MCUXCLRSA_KEY_PRIVATECRT,
-        .pMod1 = (mcuxClRsa_KeyEntry_t *) &kP,
-        .pMod2 = (mcuxClRsa_KeyEntry_t *) &kQ,
-        .pQInv = (mcuxClRsa_KeyEntry_t *) &kQ_inv,
-        .pExp1 = (mcuxClRsa_KeyEntry_t *) &kDP,
-        .pExp2 = (mcuxClRsa_KeyEntry_t *) &kDQ,
-        .pExp3 = (mcuxClRsa_KeyEntry_t *) &kE
-    };
+                                     .keytype = MCUXCLRSA_KEY_PRIVATECRT,
+                                     .pMod1 = (mcuxClRsa_KeyEntry_t *)&kP,
+                                     .pMod2 = (mcuxClRsa_KeyEntry_t *)&kQ,
+                                     .pQInv = (mcuxClRsa_KeyEntry_t *)&kQ_inv,
+                                     .pExp1 = (mcuxClRsa_KeyEntry_t *)&kDP,
+                                     .pExp2 = (mcuxClRsa_KeyEntry_t *)&kDQ,
+                                     .pExp3 = (mcuxClRsa_KeyEntry_t *)&kE };
 
     ctx->rsa_key = private_key;
 
@@ -411,29 +391,35 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
     /* RSA sign call                                                          */
     /**************************************************************************/
 
-    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(sign_result, sign_token, mcuxClRsa_sign(
-                                             /*  mcuxClSession_Handle_t           pSession,  */
-                                             session,
-                                             /*  const mcuxClRsa_Key * const      pKey,  */ &
-                                             private_key,
-                                             /*  const uint8_t * const           pMessageOrDigest,  */ (
-                                                 uint8_t *) input,
-                                             /*  const uint32_t                  messageLength,  */
-                                             0u,
-                                             /*  const mcuxClRsa_SignVerifyMode   pPaddingMode,  */ (
-                                                 mcuxClRsa_SignVerifyMode_t *) &
-                                             mcuxClRsa_Mode_Sign_NoEncode,
-                                             /*  const uint32_t                  saltLength,  */ 0u,
-                                             /*  const uint32_t                  options,  */ 0u,
-                                             /*  uint8_t * const                 pSignature)  */ (
-                                                 uint8_t *) pBuf));
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+        return ret;
+#endif
 
-    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClRsa_sign) != sign_token) ||
-        (MCUXCLRSA_STATUS_SIGN_OK != sign_result)) {
-        if (MCUXCLRSA_STATUS_INVALID_INPUT == sign_result) {
+    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(sign_result, sign_token, mcuxClRsa_sign(
+                /*  mcuxClSession_Handle_t           pSession,  */           session,
+                /*  const mcuxClRsa_Key * const      pKey,  */               &private_key,
+                /*  const uint8_t * const           pMessageOrDigest,  */   (uint8_t *)input,
+                /*  const uint32_t                  messageLength,  */      0u,
+                /*  const mcuxClRsa_SignVerifyMode   pPaddingMode,  */       (mcuxClRsa_SignVerifyMode_t *)&mcuxClRsa_Mode_Sign_NoEncode,
+                /*  const uint32_t                  saltLength,  */         0u,
+                /*  const uint32_t                  options,  */            0u,
+                /*  uint8_t * const                 pSignature)  */         (uint8_t *)pBuf));
+
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+        return ret;
+#endif
+
+    if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClRsa_sign) != sign_token) || (MCUXCLRSA_STATUS_SIGN_OK != sign_result))
+    {
+        if (MCUXCLRSA_STATUS_INVALID_INPUT == sign_result)
+        {
             return_code = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
             goto cleanup;
-        } else {
+        }
+        else
+        {
             return_code = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
             goto cleanup;
         }
@@ -443,10 +429,10 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
 
     /* Copy result buffer to output */
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retMemCpy, tokenMemCpy,
-                                         mcuxClMemory_copy((uint8_t *) output, pBuf, nByteLength,
-                                                           nByteLength));
+            mcuxClMemory_copy((uint8_t *) output, pBuf, nByteLength, nByteLength) );
 
-    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMemory_copy) != tokenMemCpy) && (0u != retMemCpy)) {
+    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMemory_copy) != tokenMemCpy) && (0u != retMemCpy) )
+    {
         return_code = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
         goto cleanup;
     }
@@ -456,21 +442,19 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
     /**************************************************************************/
 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(cleanup_result, cleanup_token, mcuxClSession_cleanup(
-                                             /* mcuxClSession_Handle_t           pSession: */
-                                             session));
+                /* mcuxClSession_Handle_t           pSession: */           session));
 
-    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_cleanup) != cleanup_token) ||
-        (MCUXCLSESSION_STATUS_OK != cleanup_result)) {
+    if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_cleanup) != cleanup_token) || (MCUXCLSESSION_STATUS_OK != cleanup_result))
+    {
         return_code = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
         goto cleanup;
     }
 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(destroy_result, destroy_token, mcuxClSession_destroy(
-                                             /* mcuxClSession_Handle_t           pSession: */
-                                             session));
+                /* mcuxClSession_Handle_t           pSession: */           session));
 
-    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_destroy) != destroy_token) ||
-        (MCUXCLSESSION_STATUS_OK != destroy_result)) {
+    if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_destroy) != destroy_token) || (MCUXCLSESSION_STATUS_OK != destroy_result))
+    {
         return_code = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
         goto cleanup;
     }
@@ -478,12 +462,12 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
     return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0) {
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
         return ret;
-    }
 #endif
     return return_code;
 }
 
-#endif \
-    /*!defined(MBEDTLS_RSA_CTX_ALT) || !defined(MBEDTLS_RSA_PUBLIC_ALT) || !defined(MBEDTLS_RSA_PRIVATE_ALT) */
+#endif /* !defined(MBEDTLS_RSA_CTX_ALT) || !defined(MBEDTLS_RSA_PUBLIC_ALT) || !defined(MBEDTLS_RSA_PRIVATE_ALT) */
+
+#endif /* defined(MBEDTLS_MCUX_PKC_RSA) && MBEDTLS_MCUX_PKC_RSA */

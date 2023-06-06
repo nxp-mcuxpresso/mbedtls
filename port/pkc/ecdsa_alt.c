@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------------------*/
-/* Copyright 2021 NXP                                                       */
+/* Copyright 2021, 2023 NXP                                                 */
 /*                                                                          */
 /* NXP Confidential. This software is owned or controlled by NXP and may    */
 /* only be used strictly in accordance with the applicable license terms.   */
@@ -20,18 +20,23 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_MCUX_PKC_ECDSA) && MBEDTLS_MCUX_PKC_ECDSA
+
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
 #include "els_pkc_mbedtls.h"
 #endif
 
 #include <stdint.h>
-#include <mcuxClCss.h>
+#include <mcuxClEls.h>
 #include <mcuxClPkc.h>
 #include <mcuxClEcc.h>
 #include <mcuxClMemory.h>
+#include <mcuxClHash_MemoryConsumption.h>
+#include <mcuxClRsa.h>
 #if defined(MBEDTLS_MCUX_ELS_PKC_API)
 #include <mcuxClRandom.h>
+#include <mcuxClRandomModes.h>
 #endif /* MBEDTLS_MCUX_ELS_PKC_API */
 #include <mbedtls/ccm.h>
 #include <mbedtls/platform_util.h>
@@ -43,8 +48,8 @@
 #include <ecc_alt.h>
 #include <mbedtls/ecdh.h>
 
-/* If ELS-PKC is used, then expectation is CL-EAR2 is being used, Hence, a few mappings are required from CL-EAR2
-   to exsiting CL #defines, to support exisiting ALT implementation. The defines are mainly required due to renaming in CL EAR2*/
+/* If ELS-PKC is used, then expectation is CL-EAR2 is being used, Hence, a few mappings are required from CL-EAR2 
+to exsiting CL #defines, to support exisiting ALT implementation. The defines are mainly required due to renaming in CL EAR2*/
 #if defined(MBEDTLS_MCUX_ELS_PKC_API)
 #define MCUXCLECC_STATUS_POINTMULT_INVALID_PARAMS MCUXCLECC_STATUS_INVALID_PARAMS
 #define MCUXCLECC_STATUS_POINTMULT_RNG_ERROR MCUXCLECC_STATUS_RNG_ERROR
@@ -53,19 +58,71 @@
 #define MCUXCLECC_STATUS_SIGN_RNG_ERROR MCUXCLECC_STATUS_RNG_ERROR
 #define MCUXCLECC_STATUS_SIGN_OK MCUXCLECC_STATUS_OK
 #define MCUXCLECC_STATUS_VERIFY_OK MCUXCLECC_STATUS_OK
+
+
+/* Definition of maximum lengths of key for RSA in bits */
+#define MCUX_PKC_RSA_KEY_SIZE_MAX (4096u)
+
+/* Definition of maximum lengths of base point order n in bytes */
+#define MCUX_PKC_ECC_N_SIZE_MAX (256u / 8u) // only secp256r1 supported for now
+/* Definition of maximum lengths of prime modulus in bytes */
+#define MCUX_PKC_ECC_P_SIZE_MAX (256u / 8u) // only secp256r1 supported for now
+
+/* Macro determining maximum size of CPU workarea size for MCUX_PKC_ecdsa_sign/verify functions */
+#define MCUX_PKC_MAX(a, b) ((a) > (b) ? (a) : (b))
+
+#define MCUX_PKC_SIGN_BY_ALT_RSA_PLAIN_WACPU_SIZE_MAX                                              \
+    MCUX_PKC_MAX(MCUXCLRSA_SIGN_PLAIN_PSSENCODE_WACPU_SIZE(MCUX_PKC_RSA_KEY_SIZE_MAX),             \
+                        MCUXCLRSA_SIGN_PLAIN_PKCS1V15ENCODE_WACPU_SIZE(MCUX_PKC_RSA_KEY_SIZE_MAX))
+
+#define MCUX_PKC_SIGN_BY_ALT_RSA_CRT_WACPU_SIZE_MAX                                                \
+    MCUX_PKC_MAX(MCUXCLRSA_SIGN_CRT_PSSENCODE_WACPU_SIZE(MCUX_PKC_RSA_KEY_SIZE_MAX),               \
+                        MCUXCLRSA_SIGN_CRT_PKCS1V15ENCODE_WACPU_SIZE(MCUX_PKC_RSA_KEY_SIZE_MAX))
+
+#define MCUX_PKC_SIGN_BY_ALT_RSA_WACPU_SIZE_MAX                                                    \
+    MCUX_PKC_MAX(MCUX_PKC_SIGN_BY_ALT_RSA_PLAIN_WACPU_SIZE_MAX,                                    \
+                        MCUX_PKC_SIGN_BY_ALT_RSA_CRT_WACPU_SIZE_MAX)
+
+#define MCUX_PKC_SIGN_BY_ALT_WACPU_SIZE_MAX                                                       \
+    MCUX_PKC_MAX(MCUXCLRANDOMMODES_INIT_WACPU_SIZE,                                               \
+          MCUX_PKC_MAX(MCUX_PKC_MAX(MCUX_PKC_SIGN_BY_ALT_RSA_WACPU_SIZE_MAX,                      \
+                                            MCUXCLECC_SIGN_WACPU_SIZE(MCUX_PKC_ECC_N_SIZE_MAX)),  \
+                        MCUXCLHASH_COMPUTE_CPU_WA_BUFFER_SIZE_MAX))
+
+/* Macro determining maximum size of CPU workarea size for MCUX_PKC verify */
+#define MCUX_PKC_VERIFY_BY_ALT_RSA_WACPU_SIZE_MAX                                                \
+    MCUX_PKC_MAX(MCUXCLRSA_VERIFY_PSSVERIFY_WACPU_SIZE,               \
+                        MCUXCLRSA_VERIFY_PKCS1V15VERIFY_WACPU_SIZE)
+
+#define MCUX_PKC_VERIFY_BY_ALT_WACPU_SIZE_MAX                                                    \
+    MCUX_PKC_MAX(MCUXCLRANDOMMODES_INIT_WACPU_SIZE,                                               \
+        MCUX_PKC_MAX(MCUX_PKC_MAX(MCUX_PKC_VERIFY_BY_ALT_RSA_WACPU_SIZE_MAX, MCUXCLECC_VERIFY_WACPU_SIZE),    \
+        MCUXCLHASH_COMPUTE_CPU_WA_BUFFER_SIZE_MAX))
+
+/* Macro determining maximum size of PKC workarea size for MCUX_PKC Signature calculation */
+#define MCUX_PKC_SIGN_BY_ALT_WAPKC_SIZE_MAX                                                     \
+    MCUX_PKC_MAX(MCUXCLRSA_SIGN_CRT_WAPKC_SIZE(MCUX_PKC_RSA_KEY_SIZE_MAX),                      \
+                        MCUXCLECC_SIGN_WACPU_SIZE(MCUX_PKC_ECC_N_SIZE_MAX))
+
+/* Macro determining maximum size of PKC workarea size for MCUX_PKC verify */
+#define MCUX_PKC_VERIFY_BY_ALT_WAPKC_SIZE_MAX                                                   \
+    MCUX_PKC_MAX(MCUXCLRSA_VERIFY_WAPKC_SIZE(MCUX_PKC_RSA_KEY_SIZE_MAX), MCUXCLECC_VERIFY_WACPU_SIZE)
+
+#else
+#define MCUXCLRSA_VERIFY_NOVERIFY_WACPU_SIZE        MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WACPU_SIZE
+#define MCUXCLRSA_VERIFY_WAPKC_SIZE                 MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WAPKC_SIZE
+#define MCUXCLRSA_SIGN_CRT_NOENCODE_2048_WACPU_SIZE MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_2048_WACPU_SIZE
+#define MCUXCLRSA_SIGN_CRT_NOENCODE_WACPU_SIZE      MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_WACPU_SIZE
+#define MCUXCLRSA_SIGN_CRT_WAPKC_SIZE               MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_WAPKC_SIZE
 #endif /* MBEDTLS_MCUX_ELS_PKC_API */
 
-#if (!defined(MBEDTLS_ECDSA_VERIFY_ALT) || !defined(MBEDTLS_ECDSA_SIGN_ALT) || \
-    !defined(MBEDTLS_ECDSA_GENKEY_ALT))
-#error \
-    This implmenetation requires that all 3 alternative implementation options are enabled together.
+#if (!defined(MBEDTLS_ECDSA_VERIFY_ALT) || !defined(MBEDTLS_ECDSA_SIGN_ALT) || !defined(MBEDTLS_ECDSA_GENKEY_ALT))
+#error This implmenetation requires that all 3 alternative implementation options are enabled together.
 #else
 
 /* Parameter validation macros based on platform_util.h */
-#define ECDSA_VALIDATE_RET(cond)    \
-    MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA)
-#define ECDSA_VALIDATE(cond)        \
-    MBEDTLS_INTERNAL_VALIDATE(cond)
+#define ECDSA_VALIDATE_RET(cond) MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA)
+#define ECDSA_VALIDATE(cond)     MBEDTLS_INTERNAL_VALIDATE(cond)
 
 static void mbedtls_ecp_free_ecdsa(mcuxClEcc_DomainParam_t *pDomainParams,
                                    mcuxClEcc_PointMult_Param_t *pPointMultParams,
@@ -73,65 +130,72 @@ static void mbedtls_ecp_free_ecdsa(mcuxClEcc_DomainParam_t *pDomainParams,
                                    mcuxClEcc_Sign_Param_t *pSignParams)
 {
     /* Avoid accessing a NULL pointer. Freeing a NULL pointer is fine. */
-    if (pDomainParams != NULL) {
-        mbedtls_free((void *) pDomainParams->pA);
-        mbedtls_free((void *) pDomainParams->pB);
-        mbedtls_free((void *) pDomainParams->pP);
-        mbedtls_free((void *) pDomainParams->pG);
-        mbedtls_free((void *) pDomainParams->pN);
+    if (pDomainParams != NULL)
+    {
+        mbedtls_free((void *)pDomainParams->pA);
+        mbedtls_free((void *)pDomainParams->pB);
+        mbedtls_free((void *)pDomainParams->pP);
+        mbedtls_free((void *)pDomainParams->pG);
+        mbedtls_free((void *)pDomainParams->pN);
     }
 
     /* Avoid accessing a NULL pointer. Freeing a NULL pointer is fine. */
-    if (pPointMultParams != NULL) {
-        mbedtls_free((void *) pPointMultParams->pScalar);
-        mbedtls_free((void *) pPointMultParams->pResult);
+    if (pPointMultParams != NULL)
+    {
+        mbedtls_free((void *)pPointMultParams->pScalar);
+        mbedtls_free((void *)pPointMultParams->pResult);
     }
 
     /* Avoid accessing a NULL pointer. Freeing a NULL pointer is fine. */
-    if (pVerifyParams != NULL) {
-        mbedtls_free((void *) pVerifyParams->pSignature);
-        mbedtls_free((void *) pVerifyParams->pPublicKey);
-        mbedtls_free((void *) pVerifyParams->pOutputR);
+    if (pVerifyParams != NULL)
+    {
+        mbedtls_free((void *)pVerifyParams->pSignature);
+        mbedtls_free((void *)pVerifyParams->pPublicKey);
+        mbedtls_free((void *)pVerifyParams->pOutputR);
     }
 
     /* Avoid accessing a NULL pointer. Freeing a NULL pointer is fine. */
-    if (pSignParams != NULL) {
-        mbedtls_free((void *) pSignParams->pPrivateKey);
-        mbedtls_free((void *) pSignParams->pSignature);
+    if (pSignParams != NULL)
+    {
+        mbedtls_free((void *)pSignParams->pPrivateKey);
+        mbedtls_free((void *)pSignParams->pSignature);
     }
-
 }
 
 /*
  * Compute ECDSA signature of a hashed message
  */
-int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
-                       const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
-                       int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
+int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
+                       mbedtls_mpi *r,
+                       mbedtls_mpi *s,
+                       const mbedtls_mpi *d,
+                       const unsigned char *buf,
+                       size_t blen,
+                       int (*f_rng)(void *, unsigned char *, size_t),
+                       void *p_rng)
 {
     int return_code = 0;
     /* Check input parameters. */
-    ECDSA_VALIDATE_RET(grp   != NULL);
-    ECDSA_VALIDATE_RET(r     != NULL);
-    ECDSA_VALIDATE_RET(s     != NULL);
-    ECDSA_VALIDATE_RET(d     != NULL);
+    ECDSA_VALIDATE_RET(grp != NULL);
+    ECDSA_VALIDATE_RET(r != NULL);
+    ECDSA_VALIDATE_RET(s != NULL);
+    ECDSA_VALIDATE_RET(d != NULL);
     ECDSA_VALIDATE_RET(f_rng != NULL);
-    ECDSA_VALIDATE_RET(buf   != NULL || blen == 0);
+    ECDSA_VALIDATE_RET(buf != NULL || blen == 0);
 
 #if defined(MBEDTLS_THREADING_C)
     int ret;
-    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0) {
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
         return ret;
-    }
 #endif
 
     /* Initialize Hardware */
     int ret_hw_init = mbedtls_hw_init();
-    if (0 != ret_hw_init) {
+    if (0 != ret_hw_init)
+    {
         return_code = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
         goto cleanup;
     }
-
     /* Byte-length of prime p. */
     const uint32_t pByteLength = (grp->pbits + 7u) / 8u;
     /* Byte-length of group-order n. */
@@ -139,24 +203,41 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
 
     /* Setup session */
     mcuxClSession_Descriptor_t session;
-    const uint32_t wordSizePkcWa = MCUXCLECC_POINTMULT_WAPKC_SIZE(pByteLength, nByteLength);
-    (void) mcuxClSession_init(&session,
-                              NULL, /* CPU workarea size for point multiplication is zero */
-                              MCUXCLECC_POINTMULT_WACPU_SIZE,
-                              (uint32_t *) MCUXCLPKC_RAM_START_ADDRESS + 2,
-                              wordSizePkcWa);
+
+    /* Buffer for the CPU workarea in memory. */
+    uint32_t cpuWaBuffer[MCUX_PKC_SIGN_BY_ALT_WACPU_SIZE_MAX / sizeof(uint32_t)];
+    uint32_t cpuWaSize = sizeof(cpuWaBuffer) / sizeof(cpuWaBuffer[0]);
+
+    /* PKC buffer and size */
+    uint8_t *pPkcRam         = (uint8_t *)MCUXCLPKC_RAM_START_ADDRESS;
+    const uint32_t pkcWaSize = MCUXCLECC_SIGN_WAPKC_SIZE(pByteLength, nByteLength);
+
+    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(restSessionInit, tokenSessionInit,
+                                         mcuxClSession_init(
+                                             /* mcuxClSession_Handle_t session:     */ &session,
+                                             /* uint32_t * const cpuWaBuffer:       */ cpuWaBuffer,
+                                             /* uint32_t cpuWaSize:                 */ cpuWaSize,
+                                             /* uint32_t * const pkcWaBuffer:       */ (uint32_t *)pPkcRam,
+                                             /* uint32_t pkcWaSize:                 */ pkcWaSize));
+    if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != tokenSessionInit)
+    {
+        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    }
+
+    if (MCUXCLSESSION_STATUS_OK != restSessionInit)
+    {
+        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
 
     /* Set up domain parameters. */
-    mcuxClEcc_DomainParam_t pDomainParams =
+    mcuxClEcc_DomainParam_t pDomainParams = {.pA   = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
+                                             .pB   = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
+                                             .pP   = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
+                                             .pG   = mbedtls_calloc(pByteLength * 2u, sizeof(uint8_t)),
+                                             .pN   = mbedtls_calloc(nByteLength, sizeof(uint8_t)),
+                                             .misc = 0};
+    if (0u != mbedtls_ecp_setupDomainParams(grp, &pDomainParams))
     {
-        .pA = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
-        .pB = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
-        .pP = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
-        .pG = mbedtls_calloc(pByteLength*2u, sizeof(uint8_t)),
-        .pN = mbedtls_calloc(nByteLength, sizeof(uint8_t)),
-        .misc = 0
-    };
-    if (0u != mbedtls_ecp_setupDomainParams(grp, &pDomainParams)) {
         mbedtls_ecp_free_ecdsa(&pDomainParams, NULL, NULL, NULL);
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
@@ -165,80 +246,91 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
     /* Set up ECC sign parameters. */
     uint8_t *pPrivateKey = mbedtls_calloc(nByteLength, sizeof(uint8_t));
 
-    if (0 != mbedtls_mpi_write_binary(d, (unsigned char *) pPrivateKey, nByteLength)) {
+    if (0 != mbedtls_mpi_write_binary(d, (unsigned char *)pPrivateKey, nByteLength))
+    {
         mbedtls_ecp_free_ecdsa(&pDomainParams, NULL, NULL, NULL);
         mbedtls_free(pPrivateKey);
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
 
-    uint8_t *pSignature = mbedtls_calloc(nByteLength*2u, sizeof(uint8_t));
+    uint8_t *pSignature = mbedtls_calloc(nByteLength * 2u, sizeof(uint8_t));
 
-    mcuxClEcc_Sign_Param_t paramSign =
-    {
-        .curveParam = pDomainParams,
-        .pHash = buf,
-        .pPrivateKey = pPrivateKey,
-        .pSignature = pSignature,
-        .optLen = mcuxClEcc_Sign_Param_optLen_Pack(blen)
-    };
+    mcuxClEcc_Sign_Param_t paramSign = {.curveParam  = pDomainParams,
+                                        .pHash       = buf,
+                                        .pPrivateKey = pPrivateKey,
+                                        .pSignature  = pSignature,
+                                        .optLen      = mcuxClEcc_Sign_Param_optLen_Pack(blen)};
 
     /* The code is added as per documentation of CL usage, where it specifies following:
-       mcuxClEcc_Sign function uses DRBG and PRNG. Caller needs to check if DRBG and PRNG are ready.*/
+    mcuxClEcc_Sign function uses DRBG and PRNG. Caller needs to check if DRBG and PRNG are ready.*/
 #if defined(MBEDTLS_MCUX_ELS_PKC_API)
     /* Initialize the RNG context */
     mcuxClRandom_Context_t rng_ctx = NULL;
 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(randomInit_result, randomInit_token,
-                                         mcuxClRandom_init(&session, rng_ctx,
-                                                           mcuxClRandom_Mode_CSS_Drbg));
+                                         mcuxClRandom_init(&session, rng_ctx, mcuxClRandomModes_Mode_ELS_Drbg));
     if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClRandom_init) != randomInit_token) ||
-        (MCUXCLRANDOM_STATUS_OK != randomInit_result)) {
+        (MCUXCLRANDOM_STATUS_OK != randomInit_result))
+    {
         mbedtls_ecp_free_ecdsa(&pDomainParams, NULL, NULL, &paramSign);
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
 #endif /* MBEDTLS_MCUX_ELS_PKC_API */
-
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+        return ret;
+#endif
     /* Call ECC sign. */
-    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retEccSign, tokenEccSign,
-                                         mcuxClEcc_Sign(&session, &paramSign));
-    if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEcc_Sign) != tokenEccSign) {
+    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retEccSign, tokenEccSign, mcuxClEcc_Sign(&session, &paramSign));
+
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+        return ret;
+#endif
+
+    if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEcc_Sign) != tokenEccSign)
+    {
         mbedtls_ecp_free_ecdsa(&pDomainParams, NULL, NULL, &paramSign);
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
-    if (MCUXCLECC_STATUS_SIGN_INVALID_PARAMS == retEccSign) {
+    if (MCUXCLECC_STATUS_SIGN_INVALID_PARAMS == retEccSign)
+    {
         mbedtls_ecp_free_ecdsa(&pDomainParams, NULL, NULL, &paramSign);
         return_code = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
-    } else if (MCUXCLECC_STATUS_SIGN_RNG_ERROR == retEccSign) {
+    }
+    else if (MCUXCLECC_STATUS_SIGN_RNG_ERROR == retEccSign)
+    {
         mbedtls_ecp_free_ecdsa(&pDomainParams, NULL, NULL, &paramSign);
         return_code = MBEDTLS_ERR_ECP_RANDOM_FAILED;
         goto cleanup;
-    } else if (MCUXCLECC_STATUS_SIGN_OK != retEccSign) {
+    }
+    else if (MCUXCLECC_STATUS_SIGN_OK != retEccSign)
+    {
         mbedtls_ecp_free_ecdsa(&pDomainParams, NULL, NULL, &paramSign);
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
-    } else { /* MCUXCLECC_STATUS_SIGN_OK */
+    }
+    else /* MCUXCLECC_STATUS_SIGN_OK */
+    {
         /* Convert signature from big-endian representation to mbedtls_mpi. */
-        (void) mbedtls_mpi_read_binary(r, paramSign.pSignature, nByteLength);
-        (void) mbedtls_mpi_read_binary(s, paramSign.pSignature + nByteLength, nByteLength);
-
+        (void)mbedtls_mpi_read_binary(r, paramSign.pSignature, nByteLength);
+        (void)mbedtls_mpi_read_binary(s, paramSign.pSignature + nByteLength, nByteLength);
         /* Free allocated memory */
         mbedtls_ecp_free_ecdsa(&pDomainParams, NULL, NULL, &paramSign);
-
         /* Clean session. */
-        (void) mcuxClSession_cleanup(&session);
-        (void) mcuxClSession_destroy(&session);
-
+        (void)mcuxClSession_cleanup(&session);
+        (void)mcuxClSession_destroy(&session);
         return_code = 0;
     }
+
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0) {
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
         return ret;
-    }
 #endif
     return return_code;
 }
@@ -247,7 +339,8 @@ cleanup:
  * Verify ECDSA signature of hashed message
  */
 int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
-                         const unsigned char *buf, size_t blen,
+                         const unsigned char *buf,
+                         size_t blen,
                          const mbedtls_ecp_point *Q,
                          const mbedtls_mpi *r,
                          const mbedtls_mpi *s)
@@ -255,20 +348,20 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
     int return_code = 0;
     /* Check input parameters. */
     ECDSA_VALIDATE_RET(grp != NULL);
-    ECDSA_VALIDATE_RET(Q   != NULL);
-    ECDSA_VALIDATE_RET(r   != NULL);
-    ECDSA_VALIDATE_RET(s   != NULL);
+    ECDSA_VALIDATE_RET(Q != NULL);
+    ECDSA_VALIDATE_RET(r != NULL);
+    ECDSA_VALIDATE_RET(s != NULL);
     ECDSA_VALIDATE_RET(buf != NULL || blen == 0);
 
 #if defined(MBEDTLS_THREADING_C)
     int ret;
-    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0) {
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
         return ret;
-    }
 #endif
     /* Initialize Hardware */
     int ret_hw_init = mbedtls_hw_init();
-    if (0 != ret_hw_init) {
+    if (0 != ret_hw_init)
+    {
         return_code = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
         goto cleanup;
     }
@@ -280,25 +373,41 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
 
     /* Setup session */
     mcuxClSession_Descriptor_t session;
-    const uint32_t wordSizePkcWa = MCUXCLECC_POINTMULT_WAPKC_SIZE(pByteLength, nByteLength);
-    (void) mcuxClSession_init(&session,
-                              NULL, /* CPU workarea size for point multiplication is zero */
-                              MCUXCLECC_POINTMULT_WACPU_SIZE,
-                              (uint32_t *) MCUXCLPKC_RAM_START_ADDRESS + 2,
-                              wordSizePkcWa);
 
+    /* Buffer for the CPU workarea in memory. */
+    uint32_t cpuWaBuffer[MCUX_PKC_VERIFY_BY_ALT_WACPU_SIZE_MAX / sizeof(uint32_t)];
+    uint32_t cpuWaSize = sizeof(cpuWaBuffer) / sizeof(cpuWaBuffer[0]);
 
-    /* Set up domain parameters. */
-    mcuxClEcc_DomainParam_t pDomainParams =
+    /* PKC buffer and size */
+    uint8_t *pPkcRam         = (uint8_t *)MCUXCLPKC_RAM_START_ADDRESS;
+    const uint32_t pkcWaSize = MCUXCLECC_VERIFY_WAPKC_SIZE(pByteLength, nByteLength);
+
+    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(restSessionInit, tokenSessionInit,
+                                         mcuxClSession_init(
+                                             /* mcuxClSession_Handle_t session:     */ &session,
+                                             /* uint32_t * const cpuWaBuffer:       */ cpuWaBuffer,
+                                             /* uint32_t cpuWaSize:                 */ cpuWaSize,
+                                             /* uint32_t * const pkcWaBuffer:       */ (uint32_t *)pPkcRam,
+                                             /* uint32_t pkcWaSize:                 */ pkcWaSize));
+
+    if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != tokenSessionInit)
     {
-        .pA = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
-        .pB = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
-        .pP = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
-        .pG = mbedtls_calloc(pByteLength*2u, sizeof(uint8_t)),
-        .pN = mbedtls_calloc(nByteLength, sizeof(uint8_t)),
-        .misc = 0
-    };
-    if (0u != mbedtls_ecp_setupDomainParams(grp, &pDomainParams)) {
+        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    }
+
+    if (MCUXCLSESSION_STATUS_OK != restSessionInit)
+    {
+        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    /* Set up domain parameters. */
+    mcuxClEcc_DomainParam_t pDomainParams = {.pA   = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
+                                             .pB   = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
+                                             .pP   = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
+                                             .pG   = mbedtls_calloc(pByteLength * 2u, sizeof(uint8_t)),
+                                             .pN   = mbedtls_calloc(nByteLength, sizeof(uint8_t)),
+                                             .misc = 0};
+    if (0u != mbedtls_ecp_setupDomainParams(grp, &pDomainParams))
+    {
         mbedtls_ecp_free_ecdsa(&pDomainParams, NULL, NULL, NULL);
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
@@ -307,90 +416,102 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
     /* Prepare the scalar to compute PrecG. The formula for the scalar is: 2 ^ (4 * nByteLength). */
     uint8_t *pScalarPrecG = mbedtls_calloc(nByteLength, sizeof(uint8_t));
 
-    uint32_t scalarBitIndex = 4u * nByteLength;
-    pScalarPrecG[nByteLength - 1u - (scalarBitIndex / 8u)] = (uint8_t) 1u << (scalarBitIndex & 7u);
+    uint32_t scalarBitIndex                                = 4u * nByteLength;
+    pScalarPrecG[nByteLength - 1u - (scalarBitIndex / 8u)] = (uint8_t)1u << (scalarBitIndex & 7u);
 
     /* Set up ECC point multiplication parameters for the precomputed point PrecG required by mcuxClEcc_Verify. */
-    uint8_t *pResult = mbedtls_calloc(pByteLength*2u, sizeof(uint8_t));
-    mcuxClEcc_PointMult_Param_t pointMultParams =
-    {
-        .curveParam = pDomainParams,
-        .pScalar = pScalarPrecG,
-        .pPoint = pDomainParams.pG,
-        .pResult = pResult,
-        .optLen = 0u
-    };
+    uint8_t *pResult                            = mbedtls_calloc(pByteLength * 2u, sizeof(uint8_t));
+    mcuxClEcc_PointMult_Param_t pointMultParams = {.curveParam = pDomainParams,
+                                                   .pScalar    = pScalarPrecG,
+                                                   .pPoint     = pDomainParams.pG,
+                                                   .pResult    = pResult,
+                                                   .optLen     = 0u};
+
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+        return ret;
+#endif
 
     /* Call ECC point multiplication. */
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retEccPointMult, tokenEccPointMult,
                                          mcuxClEcc_PointMult(&session, &pointMultParams));
-    if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEcc_PointMult) != tokenEccPointMult) {
+
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+        return ret;
+#endif
+
+    if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEcc_PointMult) != tokenEccPointMult)
+    {
         mbedtls_ecp_free_ecdsa(&pDomainParams, &pointMultParams, NULL, NULL);
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
-    if (MCUXCLECC_STATUS_POINTMULT_INVALID_PARAMS == retEccPointMult) {
+    if (MCUXCLECC_STATUS_POINTMULT_INVALID_PARAMS == retEccPointMult)
+    {
         mbedtls_ecp_free_ecdsa(&pDomainParams, &pointMultParams, NULL, NULL);
         return_code = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
-    } else if (MCUXCLECC_STATUS_POINTMULT_OK != retEccPointMult) {
+    }
+    else if (MCUXCLECC_STATUS_POINTMULT_OK != retEccPointMult)
+    {
         mbedtls_ecp_free_ecdsa(&pDomainParams, &pointMultParams, NULL, NULL);
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
-    } else { /* MCUXCLECC_STATUS_POINTMULT_OK */
+    }
+    else /* MCUXCLECC_STATUS_POINTMULT_OK */
+    {
         /* Set up ECC verify parameters. */
-        uint8_t *pSignature = mbedtls_calloc(nByteLength*2u,
-                                             sizeof(uint8_t));
-        if (0 != mbedtls_mpi_write_binary(r, (unsigned char *) pSignature, nByteLength)) {
-            mbedtls_ecp_free_ecdsa(&pDomainParams, &pointMultParams, NULL, NULL);
-            mbedtls_free(pSignature);
-            return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-            goto cleanup;
-        }
-        if (0 != mbedtls_mpi_write_binary(s, (unsigned char *) pSignature + nByteLength,
-                                          nByteLength)) {
-            mbedtls_ecp_free_ecdsa(&pDomainParams, &pointMultParams, NULL, NULL);
-            mbedtls_free(pSignature);
-            return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-            goto cleanup;
-        }
-
-        uint8_t *pPublicKey = mbedtls_calloc(pByteLength*2u, sizeof(uint8_t));
-        if (0 != mbedtls_mpi_write_binary(&Q->X, (unsigned char *) pPublicKey, pByteLength)) {
-            mbedtls_ecp_free_ecdsa(&pDomainParams, &pointMultParams, NULL, NULL);
-            mbedtls_free(pSignature);
-            mbedtls_free(pPublicKey);
-            return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-            goto cleanup;
-        }
-        if (0 !=
-            mbedtls_mpi_write_binary(&Q->Y, (unsigned char *) pPublicKey + pByteLength,
-                                     pByteLength)) {
-            mbedtls_ecp_free_ecdsa(&pDomainParams, &pointMultParams, NULL, NULL);
-            mbedtls_free(pSignature);
-            mbedtls_free(pPublicKey);
-            return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-            goto cleanup;
-        }
-
-        uint8_t *pOutputR = mbedtls_calloc(nByteLength, sizeof(uint8_t));
-        mcuxClEcc_Verify_Param_t paramVerify =
+        uint8_t *pSignature = mbedtls_calloc(nByteLength * 2u, sizeof(uint8_t));
+        if (0 != mbedtls_mpi_write_binary(r, (unsigned char *)pSignature, nByteLength))
         {
-            .curveParam = pDomainParams,
-            .pPrecG = pResult,
-            .pHash = (const uint8_t *) buf,
-            .pSignature = pSignature,
-            .pPublicKey = pPublicKey,
-            .pOutputR = pOutputR,
-            .optLen = mcuxClEcc_Verify_Param_optLen_Pack(blen)
-        };
+            mbedtls_ecp_free_ecdsa(&pDomainParams, &pointMultParams, NULL, NULL);
+            mbedtls_free(pSignature);
+            return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            goto cleanup;
+        }
+        if (0 != mbedtls_mpi_write_binary(s, (unsigned char *)pSignature + nByteLength, nByteLength))
+        {
+            mbedtls_ecp_free_ecdsa(&pDomainParams, &pointMultParams, NULL, NULL);
+            mbedtls_free(pSignature);
+            return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            goto cleanup;
+        }
+
+        uint8_t *pPublicKey = mbedtls_calloc(pByteLength * 2u, sizeof(uint8_t));
+        if (0 != mbedtls_mpi_write_binary(&Q->X, (unsigned char *)pPublicKey, pByteLength))
+        {
+            mbedtls_ecp_free_ecdsa(&pDomainParams, &pointMultParams, NULL, NULL);
+            mbedtls_free(pSignature);
+            mbedtls_free(pPublicKey);
+            return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            goto cleanup;
+        }
+        if (0 != mbedtls_mpi_write_binary(&Q->Y, (unsigned char *)pPublicKey + pByteLength, pByteLength))
+        {
+            mbedtls_ecp_free_ecdsa(&pDomainParams, &pointMultParams, NULL, NULL);
+            mbedtls_free(pSignature);
+            mbedtls_free(pPublicKey);
+            return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            goto cleanup;
+        }
+
+        uint8_t *pOutputR                    = mbedtls_calloc(nByteLength, sizeof(uint8_t));
+        mcuxClEcc_Verify_Param_t paramVerify = {.curveParam = pDomainParams,
+                                                .pPrecG     = pResult,
+                                                .pHash      = (const uint8_t *)buf,
+                                                .pSignature = pSignature,
+                                                .pPublicKey = pPublicKey,
+                                                .pOutputR   = pOutputR,
+                                                .optLen     = mcuxClEcc_Verify_Param_optLen_Pack(blen)};
 
         /* Call ECC verify. */
-        MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retEccVerify, tokenEccVerify,
-                                             mcuxClEcc_Verify(&session, &paramVerify));
-        /* Note: according to mbedtls headers, the return code at failure is indeed MBEDTLS_ERR_ECP_BAD_INPUT_DATA and not MBEDTLS_ERR_ECP_VERIFY_FAILED. */
+        MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retEccVerify, tokenEccVerify, mcuxClEcc_Verify(&session, &paramVerify));
+        /* Note: according to mbedtls headers, the return code at failure is indeed MBEDTLS_ERR_ECP_BAD_INPUT_DATA and
+         * not MBEDTLS_ERR_ECP_VERIFY_FAILED. */
         if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEcc_Verify) != tokenEccVerify) ||
-            (MCUXCLECC_STATUS_VERIFY_OK != retEccVerify)) {
+            (MCUXCLECC_STATUS_VERIFY_OK != retEccVerify))
+        {
             mbedtls_ecp_free_ecdsa(&pDomainParams, &pointMultParams, &paramVerify, NULL);
             return_code = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
             goto cleanup;
@@ -399,19 +520,18 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
         /* Free allocated memory */
         mbedtls_ecp_free_ecdsa(&pDomainParams, &pointMultParams, &paramVerify, NULL);
 
-        /* Note: mcuxClEcc_Verify outputs the calculated signature R if verification is successful, but mbedtls has no such output, so it is dropped. */
+        /* Note: mcuxClEcc_Verify outputs the calculated signature R if verification is successful, but mbedtls has no
+         * such output, so it is dropped. */
 
         /* Clean session. */
-        (void) mcuxClSession_cleanup(&session);
-        (void) mcuxClSession_destroy(&session);
-
+        (void)mcuxClSession_cleanup(&session);
+        (void)mcuxClSession_destroy(&session);
         return_code = 0;
     }
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0) {
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
         return ret;
-    }
 #endif
     return return_code;
 }
@@ -419,28 +539,31 @@ cleanup:
 /*
  * Generate key pair
  */
-int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
-                         int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
+int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
+                         mbedtls_ecp_group_id gid,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng)
 {
     int return_code = 0;
     /* Check input parameters. */
-    ECDSA_VALIDATE_RET(ctx   != NULL);
+    ECDSA_VALIDATE_RET(ctx != NULL);
     ECDSA_VALIDATE_RET(f_rng != NULL);
 
     /* Set up the group context from the given gid. */
     int ret = mbedtls_ecp_group_load(&ctx->grp, gid);
-    if (ret != 0) {
-        return ret;
+    if (ret != 0)
+    {
+        return (ret);
     }
 #if defined(MBEDTLS_THREADING_C)
     int thread_ret;
-    if ((thread_ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0) {
+    if ((thread_ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
         return thread_ret;
-    }
 #endif
     /* Initialize Hardware */
     int ret_hw_init = mbedtls_hw_init();
-    if (0 != ret_hw_init) {
+    if (0 != ret_hw_init)
+    {
         return_code = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
         goto cleanup;
     }
@@ -452,24 +575,42 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
 
     /* Setup session */
     mcuxClSession_Descriptor_t session;
-    const uint32_t wordSizePkcWa = MCUXCLECC_POINTMULT_WAPKC_SIZE(pByteLength, nByteLength);
-    (void) mcuxClSession_init(&session,
-                              NULL, /* CPU workarea size for point multiplication is zero */
-                              MCUXCLECC_POINTMULT_WACPU_SIZE,
-                              (uint32_t *) MCUXCLPKC_RAM_START_ADDRESS + 2,
-                              wordSizePkcWa);
+
+    /* Buffer for the CPU workarea in memory. */
+    uint32_t cpuWaBuffer[MCUX_PKC_SIGN_BY_ALT_WACPU_SIZE_MAX / sizeof(uint32_t)];
+    uint32_t cpuWaSize = sizeof(cpuWaBuffer) / sizeof(cpuWaBuffer[0]);
+
+    /* PKC buffer and size */
+    uint8_t *pPkcRam         = (uint8_t *)MCUXCLPKC_RAM_START_ADDRESS;
+    const uint32_t pkcWaSize = MCUXCLECC_KEYGEN_WAPKC_SIZE(pByteLength, nByteLength);
+
+    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(restSessionInit, tokenSessionInit,
+                                         mcuxClSession_init(
+                                             /* mcuxClSession_Handle_t session:     */ &session,
+                                             /* uint32_t * const cpuWaBuffer:       */ cpuWaBuffer,
+                                             /* uint32_t cpuWaSize:                 */ cpuWaSize,
+                                             /* uint32_t * const pkcWaBuffer:       */ (uint32_t *)pPkcRam,
+                                             /* uint32_t pkcWaSize:                 */ pkcWaSize));
+
+    if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != tokenSessionInit)
+    {
+        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    }
+
+    if (MCUXCLSESSION_STATUS_OK != restSessionInit)
+    {
+        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
 
     /* Set up domain parameters. */
-    mcuxClEcc_DomainParam_t pDomainParams =
+    mcuxClEcc_DomainParam_t pDomainParams = {.pA   = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
+                                             .pB   = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
+                                             .pP   = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
+                                             .pG   = mbedtls_calloc(pByteLength * 2u, sizeof(uint8_t)),
+                                             .pN   = mbedtls_calloc(nByteLength, sizeof(uint8_t)),
+                                             .misc = 0};
+    if (0u != mbedtls_ecp_setupDomainParams(&ctx->grp, &pDomainParams))
     {
-        .pA = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
-        .pB = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
-        .pP = mbedtls_calloc(pByteLength, sizeof(uint8_t)),
-        .pG = mbedtls_calloc(pByteLength*2u, sizeof(uint8_t)),
-        .pN = mbedtls_calloc(nByteLength, sizeof(uint8_t)),
-        .misc = 0
-    };
-    if (0u != mbedtls_ecp_setupDomainParams(&ctx->grp, &pDomainParams)) {
         mbedtls_ecp_free_ecdsa(&pDomainParams, NULL, NULL, NULL);
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
@@ -478,44 +619,58 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
     /* Set up ECC point multiplication parameters. */
     mbedtls_ctr_drbg_context rng_ctx;
     rng_ctx.prediction_resistance = 0u;
-    uint8_t *pScalar = mbedtls_calloc(nByteLength, sizeof(uint8_t));
+    uint8_t *pScalar              = mbedtls_calloc(nByteLength, sizeof(uint8_t));
 
-    if (0u != f_rng(&rng_ctx, pScalar, nByteLength)) {
+    if (0u != f_rng(&rng_ctx, pScalar, nByteLength))
+    {
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
 
-    uint8_t *pResult = mbedtls_calloc(pByteLength*2u, sizeof(uint8_t));
-    mcuxClEcc_PointMult_Param_t PointMultParams =
-    {
-        .curveParam = pDomainParams,
-        .pScalar = pScalar,
-        .pPoint =  pDomainParams.pG,
-        .pResult = pResult,
-        .optLen = 0u
-    };
+    uint8_t *pResult                            = mbedtls_calloc(pByteLength * 2u, sizeof(uint8_t));
+    mcuxClEcc_PointMult_Param_t PointMultParams = {
+        .curveParam = pDomainParams, .pScalar = pScalar, .pPoint = pDomainParams.pG, .pResult = pResult, .optLen = 0u};
+
+#if defined(MBEDTLS_THREADING_C)
+    if ((thread_ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+        return thread_ret;
+#endif
 
     /* Call ECC point multiplication. */
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retEccPointMult, tokenEccPointMult,
                                          mcuxClEcc_PointMult(&session, &PointMultParams));
-    if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEcc_PointMult) != tokenEccPointMult) {
+
+#if defined(MBEDTLS_THREADING_C)
+    if ((thread_ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+        return thread_ret;
+#endif
+
+    if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEcc_PointMult) != tokenEccPointMult)
+    {
         mbedtls_ecp_free_ecdsa(&pDomainParams, &PointMultParams, NULL, NULL);
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
-    if (MCUXCLECC_STATUS_POINTMULT_INVALID_PARAMS == retEccPointMult) {
+    if (MCUXCLECC_STATUS_POINTMULT_INVALID_PARAMS == retEccPointMult)
+    {
         mbedtls_ecp_free_ecdsa(&pDomainParams, &PointMultParams, NULL, NULL);
         return_code = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
-    } else if (MCUXCLECC_STATUS_POINTMULT_RNG_ERROR == retEccPointMult) {
+    }
+    else if (MCUXCLECC_STATUS_POINTMULT_RNG_ERROR == retEccPointMult)
+    {
         mbedtls_ecp_free_ecdsa(&pDomainParams, &PointMultParams, NULL, NULL);
         return_code = MBEDTLS_ERR_ECP_RANDOM_FAILED;
         goto cleanup;
-    } else if (MCUXCLECC_STATUS_POINTMULT_OK != retEccPointMult) {
+    }
+    else if (MCUXCLECC_STATUS_POINTMULT_OK != retEccPointMult)
+    {
         mbedtls_ecp_free_ecdsa(&pDomainParams, &PointMultParams, NULL, NULL);
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
-    } else {
+    }
+    else
+    {
         /* Convert generated point from big-endian representation to mbedtls_mpi. */
         mbedtls_mpi_read_binary(&ctx->d, pScalar, nByteLength);
         mbedtls_mpi_read_binary(&ctx->Q.X, PointMultParams.pResult, pByteLength);
@@ -525,32 +680,36 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
         mbedtls_ecp_free_ecdsa(&pDomainParams, &PointMultParams, NULL, NULL);
 
         /* Clean session. */
-        (void) mcuxClSession_cleanup(&session);
-        (void) mcuxClSession_destroy(&session);
+        (void)mcuxClSession_cleanup(&session);
+        (void)mcuxClSession_destroy(&session);
     }
-
     return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0) {
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
         return ret;
-    }
 #endif
     return return_code;
 }
 
 int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid)
 {
-    switch (gid) {
+    switch (gid)
+    {
 #ifdef MBEDTLS_ECP_DP_CURVE25519_ENABLED
-        case MBEDTLS_ECP_DP_CURVE25519: return 0;
+        case MBEDTLS_ECP_DP_CURVE25519:
+            return 0;
 #endif
 #ifdef MBEDTLS_ECP_DP_CURVE448_ENABLED
-        case MBEDTLS_ECP_DP_CURVE448: return 0;
+        case MBEDTLS_ECP_DP_CURVE448:
+            return 0;
 #endif
-        default: return 1;
+        default:
+            return 1;
     }
 }
 
-#endif \
-    /* (!defined(MBEDTLS_ECDSA_VERIFY_ALT) || !defined(MBEDTLS_ECDSA_SIGN_ALT) || !defined(MBEDTLS_ECDSA_GENKEY_ALT)) */
+#endif /* (!defined(MBEDTLS_ECDSA_VERIFY_ALT) || !defined(MBEDTLS_ECDSA_SIGN_ALT) || \
+          !defined(MBEDTLS_ECDSA_GENKEY_ALT)) */
+
+#endif /* defined(MBEDTLS_MCUX_PKC_ECDSA) && MBEDTLS_MCUX_PKC_ECDSA */

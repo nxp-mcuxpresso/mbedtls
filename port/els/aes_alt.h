@@ -13,9 +13,8 @@
 
 /**
  * @file  aes_alt.h
- * @brief header of alternative AES implementation with CSS IP
+ * @brief header of alternative AES implementation with ELS IP
  */
-
 
 #ifndef MBEDTLS_AES_ALT_H
 #define MBEDTLS_AES_ALT_H
@@ -26,21 +25,22 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-
 /**
  * \brief The AES context-type definition.
  */
 #if defined(MBEDTLS_AES_CTX_ALT)
-typedef struct {
-    uint32_t keyLength;  /*!< AES key length in bytes. */
-    uint32_t pKey[32u / (sizeof(uint32_t))];  /*!< CPU word-aligned buffer storing 128/192/256-bit AES key. */
+typedef struct
+{
+    uint32_t keyLength;                      /*!< AES key length in bytes. */
+    uint32_t pKey[32u / (sizeof(uint32_t))]; /*!< CPU word-aligned buffer storing 128/192/256-bit AES key. */
 } mbedtls_aes_context;
 
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
 /**
  * \brief The AES XTS context-type definition.
  */
-typedef struct mbedtls_aes_xts_context {
+typedef struct mbedtls_aes_xts_context
+{
     mbedtls_aes_context crypt; /*!< The AES context to use for AES block
                                         encryption or decryption. */
     mbedtls_aes_context tweak; /*!< The AES context used for tweak
@@ -49,6 +49,5 @@ typedef struct mbedtls_aes_xts_context {
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
 
 #endif /* MBEDTLS_AES_CTX_ALT */
-
 
 #endif /* MBEDTLS_AES_ALT_H */

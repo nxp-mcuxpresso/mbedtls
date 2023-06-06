@@ -12,7 +12,7 @@
 /*--------------------------------------------------------------------------*/
 
 /** @file  sha256_alt.h
- *  @brief header of alternative SHA-224/256 implementation with CSS IP
+ *  @brief header of alternative SHA-224/256 implementation with ELS IP
  */
 
 #ifndef MBEDTLS_SHA256_ALT_H
@@ -26,7 +26,6 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-
 #if defined(MBEDTLS_SHA256_CTX_ALT)
 
 /**
@@ -36,10 +35,10 @@
  *                 checksum calculations. The choice between these two is
  *                 made in the call to mbedtls_sha256_starts_ret().
  */
-typedef struct mbedtls_sha256_context {
-    uint32_t context[MCUXCLHASH_CONTEXT_SIZE/sizeof(uint32_t)];
-}
-mbedtls_sha256_context;
+typedef struct mbedtls_sha256_context
+{
+    uint32_t context[MCUXCLHASH_CONTEXT_SIZE / sizeof(uint32_t)];
+} mbedtls_sha256_context;
 #endif /* MBEDTLS_SHA256_CTX_ALT */
 
 #endif /* MBEDTLS_SHA256_ALT_H */

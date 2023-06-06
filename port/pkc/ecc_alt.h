@@ -12,9 +12,8 @@
 /*--------------------------------------------------------------------------*/
 
 /** @file  ecc_alt.h
- *  @brief common header of alternative ECC implementations with CSS IP
+ *  @brief common header of alternative ECC implementations with ELS IP
  */
-
 
 #ifndef MBEDTLS_ECC_ALT_H
 #define MBEDTLS_ECC_ALT_H

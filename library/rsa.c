@@ -136,7 +136,7 @@ cleanup:
  * It does *not* make guarantees for consistency of the parameters.
  */
 /* NXP remove static */
-static int rsa_check_context(mbedtls_rsa_context const *ctx, int is_priv,
+int rsa_check_context(mbedtls_rsa_context const *ctx, int is_priv,
                              int blinding_needed)
 {
 #if !defined(MBEDTLS_RSA_NO_CRT)

@@ -24,18 +24,131 @@
  *  limitations under the License.
  */
 
-#ifndef MBEDTLS_CONFIG_H
-#define MBEDTLS_CONFIG_H
+#ifndef ELS_PKC_MBEDTLS_CONFIG_H
+#define ELS_PKC_MBEDTLS_CONFIG_H
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
 
-/**************************** MCUX CSS_PKC ********************************************/
+/**************************** MCUX ELS_PKC ********************************************/
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
 
-/**************************** MCUX CSS_PKC end ****************************************/
+
+/* if 1 = enable HW acceleration, 0 = disable HW acceleration, use SW only */
+
+#ifndef PKC
+#define PKC PKC0
+#endif
+
+/* Enable ELS */
+#if defined(ELS)
+#if defined(MBEDTLS_MCUX_USE_ELS)
+
+  #define MBEDTLS_MCUX_ELS_AES        (1)     /* Enable use of ELS AES.*/
+  #define MBEDTLS_MCUX_ELS_AES_GCM    (1)     /* Enable use of ELS AES.*/
+  #define MBEDTLS_MCUX_ELS_SHA256     (1)     /* Enable use of ELS SHA256.*/
+  #define MBEDTLS_MCUX_ELS_SHA512     (1)     /* Enable use of ELS SHA512.*/
+
+  #define MBEDTLS_CTR_DRBG_ALT 		      /* Enable use of ELS CTR  DRBG.*/
+
+#endif /* MBEDTLS_MCUX_USE_ELS */
+#endif /* ELS */
+
+/* Enable PKC */
+#if defined(PKC)
+#if defined(MBEDTLS_MCUX_USE_PKC)
+
+  #define MBEDTLS_MCUX_PKC_ECDH   (1)     /* Enable use of PKC ECDH.*/
+  #define MBEDTLS_MCUX_PKC_ECDSA  (1)     /* Enable use of PKC ECDSA.*/
+  #define MBEDTLS_MCUX_PKC_RSA    (1)     /* Enable use of PKC RSA.*/
+
+#endif /* MBEDTLS_MCUX_USE_PKC */
+#endif /* PKC */
+
+
+/* ======== Define ALT functions ====================================== */
+
+#define MBEDTLS_CTR_DRBG_ALT
+
+#if defined(MBEDTLS_MCUX_ELS_AES) && (MBEDTLS_MCUX_ELS_AES > 0)
+
+    #define MBEDTLS_AES_SETKEY_ENC_ALT
+    #define MBEDTLS_AES_SETKEY_DEC_ALT
+    #define MBEDTLS_AES_ENCRYPT_ALT
+    #define MBEDTLS_AES_DECRYPT_ALT
+    #define MBEDTLS_AES_CTX_ALT
+
+    #define MBEDTLS_AES_CBC_ALT
+    #define MBEDTLS_AES_CTR_ALT
+    #define MBEDTLS_AES_CMAC_ALT
+
+/**
+ * \def MBEDTLS_CCM_USE_AES_CBC_MAC
+ *
+ * Uncomment this macro in case CCM should be used with AES CBC-MAC calling ELS IP.
+ *
+ */
+#define MBEDTLS_CCM_USE_AES_CBC_MAC
+
+#endif
+
+#if defined(MBEDTLS_MCUX_ELS_AES_GCM) && (MBEDTLS_MCUX_ELS_AES_GCM > 0)
+
+  #define MBEDTLS_AES_GCM_SETKEY_ALT
+  #define MBEDTLS_AES_GCM_STARTS_ALT
+  #define MBEDTLS_AES_GCM_UPDATE_ALT
+  #define MBEDTLS_AES_GCM_FINISH_ALT
+
+#endif
+
+#if defined(MBEDTLS_MCUX_ELS_SHA256) && (MBEDTLS_MCUX_ELS_SHA256 > 0)
+
+    #define MBEDTLS_SHA256_CTX_ALT
+    #define MBEDTLS_SHA256_STARTS_ALT
+    #define MBEDTLS_SHA256_UPDATE_ALT
+    #define MBEDTLS_SHA256_FINISH_ALT
+    #define MBEDTLS_SHA256_FULL_ALT
+    #define MBEDTLS_SHA256_PROCESS_ALT
+
+#endif
+
+#if defined(MBEDTLS_MCUX_ELS_SHA512) && (MBEDTLS_MCUX_ELS_SHA512 > 0)
+
+    #define MBEDTLS_SHA512_CTX_ALT
+    #define MBEDTLS_SHA512_STARTS_ALT
+    #define MBEDTLS_SHA512_UPDATE_ALT
+    #define MBEDTLS_SHA512_FINISH_ALT
+    #define MBEDTLS_SHA512_FULL_ALT
+    #define MBEDTLS_SHA512_PROCESS_ALT
+
+#endif
+
+#if defined(MBEDTLS_MCUX_PKC_ECDH) && (MBEDTLS_MCUX_PKC_ECDH > 0)
+
+    #define MBEDTLS_ECDH_GEN_PUBLIC_ALT
+    #define MBEDTLS_ECDH_COMPUTE_SHARED_ALT
+    #define MBEDTLS_ECDH_CANDO_ALT
+
+#endif
+
+#if defined(MBEDTLS_MCUX_PKC_ECDSA) && (MBEDTLS_MCUX_PKC_ECDSA > 0)
+
+    #define MBEDTLS_ECDSA_SIGN_ALT
+    #define MBEDTLS_ECDSA_VERIFY_ALT
+    #define MBEDTLS_ECDSA_GENKEY_ALT
+
+#endif
+
+#if defined(MBEDTLS_MCUX_PKC_RSA) && (MBEDTLS_MCUX_PKC_RSA > 0)
+
+    #define MBEDTLS_RSA_PUBLIC_ALT
+    #define MBEDTLS_RSA_PRIVATE_ALT
+    #define MBEDTLS_RSA_CTX_ALT
+
+#endif
+/**************************** MCUX ELS_PKC end ****************************************/
 /**
  * \name SECTION: System support
  *
@@ -375,7 +488,7 @@
  *
  */
 //#define MBEDTLS_AES_ALT
-#define MBEDTLS_AES_CTX_ALT
+//#define MBEDTLS_AES_CTX_ALT
 //#define MBEDTLS_AES_XTS_ALT
 //#define MBEDTLS_ARC4_ALT
 //#define MBEDTLS_ARIA_ALT
@@ -385,8 +498,8 @@
 //#define MBEDTLS_CHACHA20_ALT
 //#define MBEDTLS_CHACHAPOLY_ALT
 //#define MBEDTLS_CMAC_ALT
-#define MBEDTLS_CTR_DRBG_ALT
-#define MBEDTLS_AES_CMAC_ALT
+//#define MBEDTLS_CTR_DRBG_ALT
+//#define MBEDTLS_AES_CMAC_ALT
 //#define MBEDTLS_DES_ALT
 //#define MBEDTLS_DHM_ALT
 //#define MBEDTLS_ECJPAKE_ALT
@@ -399,24 +512,23 @@
 //#define MBEDTLS_POLY1305_ALT
 //#define MBEDTLS_RIPEMD160_ALT
 //#define MBEDTLS_RSA_ALT
-#define MBEDTLS_RSA_CTX_ALT
-#define MBEDTLS_RSA_PUBLIC_ALT
-#define MBEDTLS_RSA_PRIVATE_ALT
+//#define MBEDTLS_RSA_CTX_ALT
+//#define MBEDTLS_RSA_PUBLIC_ALT
+//#define MBEDTLS_RSA_PRIVATE_ALT
 //#define MBEDTLS_SHA1_ALT
 //#define MBEDTLS_SHA256_ALT
-#define MBEDTLS_SHA256_CTX_ALT
-#define MBEDTLS_SHA256_STARTS_ALT
-#define MBEDTLS_SHA256_UPDATE_ALT
-#define MBEDTLS_SHA256_FINISH_ALT
-#define MBEDTLS_SHA256_FULL_ALT
+//#define MBEDTLS_SHA256_CTX_ALT
+//#define MBEDTLS_SHA256_STARTS_ALT
+//#define MBEDTLS_SHA256_UPDATE_ALT
+//#define MBEDTLS_SHA256_FINISH_ALT
+//#define MBEDTLS_SHA256_FULL_ALT
 //#define MBEDTLS_SHA512_ALT
-#define MBEDTLS_SHA512_CTX_ALT
-#define MBEDTLS_SHA512_STARTS_ALT
-#define MBEDTLS_SHA512_UPDATE_ALT
-#define MBEDTLS_SHA512_FINISH_ALT
-#define MBEDTLS_SHA512_FULL_ALT
+//#define MBEDTLS_SHA512_CTX_ALT
+//#define MBEDTLS_SHA512_STARTS_ALT
+//#define MBEDTLS_SHA512_UPDATE_ALT
+//#define MBEDTLS_SHA512_FINISH_ALT
+//#define MBEDTLS_SHA512_FULL_ALT
 //#define MBEDTLS_XTEA_ALT
-
 
 /*
  * When replacing the elliptic curve module, pleace consider, that it is
@@ -479,28 +591,28 @@
 //#define MBEDTLS_MD5_PROCESS_ALT
 //#define MBEDTLS_RIPEMD160_PROCESS_ALT
 //#define MBEDTLS_SHA1_PROCESS_ALT
-#define MBEDTLS_SHA256_PROCESS_ALT
-#define MBEDTLS_SHA512_PROCESS_ALT
+//#define MBEDTLS_SHA256_PROCESS_ALT
+//#define MBEDTLS_SHA512_PROCESS_ALT
 //#define MBEDTLS_DES_SETKEY_ALT
 //#define MBEDTLS_DES_CRYPT_ECB_ALT
 //#define MBEDTLS_DES3_CRYPT_ECB_ALT
-#define MBEDTLS_AES_SETKEY_ENC_ALT
-#define MBEDTLS_AES_SETKEY_DEC_ALT
-#define MBEDTLS_AES_ENCRYPT_ALT
-#define MBEDTLS_AES_DECRYPT_ALT
-#define MBEDTLS_AES_GCM_SETKEY_ALT
-#define MBEDTLS_AES_GCM_STARTS_ALT
-#define MBEDTLS_AES_GCM_UPDATE_ALT
-#define MBEDTLS_AES_GCM_FINISH_ALT
-#define MBEDTLS_AES_CBC_ALT
-#define MBEDTLS_AES_CTR_ALT
-#define MBEDTLS_ECDH_GEN_PUBLIC_ALT
-#define MBEDTLS_ECDH_COMPUTE_SHARED_ALT
+//#define MBEDTLS_AES_SETKEY_ENC_ALT
+//#define MBEDTLS_AES_SETKEY_DEC_ALT
+//#define MBEDTLS_AES_ENCRYPT_ALT
+//#define MBEDTLS_AES_DECRYPT_ALT
+//#define MBEDTLS_AES_GCM_SETKEY_ALT
+//#define MBEDTLS_AES_GCM_STARTS_ALT
+//#define MBEDTLS_AES_GCM_UPDATE_ALT
+//#define MBEDTLS_AES_GCM_FINISH_ALT
+//#define MBEDTLS_AES_CBC_ALT
+//#define MBEDTLS_AES_CTR_ALT
+//#define MBEDTLS_ECDH_GEN_PUBLIC_ALT
+//#define MBEDTLS_ECDH_COMPUTE_SHARED_ALT
 //#define MBEDTLS_ECP_RESTARTABLE
-#define MBEDTLS_ECDH_CANDO_ALT
-#define MBEDTLS_ECDSA_VERIFY_ALT
-#define MBEDTLS_ECDSA_SIGN_ALT
-#define MBEDTLS_ECDSA_GENKEY_ALT
+//#define MBEDTLS_ECDH_CANDO_ALT
+//#define MBEDTLS_ECDSA_VERIFY_ALT
+//#define MBEDTLS_ECDSA_SIGN_ALT
+//#define MBEDTLS_ECDSA_GENKEY_ALT
 
 /**
  * \def MBEDTLS_ECP_INTERNAL_ALT
@@ -798,7 +910,7 @@
 #define MBEDTLS_ECP_DP_BP256R1_ENABLED
 #define MBEDTLS_ECP_DP_BP384R1_ENABLED
 #define MBEDTLS_ECP_DP_BP512R1_ENABLED
-/* Montgomery curves (supporting ECP), NOT supported by CSS PKC*/
+/* Montgomery curves (supporting ECP), NOT supported by ELS PKC*/
 //#define MBEDTLS_ECP_DP_CURVE25519_ENABLED
 //#define MBEDTLS_ECP_DP_CURVE448_ENABLED
 
@@ -2111,7 +2223,7 @@
  *
  * Comment this to disable run-time checking and save ROM space
  */
-#define MBEDTLS_VERSION_FEATURES
+//#define MBEDTLS_VERSION_FEATURES
 
 /**
  * \def MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
@@ -2617,7 +2729,7 @@
  *
  * This module provides debugging functions.
  */
-#define MBEDTLS_DEBUG_C
+//#define MBEDTLS_DEBUG_C
 
 /**
  * \def MBEDTLS_DES_C
@@ -3884,18 +3996,10 @@
 /**
  * \def MBEDTLS_CCM_USE_AES_CBC_MAC
  *
- * Uncomment this macro in case CCM should be used with AES CBC-MAC calling CSS IP.
+ * Uncomment this macro in case CCM should be used with AES CBC-MAC calling ELS IP.
  *
  */
-#define MBEDTLS_CCM_USE_AES_CBC_MAC
-
-/**
- * \def MBEDTLS_CBC_MAC_USE_CMAC
- *
- * Uncomment this macro in case AES CBC-MAC should be used with CSS CMAC command.
- *
- */
-//#define MBEDTLS_CBC_MAC_USE_CMAC
+//#define MBEDTLS_CCM_USE_AES_CBC_MAC
 
 /* \} name SECTION: Customisation configuration options */
 
@@ -3914,4 +4018,4 @@
 
 #include "mbedtls/check_config.h"
 
-#endif /* MBEDTLS_CONFIG_H */
+#endif /* ELS_PKC_MBEDTLS_CONFIG_H */

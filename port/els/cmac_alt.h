@@ -16,14 +16,16 @@
  * @brief header of alternative CMAC implementation
  */
 
-
 #ifndef MBEDTLS_CMAC_ALT_H
 #define MBEDTLS_CMAC_ALT_H
 
 #include <mcuxClSession.h>
 #include <mcuxClKey.h>
 #include <mcuxClMac.h>
-#include <internal/mcuxClMac_internal.h>
+#include <internal/mcuxClKey_Types_Internal.h>
+#include <internal/mcuxClMacModes_ELS_Ctx.h>
+#include <mcuxClMacModes_MemoryConsumption.h>
+#include <mcuxClMac_Ctx.h>
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -31,18 +33,17 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-
 #if defined(MBEDTLS_AES_CMAC_ALT)
 /**
  * The AES CMAC context structure.
  */
-typedef struct {
+typedef struct
+{
     mcuxClSession_Descriptor_t macSession;
-    mcuxClKey_Descriptor_t     macKey;
-    mcuxClMac_Context_t        macContext;
+    mcuxClKey_Descriptor_t macKey;
+    mcuxClMacModes_Context_t macContext;
     uint32_t *macKeyDestination;
-    uint32_t                  macCpuWa[(MCUXCLMAC_WA_SIZE_MAX + (sizeof(uint32_t)) - 1u) /
-                                       (sizeof(uint32_t))];
+    uint32_t macCpuWa[(MCUXCLMAC_MAX_CPU_WA_BUFFER_SIZE + (sizeof(uint32_t)) - 1u) / (sizeof(uint32_t))];
 } mbedtls_aes_cmac_context_t;
 
 /**
@@ -76,13 +77,11 @@ int mbedtls_cipher_aes_cmac_starts(mbedtls_cipher_context_t *ctx);
  * \param ilen          The length of the input data.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED on CSS error
+ * \return              #MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED on ELS error
  * \return              #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED on other error
  *
  */
-int mbedtls_cipher_aes_cmac_update(mbedtls_cipher_context_t *ctx,
-                                   const unsigned char *input,
-                                   size_t ilen);
+int mbedtls_cipher_aes_cmac_update(mbedtls_cipher_context_t *ctx, const unsigned char *input, size_t ilen);
 
 /**
  * \brief               This function finishes the AES CMAC operation, and writes
@@ -95,12 +94,11 @@ int mbedtls_cipher_aes_cmac_update(mbedtls_cipher_context_t *ctx,
  * \param output        The output buffer for the AES CMAC checksum result.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED on CSS error
+ * \return              #MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED on ELS error
  * \return              #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED on other error
  *
  */
-int mbedtls_cipher_aes_cmac_finish(mbedtls_cipher_context_t *ctx,
-                                   unsigned char *output);
-#endif  /* MBEDTLS_AES_CMAC_ALT */
+int mbedtls_cipher_aes_cmac_finish(mbedtls_cipher_context_t *ctx, unsigned char *output);
+#endif /* MBEDTLS_AES_CMAC_ALT */
 
-#endif  /* MBEDTLS_CMAC_ALT_H */
+#endif /* MBEDTLS_CMAC_ALT_H */

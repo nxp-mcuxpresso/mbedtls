@@ -15,17 +15,16 @@
  *  @brief header of hardware IP functions for mbedTLS
  */
 
-
 #ifndef PLATFORM_HW_IP_H
 #define PLATFORM_HW_IP_H
 
-#include <mcuxClCss.h>
+#include <mcuxClEls.h>
 #include <mcuxClMemory.h>
 
 /**
- * \brief Initialization function for MCUX HW IPs. It shall be called by all alternative implementations of mbedTLS functions that make use of MCUX HW IPs.
+ * \brief Initialization function for MCUX HW IPs. It shall be called by all alternative implementations of mbedTLS
+ * functions that make use of MCUX HW IPs.
  */
 extern int mbedtls_hw_init(void);
-
 
 #endif /* PLATFORM_HW_IP_H */

@@ -12,7 +12,7 @@
 /*--------------------------------------------------------------------------*/
 
 /** @file  gcm_alt.h
- *  @brief header of alternative AES GCM implementation with CSS IP
+ *  @brief header of alternative AES GCM implementation with ELS IP
  */
 
 #ifndef MBEDTLS_GCM_AES_ALT_H
@@ -45,7 +45,7 @@ int mbedtls_aes_gcm_setkey(mbedtls_gcm_context *ctx,
 
 /**
  * \brief           This function peforms an AES GCM encryption or decryption
- *                  operation using the CSS driver.
+ *                  operation using the ELS driver.
  *                  Inputs are assumed to be validated, thus this function
  *                  may only be called from the function
  *                  mbedtls_gcm_starts().
@@ -62,7 +62,7 @@ int mbedtls_aes_gcm_setkey(mbedtls_gcm_context *ctx,
  *                  \p add may be \c NULL.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_GCM_HW_ACCEL_FAILED in case of CSS error.
+ * \return          #MBEDTLS_ERR_GCM_HW_ACCEL_FAILED in case of ELS error.
  */
 int mbedtls_aes_gcm_starts(mbedtls_gcm_context *ctx,
                            int mode,
@@ -73,7 +73,7 @@ int mbedtls_aes_gcm_starts(mbedtls_gcm_context *ctx,
 
 /**
  * \brief           This function feeds an input buffer into an ongoing AES GCM
- *                  encryption or decryption operation using the CSS driver.
+ *                  encryption or decryption operation using the ELS driver.
  *                  Inputs are assumed to be validated, thus this function
  *                  may only be called from the function
  *                  mbedtls_gcm_update().
@@ -88,16 +88,13 @@ int mbedtls_aes_gcm_starts(mbedtls_gcm_context *ctx,
  *                  least that size in Bytes.
  *
  * \return         \c 0 on success.
- * \return         #MBEDTLS_ERR_GCM_HW_ACCEL_FAILED in case of CSS error.
+ * \return         #MBEDTLS_ERR_GCM_HW_ACCEL_FAILED in case of ELS error.
  */
-int mbedtls_aes_gcm_update(mbedtls_gcm_context *ctx,
-                           size_t length,
-                           const unsigned char *input,
-                           unsigned char *output);
+int mbedtls_aes_gcm_update(mbedtls_gcm_context *ctx, size_t length, const unsigned char *input, unsigned char *output);
 
 /**
  * \brief           This function finishes the AES GCM operation and generates
- *                  the authentication tag using the CSS driver.
+ *                  the authentication tag using the ELS driver.
  *                  Inputs are assumed to be validated, thus this function
  *                  may only be called from the function
  *                  mbedtls_gcm_finish().
@@ -109,10 +106,8 @@ int mbedtls_aes_gcm_update(mbedtls_gcm_context *ctx,
  *                  four.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_GCM_HW_ACCEL_FAILED in case of CSS error.
+ * \return          #MBEDTLS_ERR_GCM_HW_ACCEL_FAILED in case of ELS error.
  */
-int mbedtls_aes_gcm_finish(mbedtls_gcm_context *ctx,
-                           unsigned char *tag,
-                           size_t tag_len);
+int mbedtls_aes_gcm_finish(mbedtls_gcm_context *ctx, unsigned char *tag, size_t tag_len);
 
 #endif /* MBEDTLS_GCM_AES_ALT_H */

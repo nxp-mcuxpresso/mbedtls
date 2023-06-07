@@ -761,7 +761,7 @@ middleware.mbedtls.default_heap_stack:
           config:
             __common__:
               cx-flags:
-              - "--diag_suppress Pa167,Pe177,Pe546"
+              - "--diag_suppress Pa167,Pe177,Pe191,Pe546"
               ad-flags:
               - __stack_size__=0x2000
               - __heap_size__=0x8000

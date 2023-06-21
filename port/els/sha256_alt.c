@@ -125,7 +125,7 @@ cleanup:
 int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
 {
     int return_code = 0;
-    if (ctx == NULL || input == NULL)
+    if (ctx == NULL || (input == NULL && ilen != 0u))
     {
         return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
     }

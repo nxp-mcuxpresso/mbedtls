@@ -426,6 +426,11 @@ middleware.mbedtls.port.ksdk:
 middleware.mbedtls:
   section-type: component
   contents:
+    configuration:
+      tools:
+        iar:
+          cx-flags:
+          - "--diag_suppress Pa167,Pe177,Pe191,Pe546"
     repo_base_path: middleware/mbedtls
     project_base_path: mbedtls
     cc-include:
@@ -676,8 +681,6 @@ middleware.mbedtls.default_heap_stack:
         iar:
           config:
             __common__:
-              cx-flags:
-              - "--diag_suppress Pa167,Pe177,Pe191,Pe546"
               ad-flags:
               - __stack_size__=0x2000
               - __heap_size__=0x8000

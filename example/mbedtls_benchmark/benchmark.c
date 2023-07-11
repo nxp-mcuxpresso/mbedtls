@@ -420,7 +420,7 @@ static int bench_print_features(void)
 {
     char *text;
     mbedtls_printf("mbedTLS version %s\r\n", MBEDTLS_VERSION_STRING);
-    mbedtls_printf("fsys=%lu\r\n", ((CORE_CLK_FREQ)));
+    mbedtls_printf("fsys=%d\r\n", ((CORE_CLK_FREQ)));
     mbedtls_printf("Using following implementations:\r\n");
 #if defined(MBEDTLS_FREESCALE_LTC_SHA256)
     text = "LTC HW accelerated";
@@ -440,10 +440,8 @@ static int bench_print_features(void)
     text = "S200 HW accelerated";
 #elif defined(MBEDTLS_NXP_SENTINEL300)
     text = "S300 HW accelerated";
-#elif defined(MBEDTLS_MCUX_ELS_PKC_API)
-    text = "ELS PKC HW accelerated";
-#elif defined(MBEDTLS_MCUX_ELS_API)
-    text = "ELS HW accelerated";
+#elif defined(MBEDTLS_MCUX_ELS_SHA256) || (MBEDTLS_MCUX_ELS_SHA256 > 0) || defined(MBEDTLS_MCUX_ELS_SHA512) || (MBEDTLS_MCUX_ELS_SHA512 > 0)
+    text = "ELS HW accelerated SHA256 and SHA512";
 #else
     text = "Software implementation";
 #endif
@@ -466,10 +464,10 @@ static int bench_print_features(void)
     text = "S200 HW accelerated ECB, CBC, CCM and CMAC";
 #elif defined(MBEDTLS_NXP_SENTINEL300)
     text = "SW AES, S300 HW accelerated CCM and CMAC";
-#elif defined(MBEDTLS_MCUX_ELS_PKC_API)
-    text = "ELS PKC HW accelerated";
-#elif defined(MBEDTLS_MCUX_ELS_API)
+#elif defined(MBEDTLS_MCUX_ELS_AES) || (MBEDTLS_MCUX_ELS_AES > 0)
     text = "ELS HW accelerated";
+#elif defined(MBEDTLS_MCUX_ELE_S400)
+    text = "ELE S40x HW accelerated";
 #else
     text = "Software implementation";
 #endif
@@ -484,9 +482,7 @@ static int bench_print_features(void)
     text = "CAU3 HW accelerated";
 #elif defined(MBEDTLS_FREESCALE_CAAM_AES)
     text = "CAAM HW accelerated";
-#elif defined(MBEDTLS_MCUX_ELS_PKC_API)
-    text = "ELS PKC HW accelerated";
-#elif defined(MBEDTLS_MCUX_ELS_API)
+#elif defined(MBEDTLS_MCUX_ELS_AES_GCM)  || (MBEDTLS_MCUX_ELS_AES_GCM > 0)
     text = "ELS HW accelerated";
 #else
     text = "Software implementation";
@@ -516,8 +512,10 @@ static int bench_print_features(void)
     text = "S200 HW accelerated ECDSA and ECDH";
 #elif defined(MBEDTLS_NXP_SENTINEL300)
     text = "S300 HW accelerated ECDSA and ECDH";
-#elif defined(MBEDTLS_MCUX_ELS_PKC_API)
-    text = "ELS PKC HW accelerated";
+#elif defined(MBEDTLS_MCUX_USE_PKC)
+    text = "PKC HW accelerated";
+#elif defined(MBEDTLS_MCUX_ELE_S400)
+    text = "ELE S40x HW accelerated RSA";
 #else
     text = "Software implementation";
 #endif

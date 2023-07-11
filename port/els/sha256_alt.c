@@ -20,7 +20,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_MCUX_ELS_SHA512) && MBEDTLS_MCUX_ELS_SHA512
+#if defined(MBEDTLS_MCUX_ELS_SHA256) && MBEDTLS_MCUX_ELS_SHA256
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
@@ -312,4 +312,4 @@ cleanup:
 #endif /* defined(MBEDTLS_SHA256_CTX_ALT) && defined(MBEDTLS_SHA256_STARTS_ALT) && defined(MBEDTLS_SHA256_UPDATE_ALT) \
           && defined(MBEDTLS_SHA256_FINISH_ALT) && defined(MBEDTLS_SHA256_FULL_ALT) */
 
-#endif /* defined(MBEDTLS_MCUX_ELS_SHA512) && MBEDTLS_MCUX_ELS_SHA512 */
+#endif /* defined(MBEDTLS_MCUX_ELS_SHA256) && MBEDTLS_MCUX_ELS_SHA256 */

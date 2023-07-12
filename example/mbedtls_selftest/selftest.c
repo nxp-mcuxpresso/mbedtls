@@ -362,7 +362,7 @@ static int bench_print_features(void)
     text = "S200 HW accelerated";
 #elif defined(MBEDTLS_NXP_SENTINEL300)
     text = "S300 HW accelerated";
-#elif defined(MBEDTLS_MCUX_ELS_SHA256) & defined(MBEDTLS_MCUX_ELS_SHA512)
+#elif defined(MBEDTLS_MCUX_ELS_SHA256) && defined(MBEDTLS_MCUX_ELS_SHA512)
     text = "ELS HW accelerated SHA256 and SHA512";
 #elif defined(MBEDTLS_MCUX_ELS_SHA256)
     text = "ELS HW accelerated SHA256";

@@ -36,22 +36,36 @@
 #include "fsl_debug_console.h"
 /* if 1 = enable HW acceleration, 0 = disable HW acceleration, use SW only */
 
+/* If this define are not defined on command line, by default turn them on to use HW acceleration with this mbedtls_config file. Comment to turn off port layer */
+#ifndef MBEDTLS_MCUX_USE_ELS
+#define MBEDTLS_MCUX_USE_ELS 
+#endif
+
+
+/* Uncomment to enable HW acceleration, Comment to disable HW acceleration, use SW only */
+
 /* Enable ELS */
 #if defined(ELS)
 #if defined(MBEDTLS_MCUX_USE_ELS)
 
-  #define MBEDTLS_MCUX_ELS_AES        (1)     /* Enable use of ELS AES.*/
-  #define MBEDTLS_MCUX_ELS_AES_GCM    (1)     /* Enable use of ELS AES.*/
-  #define MBEDTLS_MCUX_ELS_SHA256     (1)     /* Enable use of ELS SHA256.*/
-  #define MBEDTLS_MCUX_ELS_SHA512     (1)     /* Enable use of ELS SHA512.*/
+/**
+ * Uncomment a macro to enable alternate implementation of specific base
+ * platform function
+*/
 
-  #define MBEDTLS_CTR_DRBG_ALT 				 /* Enable use of ELS CTR  DRBG.*/
+  #define MBEDTLS_MCUX_ELS_AES             /* Enable use of ELS AES. */
+  #define MBEDTLS_MCUX_ELS_AES_GCM         /* Enable use of ELS AES. */
+  #define MBEDTLS_MCUX_ELS_SHA256          /* Enable use of ELS SHA256. */
+  #define MBEDTLS_MCUX_ELS_SHA512          /* Enable use of ELS SHA512. */
+
+  #define MBEDTLS_CTR_DRBG_ALT 		   /* Enable use of ELS CTR  DRBG. */
 
 #endif /* MBEDTLS_MCUX_USE_ELS */
 #endif /* ELS */
 
+
 /* ======== Define ALT functions ====================================== */
-#if defined(MBEDTLS_MCUX_ELS_AES) && (MBEDTLS_MCUX_ELS_AES > 0)
+#if defined(MBEDTLS_MCUX_ELS_AES)
 
     #define MBEDTLS_AES_SETKEY_ENC_ALT
     #define MBEDTLS_AES_SETKEY_DEC_ALT
@@ -73,7 +87,7 @@
 
 #endif
 
-#if defined(MBEDTLS_MCUX_ELS_AES_GCM) && (MBEDTLS_MCUX_ELS_AES_GCM > 0)
+#if defined(MBEDTLS_MCUX_ELS_AES_GCM)
 
   #define MBEDTLS_AES_GCM_SETKEY_ALT
   #define MBEDTLS_AES_GCM_STARTS_ALT
@@ -82,7 +96,7 @@
 
 #endif
 
-#if defined(MBEDTLS_MCUX_ELS_SHA256) && (MBEDTLS_MCUX_ELS_SHA256 > 0)
+#if defined(MBEDTLS_MCUX_ELS_SHA256)
 
     #define MBEDTLS_SHA256_CTX_ALT
     #define MBEDTLS_SHA256_STARTS_ALT
@@ -93,7 +107,7 @@
 
 #endif
 
-#if defined(MBEDTLS_MCUX_ELS_SHA512) && (MBEDTLS_MCUX_ELS_SHA512 > 0)
+#if defined(MBEDTLS_MCUX_ELS_SHA512)
 
     #define MBEDTLS_SHA512_CTX_ALT
     #define MBEDTLS_SHA512_STARTS_ALT

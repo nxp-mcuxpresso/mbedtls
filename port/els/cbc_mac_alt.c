@@ -17,7 +17,7 @@
 
 #include <cbc_mac_alt.h>
 
-#if defined(MBEDTLS_MCUX_ELS_AES) && MBEDTLS_MCUX_ELS_AES
+#if defined(MBEDTLS_MCUX_ELS_AES)
 
 #include <mbedtls/ccm.h>
 #include <mbedtls/platform.h>
@@ -283,4 +283,4 @@ cleanup:
     return return_code;
 }
 
-#endif /* defined(MBEDTLS_MCUX_ELS_AES) && MBEDTLS_MCUX_ELS_AES */
+#endif /* defined(MBEDTLS_MCUX_ELS_AES) */

@@ -21,7 +21,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_MCUX_PKC_ECDH) && MBEDTLS_MCUX_PKC_ECDH
+#if defined(MBEDTLS_MCUX_PKC_ECDH)
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
@@ -460,4 +460,4 @@ int mbedtls_ecdh_can_do(mbedtls_ecp_group_id gid)
 #endif /* MBEDTLS_ECDH_GEN_PUBLIC_ALT && MBEDTLS_ECDH_COMPUTE_SHARED_ALT && MBEDTLS_ECDH_CANDO_ALT && \
           !MBEDTLS_ECP_RESTARTABLE */
 
-#endif /* defined(MBEDTLS_MCUX_PKC_ECDH) && MBEDTLS_MCUX_PKC_ECDH */
+#endif /* defined(MBEDTLS_MCUX_PKC_ECDH) */

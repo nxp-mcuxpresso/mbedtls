@@ -20,7 +20,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_MCUX_PKC_ECDSA) && MBEDTLS_MCUX_PKC_ECDSA
+#if defined(MBEDTLS_MCUX_PKC_ECDSA)
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
@@ -712,4 +712,4 @@ int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid)
 #endif /* (!defined(MBEDTLS_ECDSA_VERIFY_ALT) || !defined(MBEDTLS_ECDSA_SIGN_ALT) || \
           !defined(MBEDTLS_ECDSA_GENKEY_ALT)) */
 
-#endif /* defined(MBEDTLS_MCUX_PKC_ECDSA) && MBEDTLS_MCUX_PKC_ECDSA */
+#endif /* defined(MBEDTLS_MCUX_PKC_ECDSA) */

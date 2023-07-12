@@ -20,7 +20,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_MCUX_ELS_SHA256) && MBEDTLS_MCUX_ELS_SHA256
+#if defined(MBEDTLS_MCUX_ELS_SHA256)
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
@@ -243,7 +243,7 @@ int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned 
     return 0;
 }
 
-int mbedtls_sha256_ret(const unsigned char *input, size_t ilen, unsigned char output[64], int is384)
+int mbedtls_sha256_ret(const unsigned char *input, size_t ilen, unsigned char output[32], int is384)
 {
     int return_code     = 0;
     uint32_t outputSize = 0;
@@ -312,4 +312,4 @@ cleanup:
 #endif /* defined(MBEDTLS_SHA256_CTX_ALT) && defined(MBEDTLS_SHA256_STARTS_ALT) && defined(MBEDTLS_SHA256_UPDATE_ALT) \
           && defined(MBEDTLS_SHA256_FINISH_ALT) && defined(MBEDTLS_SHA256_FULL_ALT) */
 
-#endif /* defined(MBEDTLS_MCUX_ELS_SHA256) && MBEDTLS_MCUX_ELS_SHA256 */
+#endif /* defined(MBEDTLS_MCUX_ELS_SHA256) */

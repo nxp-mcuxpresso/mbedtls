@@ -17,7 +17,7 @@
 
 #include "gcm_alt.h"
 
-#if defined(MBEDTLS_MCUX_ELS_AES_GCM) && MBEDTLS_MCUX_ELS_AES_GCM
+#if defined(MBEDTLS_MCUX_ELS_AES_GCM)
 
 #include "mbedtls/aes.h"
 #include "mbedtls/error.h"
@@ -502,4 +502,4 @@ int mbedtls_gcm_finish(mbedtls_gcm_context *ctx, unsigned char *tag, size_t tag_
 
 #endif /* MBEDTLS_AES_GCM_ALT && MBEDTLS_AES_CTX_ALT */
 
-#endif /* defined(MBEDTLS_MCUX_ELS_AES_GCM) && MBEDTLS_MCUX_ELS_AES_GCM */
+#endif /* defined(MBEDTLS_MCUX_ELS_AES_GCM) */

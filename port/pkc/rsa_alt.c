@@ -21,7 +21,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_MCUX_PKC_RSA) && MBEDTLS_MCUX_PKC_RSA
+#if defined(MBEDTLS_MCUX_PKC_RSA)
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
@@ -470,4 +470,4 @@ cleanup:
 
 #endif /* !defined(MBEDTLS_RSA_CTX_ALT) || !defined(MBEDTLS_RSA_PUBLIC_ALT) || !defined(MBEDTLS_RSA_PRIVATE_ALT) */
 
-#endif /* defined(MBEDTLS_MCUX_PKC_RSA) && MBEDTLS_MCUX_PKC_RSA */
+#endif /* defined(MBEDTLS_MCUX_PKC_RSA) */

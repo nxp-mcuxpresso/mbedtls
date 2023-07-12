@@ -20,7 +20,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_MCUX_ELS_SHA512) && MBEDTLS_MCUX_ELS_SHA512
+#if defined(MBEDTLS_MCUX_ELS_SHA512) 
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
@@ -309,7 +309,7 @@ cleanup:
     return return_code;
 }
 
-int mbedtls_internal_sha512_process(mbedtls_sha512_context *ctx, const unsigned char data[64])
+int mbedtls_internal_sha512_process(mbedtls_sha512_context *ctx, const unsigned char data[128])
 {
     return 0;
 }
@@ -317,4 +317,4 @@ int mbedtls_internal_sha512_process(mbedtls_sha512_context *ctx, const unsigned 
 #endif /* defined(MBEDTLS_SHA512_CTX_ALT) && defined(MBEDTLS_SHA512_STARTS_ALT) && defined(MBEDTLS_SHA512_UPDATE_ALT) \
           && defined(MBEDTLS_SHA512_FINISH_ALT) && defined(MBEDTLS_SHA512_FULL_ALT) */
 
-#endif /* defined(MBEDTLS_MCUX_ELS_SHA512) && MBEDTLS_MCUX_ELS_SHA512 */
+#endif /* defined(MBEDTLS_MCUX_ELS_SHA512) */

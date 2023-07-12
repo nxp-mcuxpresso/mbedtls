@@ -112,7 +112,8 @@ middleware.mbedtls.port.els_pkc:
     - source: port/pkc/threading_alt.h
     configuration:
       cc-define:
-        MBEDTLS_MCUX_ELS_PKC_API: 
+        MBEDTLS_MCUX_ELS_PKC_API:
+        MBEDTLS_MCUX_USE_PKC:
         MBEDTLS_CONFIG_FILE: '"els_pkc_mbedtls_config.h"'
   belong_to: set.middleware.mbedtls
   section_info:
@@ -163,7 +164,8 @@ middleware.mbedtls.port.els:
     - source: port/els/els_mbedtls.h
     configuration:
       cc-define:
-        MBEDTLS_MCUX_ELS_API: 
+        MBEDTLS_MCUX_ELS_API:
+        MBEDTLS_MCUX_USE_ELS:
         MCUXCL_FEATURE_CSSL_MEMORY_C_FALLBACK: 
         MBEDTLS_CONFIG_FILE: '"els_mbedtls_config.h"'
   belong_to: set.middleware.mbedtls

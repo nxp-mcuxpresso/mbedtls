@@ -6538,7 +6538,15 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 #ifndef TRNG0
 #define TRNG0 TRNG
 #endif
-    result = TRNG_GetRandomData(TRNG0, output, len);
+#define MAX_RETRIES 3u
+    for(int retries = 0u; retries < MAX_RETRIES; retries++)
+    {
+        result = TRNG_GetRandomData(TRNG0, output, len);
+        if (result == kStatus_Success)
+        {
+            break;
+        }
+    }
 #elif defined(FSL_FEATURE_SOC_RNG_COUNT) && (FSL_FEATURE_SOC_RNG_COUNT > 0)
     result = RNGA_GetRandomData(RNG, (void *) output, len);
 #elif defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0) && \

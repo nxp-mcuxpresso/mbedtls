@@ -71,6 +71,9 @@ to exsiting CL #defines, to support exisiting ALT implementation. The defines ar
 /* Macro determining maximum size of CPU workarea size for MCUX_PKC_ecdsa_sign/verify functions */
 #define MCUX_PKC_MAX(a, b) ((a) > (b) ? (a) : (b))
 
+/* Macro determining minimum size of two values */
+#define MCUX_PKC_MIN(a, b) ((a) < (b) ? (a) : (b))
+
 #define MCUX_PKC_SIGN_BY_ALT_RSA_PLAIN_WACPU_SIZE_MAX                                              \
     MCUX_PKC_MAX(MCUXCLRSA_SIGN_PLAIN_PSSENCODE_WACPU_SIZE(MCUX_PKC_RSA_KEY_SIZE_MAX),             \
                         MCUXCLRSA_SIGN_PLAIN_PKCS1V15ENCODE_WACPU_SIZE(MCUX_PKC_RSA_KEY_SIZE_MAX))
@@ -264,12 +267,24 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
 
     /* The code is added as per documentation of CL usage, where it specifies following:
     mcuxClEcc_Sign function uses DRBG and PRNG. Caller needs to check if DRBG and PRNG are ready.*/
-#if defined(MBEDTLS_MCUX_ELS_PKC_API)
-    /* Initialize the RNG context */
-    mcuxClRandom_Context_t rng_ctx = NULL;
+#if defined(MBEDTLS_MCUX_ELS_PKC_API)    
+    /* Initialize the RNG context, with maximum size */
+    uint32_t rng_ctx[MCUXCLRANDOMMODES_CTR_DRBG_AES256_CONTEXT_SIZE_IN_WORDS] = {0u};
+
+    mcuxClRandom_Mode_t randomMode = NULL;
+    
+    uint32_t value = (uint32_t)MCUX_PKC_MIN((nByteLength * 8u) / 2u,256u);
+    if(value <= 128)  /* 128-bit security strength */
+    {
+      randomMode = mcuxClRandomModes_Mode_ELS_Drbg;
+    }
+    else  /* 256-bit security strength */
+    {
+      randomMode = mcuxClRandomModes_Mode_CtrDrbg_AES256_DRG3;
+    }
 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(randomInit_result, randomInit_token,
-                                         mcuxClRandom_init(&session, rng_ctx, mcuxClRandomModes_Mode_ELS_Drbg));
+                                     mcuxClRandom_init(&session, (mcuxClRandom_Context_t)rng_ctx, randomMode));
     if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClRandom_init) != randomInit_token) ||
         (MCUXCLRANDOM_STATUS_OK != randomInit_result))
     {

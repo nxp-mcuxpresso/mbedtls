@@ -131,7 +131,10 @@ middleware.mbedtls.port.els_pkc:
     - device:
       - RW610
       - RW612
-      - LPC55S36
+      - MCXN546
+      - MCXN547
+      - MCXN946
+      - MCXN947
     - middleware.mbedtls.port.els
     - component.els_pkc
     - middleware.mbedtls.els_pkc.config

@@ -103,11 +103,11 @@ int mbedtls_aes_gcm_starts_alt(mbedtls_gcm_context *ctx,
     ctx->len        = 0;
     ctx->add_len    = add_len;
 
-    (void)memset((void *)ctx->HL, 0x00, MCUXCLCSS_AEAD_CONTEXT_SIZE);
+    (void)memset((void *)ctx->HL, 0x00, MCUXCLELS_AEAD_CONTEXT_SIZE);
 
-    mcuxClCss_AeadOption_t options = {0};
-    options.bits.extkey            = MCUXCLCSS_AEAD_EXTERN_KEY;
-    options.bits.dcrpt             = (mode == MBEDTLS_GCM_DECRYPT) ? MCUXCLCSS_AEAD_DECRYPT : MCUXCLCSS_AEAD_ENCRYPT;
+    mcuxClEls_AeadOption_t options = {0};
+    options.bits.extkey            = MCUXCLELS_AEAD_EXTERN_KEY;
+    options.bits.dcrpt             = (mode == MBEDTLS_GCM_DECRYPT) ? MCUXCLELS_AEAD_DECRYPT : MCUXCLELS_AEAD_ENCRYPT;
 
     mbedtls_aes_context *aes_ctx = (mbedtls_aes_context *)ctx->cipher_ctx.cipher_ctx;
     uint8_t *pKey                = (uint8_t *)aes_ctx->pKey;
@@ -128,24 +128,24 @@ int mbedtls_aes_gcm_starts_alt(mbedtls_gcm_context *ctx,
         (void)memset((void *)ctx->HH, 0x00, 16);
         (void)memcpy((void *)ctx->HH, (void const *)iv, iv_len);
         ((uint8_t *)ctx->HH)[15] = 0x01u;
-        /* call mcuxClCss_Aead_Init_Async */
+        /* call mcuxClEls_Aead_Init_Async */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(
             resultInit, tokenInit,
-            mcuxClCss_Aead_Init_Async(options, 0, /* keyIdx is ignored */
+            mcuxClEls_Aead_Init_Async(options, 0, /* keyIdx is ignored */
                                       pKey, key_length, (uint8_t *)ctx->HH, 16u, (uint8_t *)ctx->HL));
 
-        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Aead_Init_Async) != tokenInit) ||
-            (MCUXCLCSS_STATUS_OK_WAIT != resultInit))
+        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_Aead_Init_Async) != tokenInit) ||
+            (MCUXCLELS_STATUS_OK_WAIT != resultInit))
         {
             return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
 
-        /* wait for mcuxClCss_Aead_Init_Async. */
+        /* wait for mcuxClEls_Aead_Init_Async. */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retWaitInit, tokenWaitInit,
-                                             mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR));
-        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitInit) ||
-            (MCUXCLCSS_STATUS_OK != retWaitInit))
+                                             mcuxClEls_WaitForOperation(MCUXCLELS_ERROR_FLAGS_CLEAR));
+        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_WaitForOperation) != tokenWaitInit) ||
+            (MCUXCLELS_STATUS_OK != retWaitInit))
         {
             return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
@@ -165,27 +165,27 @@ int mbedtls_aes_gcm_starts_alt(mbedtls_gcm_context *ctx,
         /* process the first part (full blocks) of the IV */
         if (nr_full_iv_blocks > 0u)
         {
-            options.bits.acpsie   = MCUXCLCSS_AEAD_STATE_IN_DISABLE;
-            options.bits.lastinit = MCUXCLCSS_AEAD_LASTINIT_FALSE;
-            /* call mcuxClCss_Aead_PartialInit_Async */
+            options.bits.acpsie   = MCUXCLELS_AEAD_STATE_IN_DISABLE;
+            options.bits.lastinit = MCUXCLELS_AEAD_LASTINIT_FALSE;
+            /* call mcuxClEls_Aead_PartialInit_Async */
             MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(
                 resultPartialInitFull, tokenPartialInitFull,
-                mcuxClCss_Aead_PartialInit_Async(options, 0, /* keyIdx is ignored */
+                mcuxClEls_Aead_PartialInit_Async(options, 0, /* keyIdx is ignored */
                                                  pKey, key_length, (uint8_t const *)iv, (nr_full_iv_blocks * 16u),
                                                  (uint8_t *)ctx->HL));
 
-            if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Aead_PartialInit_Async) != tokenPartialInitFull) ||
-                (MCUXCLCSS_STATUS_OK_WAIT != resultPartialInitFull))
+            if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_Aead_PartialInit_Async) != tokenPartialInitFull) ||
+                (MCUXCLELS_STATUS_OK_WAIT != resultPartialInitFull))
             {
                 return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
                 goto cleanup;
             }
 
-            /* wait for mcuxClCss_Aead_PartialInit_Async. */
+            /* wait for mcuxClEls_Aead_PartialInit_Async. */
             MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retWaitPartialInitFull, tokenWaitPartialInitFull,
-                                                 mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR));
-            if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitPartialInitFull) ||
-                (MCUXCLCSS_STATUS_OK != retWaitPartialInitFull))
+                                                 mcuxClEls_WaitForOperation(MCUXCLELS_ERROR_FLAGS_CLEAR));
+            if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_WaitForOperation) != tokenWaitPartialInitFull) ||
+                (MCUXCLELS_STATUS_OK != retWaitPartialInitFull))
             {
                 return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
                 goto cleanup;
@@ -201,28 +201,28 @@ int mbedtls_aes_gcm_starts_alt(mbedtls_gcm_context *ctx,
         mcuxClMemory_StoreBigEndian32(((uint8_t *)ctx->HH + 28), iv_len_bits);
 
         options.bits.acpsie = (nr_full_iv_blocks > 0u) ?
-                                  MCUXCLCSS_AEAD_STATE_IN_ENABLE /* second call to PartialInit */
+                                  MCUXCLELS_AEAD_STATE_IN_ENABLE /* second call to PartialInit */
                                   :
-                                  MCUXCLCSS_AEAD_STATE_IN_DISABLE; /* first call to PartialInit */
-        options.bits.lastinit = MCUXCLCSS_AEAD_LASTINIT_TRUE;
-        /* call mcuxClCss_Aead_PartialInit_Async */
+                                  MCUXCLELS_AEAD_STATE_IN_DISABLE; /* first call to PartialInit */
+        options.bits.lastinit = MCUXCLELS_AEAD_LASTINIT_TRUE;
+        /* call mcuxClEls_Aead_PartialInit_Async */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(
             resultPartialInitLast, tokenPartialInitLast,
-            mcuxClCss_Aead_PartialInit_Async(options, 0, /* keyIdx is ignored */
+            mcuxClEls_Aead_PartialInit_Async(options, 0, /* keyIdx is ignored */
                                              pKey, key_length, (uint8_t *)ctx->HH, 32u, (uint8_t *)ctx->HL));
 
-        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Aead_PartialInit_Async) != tokenPartialInitLast) ||
-            (MCUXCLCSS_STATUS_OK_WAIT != resultPartialInitLast))
+        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_Aead_PartialInit_Async) != tokenPartialInitLast) ||
+            (MCUXCLELS_STATUS_OK_WAIT != resultPartialInitLast))
         {
             return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
 
-        /* wait for mcuxClCss_Aead_PartialInit_Async. */
+        /* wait for mcuxClEls_Aead_PartialInit_Async. */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retWaitPartialInitLast, tokenWaitPartialInitLast,
-                                             mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR));
-        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitPartialInitLast) ||
-            (MCUXCLCSS_STATUS_OK != retWaitPartialInitLast))
+                                             mcuxClEls_WaitForOperation(MCUXCLELS_ERROR_FLAGS_CLEAR));
+        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_WaitForOperation) != tokenWaitPartialInitLast) ||
+            (MCUXCLELS_STATUS_OK != retWaitPartialInitLast))
         {
             return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
@@ -235,25 +235,25 @@ int mbedtls_aes_gcm_starts_alt(mbedtls_gcm_context *ctx,
 
     if (nr_full_add_blocks > 0u)
     {
-        /* call mcuxClCss_Aead_UpdateAad_Async */
+        /* call mcuxClEls_Aead_UpdateAad_Async */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(
             resultUpdateFull, tokenUpdateFull,
-            mcuxClCss_Aead_UpdateAad_Async(options, 0, /* keyIdx is ignored */
+            mcuxClEls_Aead_UpdateAad_Async(options, 0, /* keyIdx is ignored */
                                            pKey, key_length, (uint8_t const *)add, (nr_full_add_blocks * 16u),
                                            (uint8_t *)ctx->HL));
 
-        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Aead_UpdateAad_Async) != tokenUpdateFull) ||
-            (MCUXCLCSS_STATUS_OK_WAIT != resultUpdateFull))
+        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_Aead_UpdateAad_Async) != tokenUpdateFull) ||
+            (MCUXCLELS_STATUS_OK_WAIT != resultUpdateFull))
         {
             return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
 
-        /* wait for mcuxClCss_Aead_UpdateAad_Async. */
+        /* wait for mcuxClEls_Aead_UpdateAad_Async. */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retWaitUpdateFull, tokenWaitUpdateFull,
-                                             mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR));
-        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitUpdateFull) ||
-            (MCUXCLCSS_STATUS_OK != retWaitUpdateFull))
+                                             mcuxClEls_WaitForOperation(MCUXCLELS_ERROR_FLAGS_CLEAR));
+        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_WaitForOperation) != tokenWaitUpdateFull) ||
+            (MCUXCLELS_STATUS_OK != retWaitUpdateFull))
         {
             return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
@@ -266,24 +266,24 @@ int mbedtls_aes_gcm_starts_alt(mbedtls_gcm_context *ctx,
         /* pad the AAD according to NIST SP 800-38D */
         (void)memset((void *)ctx->HH, 0x00, 16);
         (void)memcpy((void *)ctx->HH, (void const *)add, len_last_add_block);
-        /* call mcuxClCss_Aead_UpdateAad_Async */
+        /* call mcuxClEls_Aead_UpdateAad_Async */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(
             resultUpdateLast, tokenUpdateLast,
-            mcuxClCss_Aead_UpdateAad_Async(options, 0, /* keyIdx is ignored */
+            mcuxClEls_Aead_UpdateAad_Async(options, 0, /* keyIdx is ignored */
                                            pKey, key_length, (uint8_t *)ctx->HH, 16u, (uint8_t *)ctx->HL));
 
-        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Aead_UpdateAad_Async) != tokenUpdateLast) ||
-            (MCUXCLCSS_STATUS_OK_WAIT != resultUpdateLast))
+        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_Aead_UpdateAad_Async) != tokenUpdateLast) ||
+            (MCUXCLELS_STATUS_OK_WAIT != resultUpdateLast))
         {
             return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
 
-        /* wait for mcuxClCss_Aead_UpdateAad_Async. */
+        /* wait for mcuxClEls_Aead_UpdateAad_Async. */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retWaitUpdateLast, tokenWaitUpdateLast,
-                                             mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR));
-        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitUpdateLast) ||
-            (MCUXCLCSS_STATUS_OK != retWaitUpdateLast))
+                                             mcuxClEls_WaitForOperation(MCUXCLELS_ERROR_FLAGS_CLEAR));
+        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_WaitForOperation) != tokenWaitUpdateLast) ||
+            (MCUXCLELS_STATUS_OK != retWaitUpdateLast))
         {
             return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
@@ -319,7 +319,7 @@ int mbedtls_aes_gcm_update_alt(mbedtls_gcm_context *ctx,
                                unsigned char *output)
 {
     int return_code                                              = 0;
-    unsigned char output_buffer[MCUXCLCSS_CIPHER_BLOCK_SIZE_AES] = {0};
+    unsigned char output_buffer[MCUXCLELS_CIPHER_BLOCK_SIZE_AES] = {0};
 
 #if defined(MBEDTLS_THREADING_C)
     int ret                                                      = 0;
@@ -327,9 +327,9 @@ int mbedtls_aes_gcm_update_alt(mbedtls_gcm_context *ctx,
 
     ctx->len += length;
 
-    mcuxClCss_AeadOption_t options = {0};
-    options.bits.extkey            = MCUXCLCSS_AEAD_EXTERN_KEY;
-    options.bits.dcrpt = (ctx->mode == MBEDTLS_GCM_DECRYPT) ? MCUXCLCSS_AEAD_DECRYPT : MCUXCLCSS_AEAD_ENCRYPT;
+    mcuxClEls_AeadOption_t options = {0};
+    options.bits.extkey            = MCUXCLELS_AEAD_EXTERN_KEY;
+    options.bits.dcrpt = (ctx->mode == MBEDTLS_GCM_DECRYPT) ? MCUXCLELS_AEAD_DECRYPT : MCUXCLELS_AEAD_ENCRYPT;
 
     mbedtls_aes_context *aes_ctx = (mbedtls_aes_context *)ctx->cipher_ctx.cipher_ctx;
     uint8_t *pKey                = (uint8_t *)aes_ctx->pKey;
@@ -348,25 +348,25 @@ int mbedtls_aes_gcm_update_alt(mbedtls_gcm_context *ctx,
 
     if (nr_full_msg_blocks > 0u)
     {
-        /* call mcuxClCss_Aead_UpdateData_Async */
+        /* call mcuxClEls_Aead_UpdateData_Async */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(
             resultUpdateFull, tokenUpdateFull,
-            mcuxClCss_Aead_UpdateData_Async(options, 0, /* keyIdx is ignored */
+            mcuxClEls_Aead_UpdateData_Async(options, 0, /* keyIdx is ignored */
                                             pKey, key_length, (uint8_t const *)input, (nr_full_msg_blocks * 16u),
                                             (uint8_t *)output, (uint8_t *)ctx->HL));
 
-        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Aead_UpdateData_Async) != tokenUpdateFull) ||
-            (MCUXCLCSS_STATUS_OK_WAIT != resultUpdateFull))
+        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_Aead_UpdateData_Async) != tokenUpdateFull) ||
+            (MCUXCLELS_STATUS_OK_WAIT != resultUpdateFull))
         {
             return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
 
-        /* wait for mcuxClCss_Aead_UpdateData_Async. */
+        /* wait for mcuxClEls_Aead_UpdateData_Async. */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retWaitUpdateFull, tokenWaitUpdateFull,
-                                             mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR));
-        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitUpdateFull) ||
-            (MCUXCLCSS_STATUS_OK != retWaitUpdateFull))
+                                             mcuxClEls_WaitForOperation(MCUXCLELS_ERROR_FLAGS_CLEAR));
+        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_WaitForOperation) != tokenWaitUpdateFull) ||
+            (MCUXCLELS_STATUS_OK != retWaitUpdateFull))
         {
             return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
@@ -384,25 +384,25 @@ int mbedtls_aes_gcm_update_alt(mbedtls_gcm_context *ctx,
 
         options.bits.msgendw = len_last_msg_block;
 
-        /* call mcuxClCss_Aead_UpdateData_Async */
+        /* call mcuxClEls_Aead_UpdateData_Async */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(
             resultUpdateLast, tokenUpdateLast,
-            mcuxClCss_Aead_UpdateData_Async(options, 0, /* keyIdx is ignored */
+            mcuxClEls_Aead_UpdateData_Async(options, 0, /* keyIdx is ignored */
                                             pKey, key_length, (uint8_t *)ctx->HH, 16u, (uint8_t *)output_buffer,
                                             (uint8_t *)ctx->HL));
 
-        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Aead_UpdateData_Async) != tokenUpdateLast) ||
-            (MCUXCLCSS_STATUS_OK_WAIT != resultUpdateLast))
+        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_Aead_UpdateData_Async) != tokenUpdateLast) ||
+            (MCUXCLELS_STATUS_OK_WAIT != resultUpdateLast))
         {
             return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
         }
 
-        /* wait for mcuxClCss_Aead_UpdateData_Async. */
+        /* wait for mcuxClEls_Aead_UpdateData_Async. */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retWaitUpdateLast, tokenWaitUpdateLast,
-                                             mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR));
-        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitUpdateLast) ||
-            (MCUXCLCSS_STATUS_OK != retWaitUpdateLast))
+                                             mcuxClEls_WaitForOperation(MCUXCLELS_ERROR_FLAGS_CLEAR));
+        if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_WaitForOperation) != tokenWaitUpdateLast) ||
+            (MCUXCLELS_STATUS_OK != retWaitUpdateLast))
         {
             return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
             goto cleanup;
@@ -431,14 +431,14 @@ int mbedtls_gcm_update(mbedtls_gcm_context *ctx, size_t length, const unsigned c
 int mbedtls_aes_gcm_finish_alt(mbedtls_gcm_context *ctx, unsigned char *tag, size_t tag_len)
 {
     int return_code                = 0;
-    mcuxClCss_AeadOption_t options = {0};
+    mcuxClEls_AeadOption_t options = {0};
 
 #if defined(MBEDTLS_THREADING_C)
     int ret                        = 0;
 #endif
 
-    options.bits.extkey  = MCUXCLCSS_AEAD_EXTERN_KEY;
-    options.bits.dcrpt   = (ctx->mode == MBEDTLS_GCM_DECRYPT) ? MCUXCLCSS_AEAD_DECRYPT : MCUXCLCSS_AEAD_ENCRYPT;
+    options.bits.extkey  = MCUXCLELS_AEAD_EXTERN_KEY;
+    options.bits.dcrpt   = (ctx->mode == MBEDTLS_GCM_DECRYPT) ? MCUXCLELS_AEAD_DECRYPT : MCUXCLELS_AEAD_ENCRYPT;
     options.bits.msgendw = (uint32_t)ctx->len % 16u;
 
     mbedtls_aes_context *aes_ctx = (mbedtls_aes_context *)ctx->cipher_ctx.cipher_ctx;
@@ -456,25 +456,25 @@ int mbedtls_aes_gcm_finish_alt(mbedtls_gcm_context *ctx, unsigned char *tag, siz
     /* Intermediate buffer for saving the tag if tag_len < 16 */
     uint8_t pTag[16u];
 
-    /* call mcuxClCss_Aead_Finalize_Async */
+    /* call mcuxClEls_Aead_Finalize_Async */
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(
         resultFinalize, tokenFinalize,
-        mcuxClCss_Aead_Finalize_Async(options, 0, /* keyIdx is ignored */
+        mcuxClEls_Aead_Finalize_Async(options, 0, /* keyIdx is ignored */
                                       pKey, key_length, (size_t)ctx->add_len, (size_t)ctx->len,
                                       tag_len < 16u ? (uint8_t *)pTag : (uint8_t *)tag, (uint8_t *)ctx->HL));
 
-    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Aead_Finalize_Async) != tokenFinalize) ||
-        (MCUXCLCSS_STATUS_OK_WAIT != resultFinalize))
+    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_Aead_Finalize_Async) != tokenFinalize) ||
+        (MCUXCLELS_STATUS_OK_WAIT != resultFinalize))
     {
         return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
-    /* wait for mcuxClCss_Aead_Finalize_Async. */
+    /* wait for mcuxClEls_Aead_Finalize_Async. */
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retWaitFinalize, tokenWaitFinalize,
-                                         mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR));
-    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenWaitFinalize) ||
-        (MCUXCLCSS_STATUS_OK != retWaitFinalize))
+                                         mcuxClEls_WaitForOperation(MCUXCLELS_ERROR_FLAGS_CLEAR));
+    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_WaitForOperation) != tokenWaitFinalize) ||
+        (MCUXCLELS_STATUS_OK != retWaitFinalize))
     {
         return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
         goto cleanup;

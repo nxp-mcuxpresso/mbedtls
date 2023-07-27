@@ -55,9 +55,9 @@ static int mbedtls_aes_setkey_alt(mbedtls_aes_context *ctx, const unsigned char 
     {
         retCode = MBEDTLS_ERR_AES_BAD_INPUT_DATA;
     }
-    else if (((MCUXCLCSS_CIPHER_KEY_SIZE_AES_128 * 8u) != keybits) &&
-             ((MCUXCLCSS_CIPHER_KEY_SIZE_AES_192 * 8u) != keybits) &&
-             ((MCUXCLCSS_CIPHER_KEY_SIZE_AES_256 * 8u) != keybits))
+    else if (((MCUXCLELS_CIPHER_KEY_SIZE_AES_128 * 8u) != keybits) &&
+             ((MCUXCLELS_CIPHER_KEY_SIZE_AES_192 * 8u) != keybits) &&
+             ((MCUXCLELS_CIPHER_KEY_SIZE_AES_256 * 8u) != keybits))
     {
         retCode = MBEDTLS_ERR_AES_INVALID_KEY_LENGTH;
     }
@@ -98,7 +98,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key, u
 static int mbedtls_internal_aes_els(mbedtls_aes_context *ctx,
                                     const unsigned char *pInput,
                                     unsigned char *pOutput,
-                                    mcuxClCss_CipherOption_t cssCipherOption,
+                                    mcuxClEls_CipherOption_t elsCipherOption,
                                     unsigned char *pIv,
                                     size_t length)
 {
@@ -111,11 +111,11 @@ static int mbedtls_internal_aes_els(mbedtls_aes_context *ctx,
 
     /* Call ELS to process one block. */
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(
-        retCssCipherAsync, tokenCssCipherAsync,
-        mcuxClCss_Cipher_Async(cssCipherOption, 0u, /* keyIdx is ignored. */
+        retElsCipherAsync, tokenElsCipherAsync,
+        mcuxClEls_Cipher_Async(elsCipherOption, 0u, /* keyIdx is ignored. */
                                (const uint8_t *)ctx->pKey, ctx->keyLength, pInput, length, pIv, pOutput));
-    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Cipher_Async) != tokenCssCipherAsync) ||
-        (MCUXCLCSS_STATUS_OK_WAIT != retCssCipherAsync))
+    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_Cipher_Async) != tokenElsCipherAsync) ||
+        (MCUXCLELS_STATUS_OK_WAIT != retElsCipherAsync))
     {
         /* _Cipher_Async shall not return _SW_CANNOT_INTERRUPT after successfully returning from _WaitForOperation. */
         /* _Cipher_Async shall not return _SW_INVALID_PARAM if parameters are set properly. */
@@ -123,15 +123,15 @@ static int mbedtls_internal_aes_els(mbedtls_aes_context *ctx,
         goto cleanup;
     }
 
-    /* Wait for mcuxClCss_Cipher_Async. */
-    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retCssWaitCipher, tokenCssWaitCipher,
-                                         mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR));
-    if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenCssWaitCipher)
+    /* Wait for mcuxClEls_Cipher_Async. */
+    MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retElsWaitCipher, tokenElsWaitCipher,
+                                         mcuxClEls_WaitForOperation(MCUXCLELS_ERROR_FLAGS_CLEAR));
+    if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_WaitForOperation) != tokenElsWaitCipher)
     {
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
-    if (MCUXCLCSS_STATUS_OK != retCssWaitCipher)
+    if (MCUXCLELS_STATUS_OK != retElsWaitCipher)
     {
         return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
@@ -153,14 +153,14 @@ cleanup:
 int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16])
 {
     int return_code = 0;
-    mcuxClCss_CipherOption_t cipherOption =
-        (mcuxClCss_CipherOption_t){.bits.dcrpt  = MCUXCLCSS_CIPHER_ENCRYPT,
-                                   .bits.cphmde = MCUXCLCSS_CIPHERPARAM_ALGORITHM_AES_ECB,
-                                   .bits.cphsoe = MCUXCLCSS_CIPHER_STATE_OUT_DISABLE,
+    mcuxClEls_CipherOption_t cipherOption =
+        (mcuxClEls_CipherOption_t){.bits.dcrpt  = MCUXCLELS_CIPHER_ENCRYPT,
+                                   .bits.cphmde = MCUXCLELS_CIPHERPARAM_ALGORITHM_AES_ECB,
+                                   .bits.cphsoe = MCUXCLELS_CIPHER_STATE_OUT_DISABLE,
 #ifndef MCUXCL_FEATURE_ELS_NO_INTERNAL_STATE_FLAGS
-                                   .bits.cphsie = MCUXCLCSS_CIPHER_STATE_IN_DISABLE,
+                                   .bits.cphsie = MCUXCLELS_CIPHER_STATE_IN_DISABLE,
 #endif
-                                   .bits.extkey = MCUXCLCSS_CIPHER_EXTERNAL_KEY};
+                                   .bits.extkey = MCUXCLELS_CIPHER_EXTERNAL_KEY};
 
 #if defined(MBEDTLS_THREADING_C)
     int ret;
@@ -197,14 +197,14 @@ cleanup:
 int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16])
 {
     int return_code = 0;
-    mcuxClCss_CipherOption_t cipherOption =
-        (mcuxClCss_CipherOption_t){.bits.dcrpt  = MCUXCLCSS_CIPHER_DECRYPT,
-                                   .bits.cphmde = MCUXCLCSS_CIPHERPARAM_ALGORITHM_AES_ECB,
-                                   .bits.cphsoe = MCUXCLCSS_CIPHER_STATE_OUT_DISABLE,
+    mcuxClEls_CipherOption_t cipherOption =
+        (mcuxClEls_CipherOption_t){.bits.dcrpt  = MCUXCLELS_CIPHER_DECRYPT,
+                                   .bits.cphmde = MCUXCLELS_CIPHERPARAM_ALGORITHM_AES_ECB,
+                                   .bits.cphsoe = MCUXCLELS_CIPHER_STATE_OUT_DISABLE,
 #ifndef MCUXCL_FEATURE_ELS_NO_INTERNAL_STATE_FLAGS
-                                   .bits.cphsie = MCUXCLCSS_CIPHER_STATE_IN_DISABLE,
+                                   .bits.cphsie = MCUXCLELS_CIPHER_STATE_IN_DISABLE,
 #endif
-                                   .bits.extkey = MCUXCLCSS_CIPHER_EXTERNAL_KEY};
+                                   .bits.extkey = MCUXCLELS_CIPHER_EXTERNAL_KEY};
 
 #if defined(MBEDTLS_THREADING_C)
     int ret;
@@ -265,20 +265,20 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     else
     {
         const uint8_t *pNewIv;
-        mcuxClCss_CipherOption_t cipherOption;
+        mcuxClEls_CipherOption_t cipherOption;
         if (MBEDTLS_AES_ENCRYPT == mode)
         {
             pNewIv       = output;
-            cipherOption = (mcuxClCss_CipherOption_t){.bits.dcrpt  = MCUXCLCSS_CIPHER_ENCRYPT,
-                                                      .bits.cphmde = MCUXCLCSS_CIPHERPARAM_ALGORITHM_AES_CBC,
-                                                      .bits.extkey = MCUXCLCSS_CIPHER_EXTERNAL_KEY};
+            cipherOption = (mcuxClEls_CipherOption_t){.bits.dcrpt  = MCUXCLELS_CIPHER_ENCRYPT,
+                                                      .bits.cphmde = MCUXCLELS_CIPHERPARAM_ALGORITHM_AES_CBC,
+                                                      .bits.extkey = MCUXCLELS_CIPHER_EXTERNAL_KEY};
         }
         else
         {
             pNewIv       = (uint8_t *)temp;
-            cipherOption = (mcuxClCss_CipherOption_t){.bits.dcrpt  = MCUXCLCSS_CIPHER_DECRYPT,
-                                                      .bits.cphmde = MCUXCLCSS_CIPHERPARAM_ALGORITHM_AES_CBC,
-                                                      .bits.extkey = MCUXCLCSS_CIPHER_EXTERNAL_KEY};
+            cipherOption = (mcuxClEls_CipherOption_t){.bits.dcrpt  = MCUXCLELS_CIPHER_DECRYPT,
+                                                      .bits.cphmde = MCUXCLELS_CIPHERPARAM_ALGORITHM_AES_CBC,
+                                                      .bits.extkey = MCUXCLELS_CIPHER_EXTERNAL_KEY};
 
             /* Backup input[] as the next IV (ps, input[] will be overwritten if result in-place). */
             MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retMemCpy0, tokenMemCpy,
@@ -370,14 +370,14 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
         /*       offset = 1~15, if there is unused byte(s) in stream_block[]; */
         /*       offset = 16,   if all bytes in stream_block[] are used.      */
 
-        mcuxClCss_CipherOption_t cipherOption =
-            (mcuxClCss_CipherOption_t){.bits.dcrpt  = MCUXCLCSS_CIPHER_ENCRYPT,
-                                       .bits.cphmde = MCUXCLCSS_CIPHERPARAM_ALGORITHM_AES_CTR,
-                                       .bits.cphsoe = MCUXCLCSS_CIPHER_STATE_OUT_ENABLE,
+        mcuxClEls_CipherOption_t cipherOption =
+            (mcuxClEls_CipherOption_t){.bits.dcrpt  = MCUXCLELS_CIPHER_ENCRYPT,
+                                       .bits.cphmde = MCUXCLELS_CIPHERPARAM_ALGORITHM_AES_CTR,
+                                       .bits.cphsoe = MCUXCLELS_CIPHER_STATE_OUT_ENABLE,
 #ifndef MCUXCL_FEATURE_ELS_NO_INTERNAL_STATE_FLAGS
-                                       .bits.cphsie = MCUXCLCSS_CIPHER_STATE_IN_ENABLE,
+                                       .bits.cphsie = MCUXCLELS_CIPHER_STATE_IN_ENABLE,
 #endif
-                                       .bits.extkey = MCUXCLCSS_CIPHER_EXTERNAL_KEY};
+                                       .bits.extkey = MCUXCLELS_CIPHER_EXTERNAL_KEY};
 #if defined(MBEDTLS_THREADING_C)
         int ret;
         if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)

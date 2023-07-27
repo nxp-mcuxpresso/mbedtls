@@ -25,7 +25,7 @@
 /*
  * \brief           This function performs an AES CBC-MAC computation over the input data,
  *                  applying padding if the length is not a multiple of the AES block size.
- *                  It uses the CSS command CMAC in update mode to accelerate the CBC-MAC
+ *                  It uses the ELS command CMAC in update mode to accelerate the CBC-MAC
  *                  computation.
  *
  * \param ctx       The aes context to use. It must be initialised and bound to a key.

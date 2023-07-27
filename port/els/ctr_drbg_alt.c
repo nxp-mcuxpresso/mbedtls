@@ -117,28 +117,28 @@ int mbedtls_ctr_drbg_random(void *p_rng, unsigned char *output, size_t output_le
     size_t output_wordLen = output_len & (~(size_t)3u);
     if (0u != output_wordLen)
     {
-        /* Call mcuxClCss_Rng_DrbgRequest_Async */
+        /* Call mcuxClEls_Rng_DrbgRequest_Async */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retDrbgRequestAsync, tokenDrbgRequestAsync,
-                                             mcuxClCss_Rng_DrbgRequest_Async(output, output_wordLen));
-        if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Rng_DrbgRequest_Async) != tokenDrbgRequestAsync)
+                                             mcuxClEls_Rng_DrbgRequest_Async(output, output_wordLen));
+        if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_Rng_DrbgRequest_Async) != tokenDrbgRequestAsync)
         {
             return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             goto cleanup;
         }
-        if (MCUXCLCSS_STATUS_OK_WAIT != retDrbgRequestAsync)
+        if (MCUXCLELS_STATUS_OK_WAIT != retDrbgRequestAsync)
         {
             return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             goto cleanup;
         }
 
-        MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retCssWait, tokenCssWait,
-                                             mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR));
-        if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenCssWait)
+        MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retElsWait, tokenElsWait,
+                                             mcuxClEls_WaitForOperation(MCUXCLELS_ERROR_FLAGS_CLEAR));
+        if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_WaitForOperation) != tokenElsWait)
         {
             return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             goto cleanup;
         }
-        if (MCUXCLCSS_STATUS_OK != retCssWait)
+        if (MCUXCLELS_STATUS_OK != retElsWait)
         {
             return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             goto cleanup;
@@ -150,28 +150,28 @@ int mbedtls_ctr_drbg_random(void *p_rng, unsigned char *output, size_t output_le
     {
         uint32_t rngTempStack;
 
-        /* Call mcuxClCss_Rng_DrbgRequest_Async */
+        /* Call mcuxClEls_Rng_DrbgRequest_Async */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retDrbgRequestAsync, tokenDrbgRequestAsync,
-                                             mcuxClCss_Rng_DrbgRequest_Async((uint8_t *)&rngTempStack, 4u));
-        if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Rng_DrbgRequest_Async) != tokenDrbgRequestAsync)
+                                             mcuxClEls_Rng_DrbgRequest_Async((uint8_t *)&rngTempStack, 4u));
+        if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_Rng_DrbgRequest_Async) != tokenDrbgRequestAsync)
         {
             return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             goto cleanup;
         }
-        if (MCUXCLCSS_STATUS_OK_WAIT != retDrbgRequestAsync)
+        if (MCUXCLELS_STATUS_OK_WAIT != retDrbgRequestAsync)
         {
             return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             goto cleanup;
         }
 
-        MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retCssWait, tokenCssWait,
-                                             mcuxClCss_WaitForOperation(MCUXCLCSS_ERROR_FLAGS_CLEAR));
-        if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_WaitForOperation) != tokenCssWait)
+        MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retElsWait, tokenElsWait,
+                                             mcuxClEls_WaitForOperation(MCUXCLELS_ERROR_FLAGS_CLEAR));
+        if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_WaitForOperation) != tokenElsWait)
         {
             return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             goto cleanup;
         }
-        if (MCUXCLCSS_STATUS_OK != retCssWait)
+        if (MCUXCLELS_STATUS_OK != retElsWait)
         {
             return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             goto cleanup;

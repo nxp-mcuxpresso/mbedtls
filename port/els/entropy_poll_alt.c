@@ -34,8 +34,8 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
     mbedtls_hw_init();
 
     /* Call ELS to get random data */
-    MCUX_CSSL_FP_FUNCTION_CALL_BEGIN(result, token, mcuxClCss_Prng_GetRandom(output, len));
-    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClCss_Prng_GetRandom) != token) || (MCUXCLCSS_STATUS_OK != result))
+    MCUX_CSSL_FP_FUNCTION_CALL_BEGIN(result, token, mcuxClEls_Prng_GetRandom(output, len));
+    if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClEls_Prng_GetRandom) != token) || (MCUXCLELS_STATUS_OK != result))
     {
         return_code = kStatus_Fail;
         goto cleanup;

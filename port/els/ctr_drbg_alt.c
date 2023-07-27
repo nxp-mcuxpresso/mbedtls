@@ -97,7 +97,7 @@ int mbedtls_ctr_drbg_random(void *p_rng, unsigned char *output, size_t output_le
     int return_code               = 0;
     mbedtls_ctr_drbg_context *ctx = (mbedtls_ctr_drbg_context *)p_rng;
 
-    if (0u != ctx->prediction_resistance)
+    if (0 != ctx->prediction_resistance)
     {
         return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     }

@@ -15,6 +15,9 @@
  *  @brief header of alternative RNG implementation with ELS IP
  */
 
+#ifndef CTR_DRBG_ALT_H
+#define CTR_DRBG_ALT_H
+
 #if defined(MBEDTLS_CTR_DRBG_ALT)
 
 typedef struct mbedtls_ctr_drbg_context
@@ -25,3 +28,5 @@ typedef struct mbedtls_ctr_drbg_context
 } mbedtls_ctr_drbg_context;
 
 #endif /* MBEDTLS_CTR_DRBG_ALT */
+
+#endif /* CTR_DRBG_ALT_H */

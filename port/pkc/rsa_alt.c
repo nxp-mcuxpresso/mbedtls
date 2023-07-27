@@ -318,7 +318,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 
     /* Get the byte-length of modulus n */
     const uint32_t nByteLength = ctx->len;
-    const uint32_t pqByteLength = (nByteLength+1) / 2u;
+    const uint32_t pqByteLength = (nByteLength+1u) / 2u;
 
     /* CPU buffer */
     uint32_t cpuWaBuffer[MCUXCLRSA_SIGN_CRT_NOENCODE_4096_WACPU_SIZE / sizeof(uint32_t)];

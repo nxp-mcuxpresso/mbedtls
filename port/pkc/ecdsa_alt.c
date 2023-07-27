@@ -177,7 +177,7 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
     int ret_hw_init = mbedtls_hw_init();
     if (0 != ret_hw_init)
     {
-        return_code = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
     /* Byte-length of prime p. */
@@ -255,7 +255,7 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
     mcuxClRandom_Mode_t randomMode = NULL;
     
     uint32_t value = (uint32_t)MCUX_PKC_MIN((nByteLength * 8u) / 2u,256u);
-    if(value <= 128)  /* 128-bit security strength */
+    if(value <= 128u)  /* 128-bit security strength */
     {
       randomMode = mcuxClRandomModes_Mode_ELS_Drbg;
     }
@@ -358,7 +358,7 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
     int ret_hw_init = mbedtls_hw_init();
     if (0 != ret_hw_init)
     {
-        return_code = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
@@ -560,7 +560,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
     int ret_hw_init = mbedtls_hw_init();
     if (0 != ret_hw_init)
     {
-        return_code = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
@@ -614,7 +614,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
 
     /* Set up ECC point multiplication parameters. */
     mbedtls_ctr_drbg_context rng_ctx;
-    rng_ctx.prediction_resistance = 0u;
+    rng_ctx.prediction_resistance = 0;
     uint8_t *pScalar              = mbedtls_calloc(nByteLength, sizeof(uint8_t));
 
     if (0u != f_rng(&rng_ctx, pScalar, nByteLength))

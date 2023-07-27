@@ -133,7 +133,7 @@ int mbedtls_aes_cbc_mac(mbedtls_aes_context *ctx, size_t length, unsigned char *
                 return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
                 goto cleanup;
             }
-            memcpy(iv, &pOutput[(nr_full_blocks * 16u) - 16], 16);
+            memcpy(iv, &pOutput[(nr_full_blocks * 16u) - 16u], 16);
             mbedtls_free(pOutput);
 #endif // MBEDTLS_CBC_MAC_USE_CMAC
         }
@@ -171,7 +171,7 @@ int mbedtls_aes_cbc_mac(mbedtls_aes_context *ctx, size_t length, unsigned char *
                 return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
                 goto cleanup;
             }
-            memcpy(iv, &pOutput[(nr_full_blocks * 16u) - 16], 16);
+            memcpy(iv, &pOutput[(nr_full_blocks * 16u) - 16u], 16);
             mbedtls_free(pOutput);
         }
         pInput += (nr_full_blocks * 16u);

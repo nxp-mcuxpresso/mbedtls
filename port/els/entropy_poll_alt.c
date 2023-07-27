@@ -19,6 +19,8 @@
 #include <mcuxCsslFlowProtection.h> // Code flow protection
 #include <els_mbedtls.h>
 #include <platform_hw_ip.h>
+#include <mbedtls/error.h>
+#include <mbedtls/platform.h>
 
 /* Entropy poll callback for a hardware source */
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
@@ -31,7 +33,12 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
         return ret;
 #endif
     /* Initialize ELS and it's PRNG if not already initialized */
-    mbedtls_hw_init();
+    int ret_hw_init = mbedtls_hw_init();
+    if (0 != ret_hw_init)
+    {
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto cleanup;
+    }
 
     /* Call ELS to get random data */
     MCUX_CSSL_FP_FUNCTION_CALL_BEGIN(result, token, mcuxClEls_Prng_GetRandom(output, len));

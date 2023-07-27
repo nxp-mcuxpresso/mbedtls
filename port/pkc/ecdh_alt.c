@@ -138,7 +138,7 @@ int mbedtls_ecdh_gen_public(mbedtls_ecp_group *grp,
     int ret_hw_init = mbedtls_hw_init();
     if (0 != ret_hw_init)
     {
-        return_code = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 
@@ -192,7 +192,7 @@ int mbedtls_ecdh_gen_public(mbedtls_ecp_group *grp,
 
     /* Set up ECC point multiplication parameters. */
     mbedtls_ctr_drbg_context rng_ctx;
-    rng_ctx.prediction_resistance = 0u;
+    rng_ctx.prediction_resistance = 0;
     uint8_t *pScalar              = mbedtls_calloc(nByteLength, sizeof(uint8_t));
 
     if (0u != f_rng(&rng_ctx, pScalar, nByteLength))
@@ -291,7 +291,7 @@ int mbedtls_ecdh_compute_shared(mbedtls_ecp_group *grp,
     int ret_hw_init = mbedtls_hw_init();
     if (0 != ret_hw_init)
     {
-        return_code = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;
+        return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
 

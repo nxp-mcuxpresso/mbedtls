@@ -76,7 +76,7 @@ int mbedtls_sha512_starts_ret(mbedtls_sha512_context *ctx, int is384)
 
     mcuxClSession_Handle_t session = &session_descriptor;
 
-    if (0u == is384)
+    if (0 == is384)
     {
         pHash_algo = &mcuxClHash_Algorithm_Sha512; //&mcuxClHash_AlgoSHA512;
     }
@@ -258,7 +258,7 @@ int mbedtls_sha512_ret(const unsigned char *input, size_t ilen, unsigned char ou
 
     const mcuxClHash_Algo_t *pHash_algo;
 
-    if (0u == is384)
+    if (0 == is384)
     {
         pHash_algo = &mcuxClHash_Algorithm_Sha512; //&mcuxClHash_AlgoSHA512;
     }

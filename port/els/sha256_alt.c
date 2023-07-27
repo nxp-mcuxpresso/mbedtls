@@ -74,7 +74,7 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
     mcuxClHash_Context_t pContext  = (mcuxClHash_Context_t)ctx->context;
     mcuxClSession_Handle_t session = &session_descriptor;
 
-    if (0u == is224)
+    if (0 == is224)
     {
         pHash_algo = &mcuxClHash_Algorithm_Sha256; //&mcuxClHash_AlgoSHA256;
     }
@@ -243,7 +243,7 @@ int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned 
     return 0;
 }
 
-int mbedtls_sha256_ret(const unsigned char *input, size_t ilen, unsigned char output[32], int is384)
+int mbedtls_sha256_ret(const unsigned char *input, size_t ilen, unsigned char output[32], int is224)
 {
     int return_code     = 0;
     uint32_t outputSize = 0;
@@ -257,7 +257,7 @@ int mbedtls_sha256_ret(const unsigned char *input, size_t ilen, unsigned char ou
 
     const mcuxClHash_Algo_t *pHash_algo;
 
-    if (0u == is384)
+    if (0 == is224)
     {
         pHash_algo = &mcuxClHash_Algorithm_Sha256; //&mcuxClHash_AlgoSHA512;
     }

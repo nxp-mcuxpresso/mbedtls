@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------------------*/
-/* Copyright 2021 NXP                                                       */
+/* Copyright 2021, 2023 NXP                                                 */
 /*                                                                          */
 /* NXP Confidential. This software is owned or controlled by NXP and may    */
 /* only be used strictly in accordance with the applicable license terms.   */
@@ -63,12 +63,7 @@ static int mbedtls_aes_setkey_alt(mbedtls_aes_context *ctx, const unsigned char 
     }
     else
     {
-        uint32_t keyByteLen = (uint32_t)keybits / 8u;
-#if defined(MBEDTLS_THREADING_C)
-        int ret;
-        if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
-            return ret;
-#endif
+        uint32_t keyByteLen = (uint32_t) keybits / 8u;    
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retMemCpy, tokenMemCpy,
                                              mcuxClMemory_copy((uint8_t *)ctx->pKey, key, keyByteLen, keyByteLen));
 
@@ -77,10 +72,6 @@ static int mbedtls_aes_setkey_alt(mbedtls_aes_context *ctx, const unsigned char 
             ctx->keyLength = keyByteLen;
             retCode        = 0;
         }
-#if defined(MBEDTLS_THREADING_C)
-        if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
-            return ret;
-#endif
     }
     return retCode;
 }
@@ -118,7 +109,7 @@ static int mbedtls_internal_aes_els(mbedtls_aes_context *ctx,
         return ret;
 #endif
 
-    /* Call Css to process one block. */
+    /* Call ELS to process one block. */
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(
         retCssCipherAsync, tokenCssCipherAsync,
         mcuxClCss_Cipher_Async(cssCipherOption, 0u, /* keyIdx is ignored. */

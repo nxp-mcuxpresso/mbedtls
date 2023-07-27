@@ -23,7 +23,7 @@
 #include <mcuxClKey.h>
 #include <mcuxClMac.h>
 #include <internal/mcuxClKey_Types_Internal.h>
-#include <internal/mcuxClMacModes_ELS_Ctx.h>
+#include <internal/mcuxClMacModes_Els_Ctx.h>
 #include <mcuxClMacModes_MemoryConsumption.h>
 #include <mcuxClMac_Ctx.h>
 

@@ -47,18 +47,6 @@
 #include <mbedtls/ctr_drbg.h>
 #include <ecc_alt.h>
 
-/* If ELS-PKC is used, then expectation is CL-EAR2 is being used, Hence, a few mappings are required from CL-EAR2
-to exsiting CL #defines, to support exisiting ALT implementation. The defines are mainly required due to renaming in CL
-EAR2*/
-#if defined(MBEDTLS_MCUX_ELS_PKC_API)
-#define MCUXCLECC_STATUS_POINTMULT_INVALID_PARAMS MCUXCLECC_STATUS_INVALID_PARAMS
-#define MCUXCLECC_STATUS_POINTMULT_RNG_ERROR      MCUXCLECC_STATUS_RNG_ERROR
-#define MCUXCLECC_STATUS_POINTMULT_OK             MCUXCLECC_STATUS_OK
-#define MCUXCLECC_STATUS_SIGN_INVALID_PARAMS      MCUXCLECC_STATUS_INVALID_PARAMS
-#define MCUXCLECC_STATUS_SIGN_RNG_ERROR           MCUXCLECC_STATUS_RNG_ERROR
-#define MCUXCLECC_STATUS_SIGN_OK                  MCUXCLECC_STATUS_OK
-#define MCUXCLECC_STATUS_VERIFY_OK                MCUXCLECC_STATUS_OK
-
 /* Definition of maximum lengths of key for RSA in bits */
 #define MCUX_PKC_RSA_KEY_SIZE_MAX (4096u)
 
@@ -87,14 +75,6 @@ EAR2*/
           MCUX_PKC_MAX(MCUX_PKC_MAX(MCUX_PKC_SIGN_BY_ALT_RSA_WACPU_SIZE_MAX,                      \
                                             MCUXCLECC_SIGN_WACPU_SIZE(MCUX_PKC_ECC_N_SIZE_MAX)),  \
                         MCUXCLHASH_COMPUTE_CPU_WA_BUFFER_SIZE_MAX))
-
-#else
-#define MCUXCLRSA_VERIFY_NOVERIFY_WACPU_SIZE        MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WACPU_SIZE
-#define MCUXCLRSA_VERIFY_WAPKC_SIZE                 MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WAPKC_SIZE
-#define MCUXCLRSA_SIGN_CRT_NOENCODE_2048_WACPU_SIZE MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_2048_WACPU_SIZE
-#define MCUXCLRSA_SIGN_CRT_NOENCODE_WACPU_SIZE      MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_WACPU_SIZE
-#define MCUXCLRSA_SIGN_CRT_WAPKC_SIZE               MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_WAPKC_SIZE
-#endif /* MBEDTLS_MCUX_ELS_PKC_API */
 
 #if (!defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT) || !defined(MBEDTLS_ECDH_COMPUTE_SHARED_ALT) || \
      !defined(MBEDTLS_ECDH_CANDO_ALT) || defined(MBEDTLS_ECP_RESTARTABLE))
@@ -245,19 +225,19 @@ int mbedtls_ecdh_gen_public(mbedtls_ecp_group *grp,
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
-    if (MCUXCLECC_STATUS_POINTMULT_INVALID_PARAMS == retEccPointMult)
+    if (MCUXCLECC_STATUS_INVALID_PARAMS == retEccPointMult)
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
         return_code = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
     }
-    else if (MCUXCLECC_STATUS_POINTMULT_RNG_ERROR == retEccPointMult)
+    else if (MCUXCLECC_STATUS_RNG_ERROR == retEccPointMult)
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
         return_code = MBEDTLS_ERR_ECP_RANDOM_FAILED;
         goto cleanup;
     }
-    else if (MCUXCLECC_STATUS_POINTMULT_OK != retEccPointMult)
+    else if (MCUXCLECC_STATUS_OK != retEccPointMult)
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -409,19 +389,19 @@ int mbedtls_ecdh_compute_shared(mbedtls_ecp_group *grp,
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
-    if (MCUXCLECC_STATUS_POINTMULT_INVALID_PARAMS == retEccPointMult)
+    if (MCUXCLECC_STATUS_INVALID_PARAMS == retEccPointMult)
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
         return_code = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
     }
-    else if (MCUXCLECC_STATUS_POINTMULT_RNG_ERROR == retEccPointMult)
+    else if (MCUXCLECC_STATUS_RNG_ERROR == retEccPointMult)
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
         return_code = MBEDTLS_ERR_ECP_RANDOM_FAILED;
         goto cleanup;
     }
-    else if (MCUXCLECC_STATUS_POINTMULT_OK != retEccPointMult)
+    else if (MCUXCLECC_STATUS_OK != retEccPointMult)
     {
         mbedtls_ecp_free_ecdh(&pDomainParams, &PointMultParams);
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

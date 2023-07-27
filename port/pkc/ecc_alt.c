@@ -12,7 +12,7 @@
 /*--------------------------------------------------------------------------*/
 
 /** @file  ecc_alt.c
- *  @brief common code for alternative ECC implementations with ELS IP
+ *  @brief common code for alternative ECC implementations with PKC IP
  */
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"

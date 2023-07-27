@@ -12,7 +12,7 @@
 /*--------------------------------------------------------------------------*/
 
 /** @file  ecc_alt.h
- *  @brief common header of alternative ECC implementations with ELS IP
+ *  @brief common header of alternative ECC implementations with PKC IP
  */
 
 #ifndef MBEDTLS_ECC_ALT_H

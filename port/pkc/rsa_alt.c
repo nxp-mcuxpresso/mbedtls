@@ -41,17 +41,6 @@
 #include <rsa_alt.h>
 #include "mbedtls/platform_util.h"
 
-/* If ELS-PKC is used, then expectation is CL-EAR2 is being used, Hence, a few mappings are required from CL-EAR2 
-to exsiting CL #defines, to support exisiting ALT implementation. The defines are mainly required due to renaming in CL EAR2*/
-#if defined(MBEDTLS_MCUX_ELS_PKC_API)
-#define MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WACPU_SIZE MCUXCLRSA_VERIFY_NOVERIFY_WACPU_SIZE  
-#define MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WAPKC_SIZE MCUXCLRSA_VERIFY_WAPKC_SIZE           
-#define MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_2048_WACPU_SIZE MCUXCLRSA_SIGN_CRT_NOENCODE_2048_WACPU_SIZE 
-#define MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_4096_WACPU_SIZE MCUXCLRSA_SIGN_CRT_NOENCODE_4096_WACPU_SIZE
-#define MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_WACPU_SIZE MCUXCLRSA_SIGN_CRT_NOENCODE_WACPU_SIZE   
-#define MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_WAPKC_SIZE MCUXCLRSA_SIGN_CRT_WAPKC_SIZE           
-#endif /* MBEDTLS_MCUX_ELS_PKC_API */
-
 
 #if !defined(MBEDTLS_RSA_CTX_ALT) || !defined(MBEDTLS_RSA_PUBLIC_ALT) || !defined(MBEDTLS_RSA_PRIVATE_ALT)
 #error This implementation requires that all 3 alternative implementation options are enabled together.
@@ -145,7 +134,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
     const uint32_t nByteLength = ctx->len;
 
     /* CPU buffer */
-    uint32_t cpuWaBuffer[MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WACPU_SIZE / sizeof(uint32_t)];
+    uint32_t cpuWaBuffer[MCUXCLRSA_VERIFY_NOVERIFY_WACPU_SIZE / sizeof(uint32_t)];
 
     /* PKC buffer and size */
     uint8_t *pPkcRam = (uint8_t *) MCUXCLPKC_RAM_START_ADDRESS;
@@ -156,9 +145,9 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(si_status, si_token, mcuxClSession_init(
                 /* mcuxClSession_Handle_t session:      */ session,
                 /* uint32_t * const cpuWaBuffer:       */ cpuWaBuffer,
-                /* uint32_t cpuWaSize:                 */ MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WACPU_SIZE,
+                /* uint32_t cpuWaSize:                 */ MCUXCLRSA_VERIFY_NOVERIFY_WACPU_SIZE,
                 /* uint32_t * const pkcWaBuffer:       */ (uint32_t *) pPkcRam,
-                /* uint32_t pkcWaSize:                 */ MCUXCLRSA_VERIFY_OPTIONNOVERIFY_WAPKC_SIZE(nByteLength * 8u)
+                /* uint32_t pkcWaSize:                 */ MCUXCLRSA_VERIFY_WAPKC_SIZE(nByteLength * 8u)
                 ));
 
     if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != si_token) || (MCUXCLSESSION_STATUS_OK != si_status))
@@ -332,8 +321,8 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     const uint32_t pqByteLength = (nByteLength+1) / 2u;
 
     /* CPU buffer */
-    uint32_t cpuWaBuffer[MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_4096_WACPU_SIZE / sizeof(uint32_t)];
-    uint32_t cpuWaSize = MCUXCLRSA_SIGN_CRT_OPTIONNOENCODE_4096_WACPU_SIZE;
+    uint32_t cpuWaBuffer[MCUXCLRSA_SIGN_CRT_NOENCODE_4096_WACPU_SIZE / sizeof(uint32_t)];
+    uint32_t cpuWaSize = MCUXCLRSA_SIGN_CRT_NOENCODE_4096_WACPU_SIZE;
     
     /* PKC buffer and size */   
     uint8_t *pPkcRam = (uint8_t *) MCUXCLPKC_RAM_START_ADDRESS;

@@ -122,6 +122,13 @@ status_t CRYPTO_InitHardware(void)
             break;
         }
         
+        /****************** Open NVM Storage service **************************/
+        result = ELE_OpenNvmStorageService(S3MU, g_ele_ctx.session_handle, &g_ele_ctx.storage_handle);
+        if (result != kStatus_Success)
+        {
+            break;
+        }
+
         g_isCryptoHWInitialized = true;
 
     } while (0);
@@ -156,6 +163,62 @@ status_t CRYPTO_DeinitHardware(void)
     
     do
     {
+        /****************** Close Sign Service ********************************/
+        if( g_ele_ctx.signature_gen_handle != 0u )
+        {  
+            result = ELE_CloseSignService(S3MU, g_ele_ctx.signature_gen_handle);
+            if (result != kStatus_Success)
+            {
+                break;
+            }
+            g_ele_ctx.signature_gen_handle = 0u;
+        }
+
+        /****************** Close Verify Service ******************************/
+        if( g_ele_ctx.signature_verif_handle != 0u )
+        {  
+            result = ELE_CloseVerifyService(S3MU, g_ele_ctx.signature_verif_handle);
+            if (result != kStatus_Success)
+            {
+                break;
+            }
+            g_ele_ctx.signature_verif_handle = 0u;
+        }
+        
+        /****************** Close Key Management Service **********************/
+        if( g_ele_ctx.key_management_handle != 0u )
+        {  
+            result = ELE_CloseKeyService(S3MU, g_ele_ctx.key_management_handle);
+            if (result != kStatus_Success)
+            {
+                break;
+            }
+            g_ele_ctx.key_management_handle = 0u;
+        }
+
+        /****************** Close Key Store  ***********************************/
+        if( g_ele_ctx.key_store_handle != 0u )
+        {  
+            result = ELE_CloseKeystore(S3MU, g_ele_ctx.key_store_handle);
+            if (result != kStatus_Success)
+            {
+                break;
+            }
+            g_ele_ctx.key_store_handle   = 0u;
+            g_ele_ctx.is_keystore_opened = 0u;
+        }
+
+        /****************** Close NVM storage session **************************/
+        if( g_ele_ctx.storage_handle != 0u )
+        {  
+            result = ELE_CloseNvmStorageService(S3MU, g_ele_ctx.storage_handle);
+            if (result != kStatus_Success)
+            {
+                break;
+            }
+            g_ele_ctx.storage_handle = 0u;
+        }
+        
         /****************** Close EdgeLock session ******************/
         result = ELE_CloseSession(S3MU, g_ele_ctx.session_handle);
         if (result != kStatus_Success)
@@ -164,9 +227,12 @@ status_t CRYPTO_DeinitHardware(void)
         }
         
         g_ele_ctx.session_handle = 0u;
+        
         g_isCryptoHWInitialized = false;
 
     } while (0);
+
+
 
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)

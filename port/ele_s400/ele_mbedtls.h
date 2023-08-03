@@ -22,18 +22,7 @@
 typedef struct 
 {
     uint32_t session_handle;
-    uint32_t key_store_handle;
-    uint32_t storage_handle;
-    uint32_t data_storage_handle;
-    uint32_t key_management_handle;
-    uint32_t signature_gen_handle;
-    uint32_t signature_verif_handle;
-    uint32_t hash_handle;
     bool is_fw_loaded;
-    bool is_storage_init;
-    uint32_t cipher_handle;
-    uint32_t mac_handle;
-    uint32_t rng_handle;
 } ele_ctx_t;
 
 #if defined(MBEDTLS_THREADING_C)
@@ -61,9 +50,6 @@ status_t CRYPTO_InitHardware(void);
  * It calls basic deinit for Crypto Hw acceleration and Hw entropy modules.
  */
 status_t CRYPTO_DeinitHardware(void);
-
-
-status_t mbedtls_mcux_rng_init(void);
 
 #ifdef __cplusplus
 }

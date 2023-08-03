@@ -52,23 +52,33 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
     /* Minimum nbit size is 2048 */
     if( nbits < 2048 || exponent < 3 || nbits % 2 != 0 )
     {
-        ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
-        goto cleanup;
+        return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
 
     mbedtls_mpi_init(&ctx->N);
     mbedtls_mpi_init(&ctx->D);
 
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif
+
+    
     /* Alocate MPI structure for Public modulus */
     modulo_tmp = mbedtls_calloc(1, nbits / 8u);
     if(modulo_tmp == NULL)
-      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
-    
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
 
     /* Alocate MPI structure for Private exponent */
     priv_exp_tmp = mbedtls_calloc(1, nbits / 8u);
     if(priv_exp_tmp == NULL)
-      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
     
     /* Convert to Big Endian */
     pub_exponent = __REV(exponent);
@@ -84,11 +94,6 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
     GenericRsaKeygen.pub_exponent_size  = sizeof(pub_exponent);
     GenericRsaKeygen.key_size           = nbits;
 
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
-        return ret;
-#endif
-    
     MBEDTLS_MPI_CHK(ELE_GenericRsaKeygen(S3MU, &GenericRsaKeygen));
  
     /* Set Public Exponent in Ctx */
@@ -111,16 +116,12 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
     //MBEDTLS_MPI_CHK( mbedtls_rsa_check_privkey( ctx ) );
 
 cleanup:
-    mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
-    if(modulo_tmp != NULL)
-    {
-        mbedtls_free(modulo_tmp);
-    }
-
     if(priv_exp_tmp != NULL)
-    {
+        mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
+    if(modulo_tmp != NULL)
+        mbedtls_free(modulo_tmp);
+    if(priv_exp_tmp != NULL)
         mbedtls_free(priv_exp_tmp);
-    }
 
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
@@ -245,7 +246,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t ilen, nbits;
     ele_generic_rsa_t GenericRsaDec;
-    uint32_t *modulo_tmp, *priv_exp_tmp;
+    uint32_t *modulo_tmp = NULL, *priv_exp_tmp = NULL;
 
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
@@ -260,17 +261,27 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif 
     
     /* Alocate MPI structure for Public modulus */
     modulo_tmp = mbedtls_calloc(nbits / 8u, 8u);
     if(modulo_tmp == NULL)
-      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
     
     /* Alocate MPI structure for Private exponent */
     priv_exp_tmp = mbedtls_calloc(nbits / 8u, 8u);
     if(priv_exp_tmp == NULL)
-      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
-
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
+    
     /* Read motulus data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, ilen);
 
@@ -295,11 +306,6 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     /* Ciphertext */
     GenericRsaDec.ciphertext      = (uint32_t)input;
     GenericRsaDec.ciphertext_size = ilen;
-
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
-        return ret;
-#endif 
     
     if (ELE_GenericRsa(S3MU, &GenericRsaDec) != kStatus_Success)
     {
@@ -314,10 +320,13 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
 
 
 cleanup:
-    mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
-    mbedtls_free(modulo_tmp);
-    mbedtls_free(priv_exp_tmp);
- 
+    if(priv_exp_tmp != NULL)
+        mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
+    if(modulo_tmp != NULL)
+        mbedtls_free(modulo_tmp);
+    if(priv_exp_tmp != NULL)
+        mbedtls_free(priv_exp_tmp);
+
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
         return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
@@ -341,7 +350,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t olen, nbits;
     ele_generic_rsa_t GenericRsaPssSign;
-    uint32_t *modulo_tmp, *priv_exp_tmp;
+    uint32_t *modulo_tmp = NULL, *priv_exp_tmp = NULL;
 
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
@@ -361,15 +370,26 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     
     memset( &GenericRsaPssSign, 0, sizeof(ele_generic_rsa_t));
 
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif
+    
     /* Alocate MPI structure for Public modulus */
     modulo_tmp = mbedtls_calloc(nbits / 8u, 8u);
     if(modulo_tmp == NULL)
-      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
-    
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
+
     /* Alocate MPI structure for Private exponent */
     priv_exp_tmp = mbedtls_calloc(nbits / 8u, 8u);
     if(priv_exp_tmp == NULL)
-      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
 
     /* Read motulus data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, olen);
@@ -413,10 +433,6 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     GenericRsaPssSign.signature      = (uint32_t)sig;
     GenericRsaPssSign.signature_size = olen;
 
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
-        return ret;
-#endif
     
     if (ELE_GenericRsa(S3MU, &GenericRsaPssSign) != kStatus_Success)
     {
@@ -429,9 +445,12 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     }
 
 cleanup:
-    mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
-    mbedtls_free(modulo_tmp);
-    mbedtls_free(priv_exp_tmp);
+    if(priv_exp_tmp != NULL)
+        mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
+    if(modulo_tmp != NULL)
+        mbedtls_free(modulo_tmp);
+    if(priv_exp_tmp != NULL)
+        mbedtls_free(priv_exp_tmp);
 
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
@@ -695,7 +714,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     unsigned int hlen;
     const mbedtls_md_info_t *md_info;
     ele_generic_rsa_t GenericRsaDec;
-    uint32_t *modulo_tmp, *priv_exp_tmp;
+    uint32_t *modulo_tmp = NULL, *priv_exp_tmp = NULL;
     
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE);
@@ -750,16 +769,27 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
         default:
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
+
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif
     
     /* Alocate MPI structure for Public modulus */
     modulo_tmp = mbedtls_calloc(nbits / 8u, 8u);
     if(modulo_tmp == NULL)
-      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
 
     /* Alocate MPI structure for Private exponent */
     priv_exp_tmp = mbedtls_calloc(nbits / 8u, 8u);
     if(priv_exp_tmp == NULL)
-      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
     
     /* Read motulus data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, ilen);
@@ -785,11 +815,6 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     /* Label */
     GenericRsaDec.label      = (uint32_t)label;
     GenericRsaDec.label_size = label_len;
-
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
-        return ret;
-#endif
     
     if (ELE_GenericRsa(S3MU, &GenericRsaDec) != kStatus_Success)
     {
@@ -803,9 +828,12 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     }
 
 cleanup:
-    mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
-    mbedtls_free(modulo_tmp);
-    mbedtls_free(priv_exp_tmp);
+    if(priv_exp_tmp != NULL)
+        mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
+    if(modulo_tmp != NULL)
+        mbedtls_free(modulo_tmp);
+    if(priv_exp_tmp != NULL)
+        mbedtls_free(priv_exp_tmp);
 
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
@@ -830,7 +858,7 @@ int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_md_info_t *md_info;
     ele_generic_rsa_t GenericRsaPssSign;
-    uint32_t *modulo_tmp, *priv_exp_tmp;
+    uint32_t *modulo_tmp = NULL, *priv_exp_tmp = NULL;
 
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE);
@@ -891,15 +919,26 @@ int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     
     memset( &GenericRsaPssSign, 0, sizeof(ele_generic_rsa_t));
 
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+        return ret;
+#endif
+    
     /* Alocate MPI structure for Public modulus */
     modulo_tmp = mbedtls_calloc(nbits / 8u, 8u);
     if(modulo_tmp == NULL)
-      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto exit;
+    }
     
     /* Alocate MPI structure for Private exponent */
     priv_exp_tmp = mbedtls_calloc(nbits / 8u, 8u);
     if(priv_exp_tmp == NULL)
-      return MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto exit;
+    }
 
     /* Read motulus data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, olen);
@@ -944,11 +983,6 @@ int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     GenericRsaPssSign.signature_size = olen;
     /* Salt */
     GenericRsaPssSign.salt_size = slen;
-
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
-        return ret;
-#endif
     
     if (ELE_GenericRsa(S3MU, &GenericRsaPssSign) != kStatus_Success)
     {
@@ -961,9 +995,12 @@ int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     }
 
 exit:
-    mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
-    mbedtls_free(modulo_tmp);
-    mbedtls_free(priv_exp_tmp);
+    if(priv_exp_tmp != NULL)
+        mbedtls_platform_zeroize( priv_exp_tmp, ctx->len);
+    if(modulo_tmp != NULL)
+        mbedtls_free(modulo_tmp);
+    if(priv_exp_tmp != NULL)
+        mbedtls_free(priv_exp_tmp);
 
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)

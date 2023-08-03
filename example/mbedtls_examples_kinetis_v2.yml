@@ -297,3 +297,139 @@ mbedtls_benchmark:
   section-type: application
   __requires__:
   - driver.port middleware.mbedtls.default_heap_stack middleware.mbedtls
+mbedtls_ecdsa_sei:
+  configuration:
+    tools:
+      __common__:
+        config:
+          __common__:
+            cc-define:
+              PRINTF_ADVANCED_ENABLE: 1
+              PRINTF_FLOAT_ENABLE: 1
+              FREESCALE_KSDK_BM:
+              MBEDTLS_CONFIG_FILE: '"ele_ecc_sei_mbedtls_config.h"'
+      armgcc:
+        config:
+          __remove__:
+            debug:
+      mdk:
+        config:
+          __common__:
+            ld-flags:
+            - "--diag_suppress 6329"
+    document:
+      name: mbedtls_ecdsa_sei
+      readme:
+      - boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/board.readme
+      - middleware/mbedtls/example/mbedtls_ecdsa_sei/mbedtls_ecdsa_sei.readme
+      category: mbedtls_examples
+      brief: The mbdedTLS ECDSA SEI demo application performs ECDSA algorithm
+        operations for specific opaque use case with one ECDSA P256 key pair.
+    outdir: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+  modules:
+    demo:
+      required: true
+      cc-include:
+      - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei
+        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+        project_path: board
+      - path: middleware/mbedtls/example/mbedtls_ecdsa_sei/
+        package_path: middleware/mbedtls/example/mbedtls_ecdsa_sei/${multicore_foldername}
+        project_path: board
+      files:
+      - source: middleware/mbedtls/example/mbedtls_ecdsa_sei/mbedtls_ecdsa_sei.c
+        merge-to-main: main
+        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+        project_path: source
+      - source: middleware/mbedtls/example/mbedtls_ecdsa_sei/ele_ecc_sei_mbedtls_config.h
+        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+        project_path: source
+      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/pin_mux.c
+        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+        project_path: board
+      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/pin_mux.h
+        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+        project_path: board
+    pinset:
+      required: true
+      cc-include:
+      - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+        project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}"
+      files:
+      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}/hardware_init.c
+        merge-to-main: sub
+        project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}"
+      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}/app.h
+        merge-to-main: sub
+        project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}"
+  section-type: application
+  __requires__:
+  - driver.port middleware.mbedtls middleware.mbedtls.default_heap_stack
+mbedtls_ecdsa_write_cert_sei:
+  configuration:
+    tools:
+      __common__:
+        config:
+          __common__:
+            cc-define:
+              PRINTF_ADVANCED_ENABLE: 1
+              PRINTF_FLOAT_ENABLE: 1
+              FREESCALE_KSDK_BM:
+              MBEDTLS_CONFIG_FILE: '"ele_ecc_sei_mbedtls_config.h"'
+      armgcc:
+        config:
+          __remove__:
+            debug:
+      mdk:
+        config:
+          __common__:
+            ld-flags:
+            - "--diag_suppress 6329"
+    document:
+      name: mbedtls_ecdsa_write_cert_sei
+      readme:
+      - boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/board.readme
+      - middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/mbedtls_ecdsa_write_cert_sei.readme
+      category: mbedtls_examples
+      brief: The mbdedTLS ECDSA SEI demo application performs ECDSA algorithm
+        operations for specific opaque use case with one ECDSA P256 key pair.
+    outdir: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+  modules:
+    demo:
+      required: true
+      cc-include:
+      - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/
+        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+        project_path: board
+      - path: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/
+        package_path: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+        project_path: board
+      files:
+      - source: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/mbedtls_ecdsa_write_cert_sei.c
+        merge-to-main: main
+        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+        project_path: source
+      - source: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/ele_ecc_sei_mbedtls_config.h
+        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+        project_path: source
+      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/pin_mux.c
+        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+        project_path: board
+      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/pin_mux.h
+        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+        project_path: board
+    pinset:
+      required: true
+      cc-include:
+      - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+        project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}"
+      files:
+      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}/hardware_init.c
+        merge-to-main: sub
+        project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}"
+      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}/app.h
+        merge-to-main: sub
+        project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}"
+  section-type: application
+  __requires__:
+  - driver.port middleware.mbedtls middleware.mbedtls.default_heap_stack

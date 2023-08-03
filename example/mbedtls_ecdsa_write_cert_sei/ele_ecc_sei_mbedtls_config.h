@@ -35,7 +35,7 @@
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
 
-#define MBEDTLS_MCUX_ELE_S400 /* Enables ELE HW acceleration */
+#define MBEDTLS_MCUX_ELE_S400
 
 /**************************** MCUX ELE S40x end ****************************************/
 /**
@@ -376,19 +376,29 @@
  *            digests and ciphers instead.
  *
  */
-#if defined(MBEDTLS_MCUX_ELE_S400)
 #define MBEDTLS_AES_ALT
+//#define MBEDTLS_ARIA_ALT
+//#define MBEDTLS_CAMELLIA_ALT
 #define MBEDTLS_CCM_ALT
-//#define MBEDTLS_HMAC_ONE_GO_ALT /* This one go implementation support only SHA2-256 256bit key */
-//#define MBEDTLS_GCM_ONE_GO_ALT  /* Disable by default because of ctx conflict with streaming */
+//#define MBEDTLS_CHACHA20_ALT
+//#define MBEDTLS_CHACHAPOLY_ALT
+//#define MBEDTLS_CMAC_ALT
+//#define MBEDTLS_DES_ALT
+//#define MBEDTLS_DHM_ALT
+//#define MBEDTLS_ECJPAKE_ALT
+//#define MBEDTLS_GCM_ALT
+//#define MBEDTLS_NIST_KW_ALT
+//#define MBEDTLS_MD5_ALT
+//#define MBEDTLS_POLY1305_ALT
+//#define MBEDTLS_RIPEMD160_ALT
 //#define MBEDTLS_RSA_ALT
 #define MBEDTLS_RSA_KEYGEN_ALT
-//#define MBEDTLS_PKCS1_V15_ALT /* TODO: enable when supported in ELE FW */
-//#define MBEDTLS_PKCS1_V21_ALT /* TODO: enable when supported in ELE FW */
+#define MBEDTLS_PKCS1_V15_ALT
+#define MBEDTLS_PKCS1_V21_ALT
 //#define MBEDTLS_SHA1_ALT
 #define MBEDTLS_SHA256_ALT
 #define MBEDTLS_SHA512_ALT
-#endif /* defined(MBEDTLS_MCUX_ELE_S400) */
+
 
 /*
  * When replacing the elliptic curve module, pleace consider, that it is
@@ -458,9 +468,12 @@
 //#define MBEDTLS_AES_DECRYPT_ALT
 //#define MBEDTLS_ECDH_GEN_PUBLIC_ALT
 //#define MBEDTLS_ECDH_COMPUTE_SHARED_ALT
-//#define MBEDTLS_ECDSA_VERIFY_ALT
-//#define MBEDTLS_ECDSA_SIGN_ALT
-//#define MBEDTLS_ECDSA_GENKEY_ALT
+#define MBEDTLS_ECDSA_VERIFY_ALT
+#define MBEDTLS_ECDSA_SIGN_ALT
+#define MBEDTLS_ECDSA_ALT
+#define MBEDTLS_ECDSA_GENKEY_ALT
+#define MBEDTLS_ECP_GENKEY_ALT
+#define MBEDTLS_PK_KEY_ALT   
 
 /**
  * \def MBEDTLS_ECP_INTERNAL_ALT
@@ -750,8 +763,8 @@
 //#define MBEDTLS_ECP_DP_SECP192R1_ENABLED
 //#define MBEDTLS_ECP_DP_SECP224R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP384R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP521R1_ENABLED
+//#define MBEDTLS_ECP_DP_SECP384R1_ENABLED
+//#define MBEDTLS_ECP_DP_SECP521R1_ENABLED
 //#define MBEDTLS_ECP_DP_SECP192K1_ENABLED
 //#define MBEDTLS_ECP_DP_SECP224K1_ENABLED
 //#define MBEDTLS_ECP_DP_SECP256K1_ENABLED
@@ -2660,7 +2673,7 @@
  *           and at least one MBEDTLS_ECP_DP_XXX_ENABLED for a
  *           short Weierstrass curve.
  */
-//#define MBEDTLS_ECDSA_C
+#define MBEDTLS_ECDSA_C
 
 /**
  * \def MBEDTLS_ECJPAKE_C
@@ -2693,7 +2706,7 @@
  *
  * Requires: MBEDTLS_BIGNUM_C and at least one MBEDTLS_ECP_DP_XXX_ENABLED
  */
-//#define MBEDTLS_ECP_C
+#define MBEDTLS_ECP_C
 
 /**
  * \def MBEDTLS_ENTROPY_C
@@ -3017,7 +3030,7 @@
  *
  * Uncomment to enable generic public key write functions.
  */
-//#define MBEDTLS_PK_WRITE_C
+#define MBEDTLS_PK_WRITE_C
 
 /**
  * \def MBEDTLS_PKCS5_C
@@ -3443,7 +3456,7 @@
  *
  * This module is the basis for creating X.509 certificates and CSRs.
  */
-//#define MBEDTLS_X509_CREATE_C
+#define MBEDTLS_X509_CREATE_C
 
 /**
  * \def MBEDTLS_X509_CRT_WRITE_C
@@ -3456,7 +3469,7 @@
  *
  * This module is required for X.509 certificate creation.
  */
-//#define MBEDTLS_X509_CRT_WRITE_C
+#define MBEDTLS_X509_CRT_WRITE_C
 
 /**
  * \def MBEDTLS_X509_CSR_WRITE_C

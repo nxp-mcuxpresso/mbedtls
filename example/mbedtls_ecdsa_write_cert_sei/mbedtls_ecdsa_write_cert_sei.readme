@@ -1,0 +1,51 @@
+Overview
+========
+The mbedTLS Benchmark demo application performs cryptographic algorithm benchmarking and prints results to the
+terminal.
+
+Prepare the Demo
+================
+Connect a serial cable from the debug UART port of the target board to the PC. Start TeraTerm (http://ttssh2.osdn.jp)
+and make a connection to the virtual serial port.
+
+1. Start TeraTerm.
+
+2. New connection -> Serial.
+
+3. Set the appropriate COMx port (where x is port number) in the port context menu. The number is provided by the operating
+   system, and could be different from computer to computer. Select the COM number related to the virtual
+   serial port. Confirm the selected port by clicking the "OK" button.
+
+4. Set following connection parameters in menu Setup -> Serial port.
+        Baud rate:    115200
+        Data:         8
+        Parity:       none
+        Stop:         1
+        Flow control: none
+
+5.  Confirm selected parameters by clicking the "OK" button.
+
+Running the demo
+================
+Initialization of crypto HW Success
+
+Generating ECC keypair inside ELE - *Success*
+
+Writing keyblob into buffer- *Success*
+
+Read encypted keyblob into ELE and open keystore and reconstruct Public key- *Success*
+
+Sign message with ECC private key loaded back inside ELE - *Success*
+
+Verify signature with ECC public key reconstructed into CTX - *Success*
+
+  . Reading serial number... ok
+  . Seeding the random number generator... ok
+  . Setting certificate values ... ok
+  . Adding the Basic Constraints extension ... ok
+  . Adding the Subject Key Identifier ... ok
+  . Adding the Authority Key Identifier ... ok
+  . Writing the certificate... ok
+  . Loading the certificate ... ok
+
+ End of example

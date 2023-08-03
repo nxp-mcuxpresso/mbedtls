@@ -45,9 +45,64 @@ middleware.mbedtls.port.ele_s400:
     - source: port/ele_s400/aes_alt.c
     - source: port/ele_s400/ccm_alt.h
     - source: port/ele_s400/ccm_alt.c
+    - source: port/ele_s400/gcm_alt.h
+    - source: port/ele_s400/gcm_alt.c
     - source: port/ele_s400/rsa_alt.h
     - source: port/ele_s400/rsa_alt.c
     - source: port/ele_s400/threading_alt.h
+    - source: port/ele_s400/sha256_alt.c
+    - source: port/ele_s400/sha256_alt.h
+    - source: port/ele_s400/sha512_alt.c
+    - source: port/ele_s400/sha512_alt.h
+    - source: port/ele_s400/hmac_alt.c
+    configuration:
+      cc-define:
+        MBEDTLS_MCUX_ELE_S400_API: 
+  belong_to: set.middleware.mbedtls
+  section_info:
+    description: mbedTLS port library for ELE S40x
+    type: middleware
+    version: "${mbedtls_version}"
+    user_visible: always
+    full_name: MbedTLS MCUX SDK port layer via ELE S400
+    taxonomy:
+      csub: ele_s400
+      belong_to: mbedtls
+    display_name: mbedtls_ele_s400
+  dependency:
+    allOf:
+    - driver.s3mu
+    - component.ele_crypto
+middleware.mbedtls.port.ele_s400_sei:
+  section-type: component
+  contents:
+    repo_base_path: middleware/mbedtls
+    project_base_path: mbedtls
+    cc-include:
+    - repo_relative_path: port/ele_s400
+    files:
+    - source: port/ele_s400/ele_fw.h
+    - source: port/ele_s400/ele_entropy.c
+    - source: port/ele_s400/aes_alt.h
+    - source: port/ele_s400/aes_alt.c
+    - source: port/ele_s400/ccm_alt.h
+    - source: port/ele_s400/ccm_alt.c
+    - source: port/ele_s400/gcm_alt.h
+    - source: port/ele_s400/gcm_alt.c
+    - source: port/ele_s400/rsa_alt.h
+    - source: port/ele_s400/rsa_alt.c
+    - source: port/ele_s400/threading_alt.h
+    - source: port/ele_s400/sha256_alt.c
+    - source: port/ele_s400/sha256_alt.h
+    - source: port/ele_s400/sha512_alt.c
+    - source: port/ele_s400/sha512_alt.h
+    - source: port/ele_s400/hmac_alt.c
+    - source: port/ele_s400/sei/ele_ecc_sei_mbedtls_config.h
+    - source: port/ele_s400/sei/ele_mbedtls.c
+    - source: port/ele_s400/sei/ele_mbedtls.h
+    - source: port/ele_s400/sei/ecdsa_alt.h
+    - source: port/ele_s400/sei/ecdsa_alt.c
+    - source: port/ele_s400/sei/pk_alt_sei.c
     configuration:
       cc-define:
         MBEDTLS_MCUX_ELE_S400_API: 

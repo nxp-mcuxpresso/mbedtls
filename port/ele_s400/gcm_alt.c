@@ -132,7 +132,8 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
     if( mode == MBEDTLS_GCM_ENCRYPT )
     {
         GenericAeadGCM.mode = kEncrypt;
-    }else if( mode == MBEDTLS_GCM_DECRYPT )
+    }
+    else if( mode == MBEDTLS_GCM_DECRYPT )
     {
         GenericAeadGCM.mode = kDecrypt;
     }

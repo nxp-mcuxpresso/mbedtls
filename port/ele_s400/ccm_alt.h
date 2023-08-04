@@ -20,8 +20,7 @@ extern "C" {
  * \brief    The CCM context-type definition. The CCM context is passed
  *           to the APIs called.
  */
-typedef struct mbedtls_ccm_context
-{
+typedef struct mbedtls_ccm_context {
     uint8_t key[32];
     size_t keySize;
 }

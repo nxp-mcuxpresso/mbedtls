@@ -18,7 +18,8 @@
 #include "threading_alt.h"
 #endif
 
-#if !defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) && defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
+#if !defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) && defined(MBEDTLS_THREADING_C) && \
+    defined(MBEDTLS_THREADING_ALT)
 extern void CRYPTO_ConfigureThreading(void);
 #endif
 
@@ -66,7 +67,7 @@ static void CRYPTO_ConfigureThreadingMcux(void);
 
 uint32_t g_isCryptoHWInitialized = false;
 
-ele_ctx_t g_ele_ctx = {0u}; /* Global context */
+ele_ctx_t g_ele_ctx = { 0u }; /* Global context */
 
 /*!
  * @brief Application init for Crypto blocks.
@@ -77,10 +78,9 @@ ele_ctx_t g_ele_ctx = {0u}; /* Global context */
 status_t CRYPTO_InitHardware(void)
 {
     status_t result = kStatus_Fail;
-  
-    if(g_isCryptoHWInitialized == true)
-    {
-        return (0);
+
+    if (g_isCryptoHWInitialized == true) {
+        return 0;
     }
 
 #if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
@@ -95,40 +95,36 @@ status_t CRYPTO_InitHardware(void)
 #endif /* (MBEDTLS_THREADING_C) */
 
 #if defined(MBEDTLS_THREADING_C)
-    if ((result = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+    if ((result = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0) {
         return result;
+    }
 #endif
 
-    do
-    {
+    do {
         /****************** Load EdgeLock FW ***********************/
-        if(g_ele_ctx.is_fw_loaded != true)
-        {
+        if (g_ele_ctx.is_fw_loaded != true) {
             result = ELE_LoadFw(S3MU, ele_fw);
-            if (result != kStatus_Success)
-            {
+            if (result != kStatus_Success) {
                 break;
-            }
-            else
-            {
+            } else {
                 g_ele_ctx.is_fw_loaded = true;
             }
         }
 
         /****************** Open EdgeLock session ******************/
         result = ELE_OpenSession(S3MU, &g_ele_ctx.session_handle);
-        if (result != kStatus_Success)
-        {
+        if (result != kStatus_Success) {
             break;
         }
-        
+
         g_isCryptoHWInitialized = true;
 
     } while (0);
 
 #if defined(MBEDTLS_THREADING_C)
-    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0) {
         return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+    }
 #endif
 
     return result;
@@ -143,34 +139,33 @@ status_t CRYPTO_InitHardware(void)
 status_t CRYPTO_DeinitHardware(void)
 {
     status_t result = kStatus_Fail;
-  
-    if(g_isCryptoHWInitialized == false)
-    {
-        return (0);
+
+    if (g_isCryptoHWInitialized == false) {
+        return 0;
     }
 
 #if defined(MBEDTLS_THREADING_C)
-    if ((result = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+    if ((result = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0) {
         return result;
+    }
 #endif
-    
-    do
-    {
+
+    do {
         /****************** Close EdgeLock session ******************/
         result = ELE_CloseSession(S3MU, g_ele_ctx.session_handle);
-        if (result != kStatus_Success)
-        {
+        if (result != kStatus_Success) {
             break;
         }
-        
+
         g_ele_ctx.session_handle = 0u;
         g_isCryptoHWInitialized = false;
 
     } while (0);
 
 #if defined(MBEDTLS_THREADING_C)
-    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0) {
         return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+    }
 #endif
 
     return result;
@@ -193,12 +188,9 @@ void mcux_mbedtls_mutex_init(mbedtls_threading_mutex_t *mutex)
 {
     mutex->mutex = xSemaphoreCreateMutex();
 
-    if (mutex->mutex != NULL)
-    {
+    if (mutex->mutex != NULL) {
         mutex->is_valid = 1;
-    }
-    else
-    {
+    } else {
         mutex->is_valid = 0;
     }
 }
@@ -209,8 +201,7 @@ void mcux_mbedtls_mutex_init(mbedtls_threading_mutex_t *mutex)
  */
 void mcux_mbedtls_mutex_free(mbedtls_threading_mutex_t *mutex)
 {
-    if (mutex->is_valid == 1)
-    {
+    if (mutex->is_valid == 1) {
         vSemaphoreDelete(mutex->mutex);
         mutex->is_valid = 0;
     }
@@ -226,14 +217,10 @@ int mcux_mbedtls_mutex_lock(mbedtls_threading_mutex_t *mutex)
 {
     int ret = MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
 
-    if (mutex->is_valid == 1)
-    {
-        if (xSemaphoreTake(mutex->mutex, portMAX_DELAY))
-        {
+    if (mutex->is_valid == 1) {
+        if (xSemaphoreTake(mutex->mutex, portMAX_DELAY)) {
             ret = 0;
-        }
-        else
-        {
+        } else {
             ret = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
         }
     }
@@ -251,14 +238,10 @@ int mcux_mbedtls_mutex_unlock(mbedtls_threading_mutex_t *mutex)
 {
     int ret = MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
 
-    if (mutex->is_valid == 1)
-    {
-        if (xSemaphoreGive(mutex->mutex))
-        {
+    if (mutex->is_valid == 1) {
+        if (xSemaphoreGive(mutex->mutex)) {
             ret = 0;
-        }
-        else
-        {
+        } else {
             ret = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
         }
     }
@@ -269,8 +252,8 @@ int mcux_mbedtls_mutex_unlock(mbedtls_threading_mutex_t *mutex)
 static void CRYPTO_ConfigureThreadingMcux(void)
 {
     /* Configure mbedtls to use FreeRTOS mutexes. */
-    mbedtls_threading_set_alt(mcux_mbedtls_mutex_init, 
-                              mcux_mbedtls_mutex_free, 
+    mbedtls_threading_set_alt(mcux_mbedtls_mutex_init,
+                              mcux_mbedtls_mutex_free,
                               mcux_mbedtls_mutex_lock,
                               mcux_mbedtls_mutex_unlock);
 }

@@ -16,16 +16,16 @@ extern "C" {
 
 #if defined(MBEDTLS_PKCS1_V21_ALT)
 
-int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
-                         int (*f_rng)(void *, unsigned char *, size_t),
-                         void *p_rng,
-                         int mode,
-                         mbedtls_md_type_t md_alg,
-                         unsigned int hashlen,
-                         const unsigned char *hash,
-                         int saltlen,
-                         unsigned char *sig );
-  
+int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
+                        int (*f_rng)(void *, unsigned char *, size_t),
+                        void *p_rng,
+                        int mode,
+                        mbedtls_md_type_t md_alg,
+                        unsigned int hashlen,
+                        const unsigned char *hash,
+                        int saltlen,
+                        unsigned char *sig);
+
 #endif /* MBEDTLS_RSA_ALT */
 
 #ifdef __cplusplus

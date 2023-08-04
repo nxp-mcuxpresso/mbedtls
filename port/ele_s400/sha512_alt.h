@@ -22,7 +22,7 @@ extern "C" {
 #if defined(MBEDTLS_SHA512_ALT)
 
 #include "ele_crypto.h"
-  
+
 /**
  * \brief          The SHA-512 context structure.
  *
@@ -31,8 +31,7 @@ extern "C" {
  *                 made in the call to mbedtls_sha256_starts_ret().
  */
 /*! @brief ELE HASH Context structure */
-typedef struct _mbedtls_sha512_context
-{
+typedef struct _mbedtls_sha512_context {
     ele_hash_ctx_t ele_ctx;     /*!< storage */
     int is384;                  /*!< Determines which function to use:
                                      0: Use SHA-512, or 1: Use SHA-384. */

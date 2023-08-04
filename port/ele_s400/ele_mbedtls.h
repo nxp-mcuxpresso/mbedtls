@@ -19,8 +19,7 @@
 #error "No valid SoC defined"
 #endif /* MIMXRT1189_cm33_SERIES | MIMXRT1189_cm7_SERIES */
 
-typedef struct 
-{
+typedef struct {
     uint32_t session_handle;
     bool is_fw_loaded;
 } ele_ctx_t;

@@ -30,27 +30,25 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
     status_t result = kStatus_Success;
 
 #if defined(MBEDTLS_THREADING_C)
-    if ((result = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
+    if ((result = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0) {
         return result;
+    }
 #endif
-    
-    result = ELE_RngGetRandom(S3MU, (uint32_t*) output, len);
+
+    result = ELE_RngGetRandom(S3MU, (uint32_t *) output, len);
 
 #if defined(MBEDTLS_THREADING_C)
-    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0) {
         return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+    }
 #endif
-    
-    if (result == kStatus_Success)
-    {
+
+    if (result == kStatus_Success) {
         *olen = len;
         return 0;
-    }
-    else
-    {
+    } else {
         return result;
     }
 }
 
 #endif /* MBEDTLS_ENTROPY_HARDWARE_ALT */
-

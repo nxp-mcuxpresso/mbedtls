@@ -19,8 +19,7 @@ extern "C" {
 /**
  * \brief          The GCM context structure.
  */
-typedef struct mbedtls_gcm_context
-{
+typedef struct mbedtls_gcm_context {
     uint8_t key[32];
     size_t keySize;
 }

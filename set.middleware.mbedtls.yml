@@ -1,0 +1,3005 @@
+---
+middleware.mbedtls.template:
+  section-type: component
+  contents:
+    repo_base_path: middleware/mbedtls
+    project_base_path: mbedtls
+    cc-include:
+    - repo_relative_path: port/ksdk
+      target_file:
+      - ksdk_mbedtls_config.h
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+    files:
+    - source: middleware/mbedtls/port/ksdk/ksdk_mbedtls_config.h
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: c_include
+      config: true
+    - source: middleware/mbedtls/middleware_mbedtls_template.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    configuration:
+      cc-define:
+        MBEDTLS_CONFIG_FILE: '"ksdk_mbedtls_config.h"'
+    package_base_path: middleware/mbedtls
+  belong_to: set.middleware.mbedtls
+  section_info:
+    description: mbedTLS Template
+    version: 2.28.3
+    type: project_template
+    full_name: mbedTLS Template
+    user_visible: never
+    taxonomy:
+      csub: template
+      cclass: Security
+      cgroup: mbedTLS library
+      cbundle: Mbed_TLS
+      cbundle_version: 2.28.3
+    display_name: mbedtls_template
+    vendor: NXP
+  meta-name: middleware.mbedtls.template
+  cmake_module_name: middleware_mbedtls_template
+middleware.mbedtls.els_pkc.config:
+  section-type: component
+  contents:
+    repo_base_path: middleware/mbedtls
+    project_base_path: mbedtls
+    cc-include:
+    - repo_relative_path: port/pkc
+      target_file:
+      - els_pkc_mbedtls_config.h
+      project_relative_path: port/pkc
+      package_relative_path: port/pkc
+    files:
+    - source: middleware/mbedtls/port/pkc/els_pkc_mbedtls_config.h
+      repo_relative_path: port/pkc
+      project_relative_path: port/pkc
+      package_relative_path: port/pkc
+      type: c_include
+      config: true
+    - source: middleware/mbedtls/middleware_mbedtls_els_pkc_config.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    configuration:
+      cc-define:
+        MBEDTLS_CONFIG_FILE: '"els_pkc_mbedtls_config.h"'
+    package_base_path: middleware/mbedtls
+  belong_to: set.middleware.mbedtls
+  section_info:
+    description: els_pkc config
+    version: 2.28.3
+    type: software_component
+    full_name: els_pkc config
+    user_visible: never
+    taxonomy:
+      csub: els_pkc_config
+      cclass: Security
+      cgroup: mbedTLS library
+      cbundle: Mbed_TLS
+      cbundle_version: 2.28.3
+    display_name: els_pkc_config
+    vendor: NXP
+  meta-name: middleware.mbedtls.els_pkc.config
+  cmake_module_name: middleware_mbedtls_els_pkc_config
+container.middleware.mbedtls.unused_files:
+  section-type: container
+  contents:
+    repo_base_path: middleware/mbedtls
+    project_base_path: mbedtls
+    files:
+    - source: middleware/mbedtls/.github/issue_template.md
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/.github/pull_request_template.md
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/3rdparty/CMakeLists.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/3rdparty/Makefile.inc
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/ChangeLog.d/00README.md
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/configs/README.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/configs/config-ccm-psk-dtls1_2.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/configs/config-ccm-psk-tls1_2.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/configs/config-mini-tls1_1.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/configs/config-no-entropy.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/configs/config-suite-b.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/configs/config-symmetric-only.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/configs/config-thread.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/docs/use-psa-crypto.md
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/doxygen/mbedtls.doxyfile
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/doxygen/input/doc_encdec.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/doxygen/input/doc_hashing.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/doxygen/input/doc_mainpage.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/doxygen/input/doc_rng.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/doxygen/input/doc_ssltls.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/doxygen/input/doc_tcpip.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/doxygen/input/doc_x509.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/include/.gitignore
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/include/CMakeLists.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/library/.gitignore
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/library/CMakeLists.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/library/Makefile
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/Makefile
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/aes/CMakeLists.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/aes/crypt_and_hash.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/CMakeLists.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/README.md
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/common.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/common.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_client.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_client.options
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_dtlsclient.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_dtlsclient.options
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_dtlsserver.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_dtlsserver.options
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_privkey.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_privkey.options
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_pubkey.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_pubkey.options
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_server.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_server.options
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_x509crl.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_x509crl.options
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_x509crt.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_x509crt.options
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_x509csr.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/fuzz_x509csr.options
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/fuzz/onefile.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/hash/CMakeLists.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/hash/generic_sum.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/hash/hello.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/CMakeLists.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/dh_client.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/dh_genprime.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/dh_prime.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/dh_server.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/ecdh_curve25519.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/ecdsa.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/gen_key.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/key_app.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/key_app_writer.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/mpi_demo.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/pk_decrypt.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/pk_encrypt.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/pk_sign.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/pk_verify.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/rsa_decrypt.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/rsa_encrypt.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/rsa_genkey.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/rsa_priv.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/rsa_pub.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/rsa_sign.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/rsa_sign_pss.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/rsa_verify.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/pkey/rsa_verify_pss.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/random/CMakeLists.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/random/gen_entropy.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/random/gen_random_ctr_drbg.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/random/gen_random_havege.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/ssl/CMakeLists.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/ssl/dtls_client.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/ssl/dtls_server.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/ssl/mini_client.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/ssl/ssl_client1.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/ssl/ssl_client2.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/ssl/ssl_context_info.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/ssl/ssl_fork_server.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/ssl/ssl_mail_client.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/ssl/ssl_pthread_server.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/ssl/ssl_server.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/ssl/ssl_server2.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/ssl/ssl_test_common_source.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/ssl/ssl_test_lib.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/ssl/ssl_test_lib.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/test/CMakeLists.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/test/benchmark.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/test/dlopen.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/test/dlopen_demo.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/test/generate_cpp_dummy_build.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/test/query_compile_time_config.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/test/query_config.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/test/query_config.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/test/selftest.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/test/udp_proxy.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/test/udp_proxy_wrapper.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/test/zeroize.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/util/CMakeLists.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/util/pem2der.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/util/strerror.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/x509/CMakeLists.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/x509/cert_app.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/x509/cert_req.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/x509/cert_write.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/x509/crl_app.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/x509/load_roots.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/programs/x509/req_app.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/abi_check.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/apidoc_full.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/assemble_changelog.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/bump_version.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/ci.requirements.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/code_style.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/config.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/config.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/ecc-heap.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/find-mem-leak.cocci
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/footprint.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/generate_errors.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/generate_features.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/generate_psa_constants.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/generate_query_config.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/generate_visualc_files.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/lcov.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/maintainer.requirements.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/massif_max.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/memory.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/min_requirements.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/output_env.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/rename.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/rm-calloc-cast.cocci
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/tmp_ignore_makefiles.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/windows_msbuild.bat
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/data_files/error.fmt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/data_files/query_config.fmt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/data_files/rename-1.3-2.0.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/data_files/version_features.fmt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/data_files/vs2010-app-template.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/data_files/vs2010-main-template.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/data_files/vs2010-sln-template.sln
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/data_files/vs6-app-template.dsp
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/data_files/vs6-main-template.dsp
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/data_files/vs6-workspace-template.dsw
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/mbedtls_dev/__init__.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/mbedtls_dev/asymmetric_key_data.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/mbedtls_dev/build_tree.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/mbedtls_dev/c_build_helper.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/mbedtls_dev/crypto_knowledge.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/mbedtls_dev/macro_collector.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/mbedtls_dev/psa_storage.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/mbedtls_dev/test_case.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/mbedtls_dev/test_data_generation.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/scripts/mbedtls_dev/typing_util.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/Makefile
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/.jenkins/Jenkinsfile
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/data_files/Makefile
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/data_files/hash_file_1
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/data_files/hash_file_2
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/data_files/hash_file_3
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/data_files/hash_file_4
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/data_files/hash_file_5
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/data_files/mpi_16
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/data_files/mpi_too_big
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/data_files/dir3/Readme
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/data_files/dir4/Readme
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/git-scripts/README.md
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/git-scripts/pre-commit.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/git-scripts/pre-push.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/all-in-docker.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/all.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/analyze_outcomes.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/basic-build-test.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/basic-in-docker.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/check-doxy-blocks.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/check-generated-files.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/check-python-files.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/check_files.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/check_names.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/check_test_cases.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/depends.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/docker_env.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/doxygen.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/gen_ctr_drbg.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/gen_gcm_decrypt.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/gen_gcm_encrypt.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/gen_pkcs1_v21_sign_verify.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/generate-afl-tests.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/generate_bignum_tests.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/generate_psa_tests.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/generate_test_code.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/list-identifiers.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/list_internal_identifiers.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/psa_collect_statuses.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/recursion.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/run-test-suites.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/scripts_path.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/set_psa_test_dependencies.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/tcp_client.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/test-ref-configs.pl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/test_config_script.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/test_generate_test_code.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/test_psa_compliance.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/test_psa_constant_names.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/test_zeroize.gdb
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/scripts/travis-log-failure.sh
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/src/asn1_helpers.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/src/fake_external_rng_for_test.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/src/helpers.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/src/psa_crypto_helpers.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/src/psa_exercise_key.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/src/random.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/src/threading_helpers.c
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/helpers.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/host_test.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/main_test.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_aes.cbc.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_aes.cfb.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_aes.ecb.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_aes.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_aes.ofb.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_aes.rest.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_aes.xts.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_all.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_all.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_arc4.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_arc4.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_aria.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_aria.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_asn1parse.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_asn1parse.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_asn1write.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_asn1write.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_base64.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_base64.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_bignum.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_bignum.generated.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_bignum.misc.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_blowfish.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_blowfish.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_camellia.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_camellia.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ccm.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ccm.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_chacha20.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_chacha20.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_chachapoly.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_chachapoly.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cipher.aes.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cipher.arc4.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cipher.aria.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cipher.blowfish.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cipher.camellia.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cipher.ccm.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cipher.chacha20.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cipher.chachapoly.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cipher.des.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cipher.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cipher.gcm.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cipher.misc.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cipher.nist_kw.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cipher.null.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cipher.padding.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cmac.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_cmac.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_constant_time.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_constant_time.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_constant_time_hmac.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_constant_time_hmac.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ctr_drbg.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ctr_drbg.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_debug.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_debug.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_des.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_des.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_dhm.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_dhm.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ecdh.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ecdh.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ecdsa.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ecdsa.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ecjpake.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ecjpake.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ecp.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ecp.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_entropy.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_entropy.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_error.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_error.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_gcm.aes128_de.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_gcm.aes128_en.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_gcm.aes192_de.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_gcm.aes192_en.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_gcm.aes256_de.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_gcm.aes256_en.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_gcm.camellia.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_gcm.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_gcm.misc.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_hkdf.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_hkdf.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_hmac_drbg.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_hmac_drbg.misc.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_hmac_drbg.no_reseed.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_hmac_drbg.nopr.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_hmac_drbg.pr.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_md.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_md.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_mdx.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_mdx.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_memory_buffer_alloc.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_memory_buffer_alloc.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_mps.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_mps.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_net.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_net.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_nist_kw.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_nist_kw.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_oid.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_oid.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pem.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pem.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pk.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pk.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pkcs12.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pkcs12.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pkcs1_v15.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pkcs1_v15.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pkcs1_v21.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pkcs1_v21.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pkcs5.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pkcs5.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pkparse.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pkparse.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pkwrite.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_pkwrite.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_poly1305.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_poly1305.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_attributes.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_attributes.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_driver_wrappers.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_driver_wrappers.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_entropy.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_entropy.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_generate_key.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_generate_key.generated.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_hash.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_hash.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_init.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_init.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_metadata.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_metadata.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_not_supported.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_not_supported.generated.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_not_supported.misc.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_op_fail.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_op_fail.generated.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_op_fail.misc.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_persistent_key.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_persistent_key.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_se_driver_hal.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_se_driver_hal.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_se_driver_hal_mocks.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_se_driver_hal_mocks.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_slot_management.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_slot_management.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_storage_format.current.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_storage_format.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_storage_format.misc.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_crypto_storage_format.v0.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_its.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_psa_its.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_random.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_random.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_rsa.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_rsa.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_shax.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_shax.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ssl.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ssl.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_timing.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_timing.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_version.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_version.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_x509parse.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_x509parse.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_x509write.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_x509write.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_xtea.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_xtea.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/benchmark.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/cert_app.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/cert_req.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/cert_write.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/crl_app.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/crypt_and_hash.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/crypto_examples.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/dh_client.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/dh_genprime.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/dh_server.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/dtls_client.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/dtls_server.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/ecdh_curve25519.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/ecdsa.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/gen_entropy.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/gen_key.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/gen_random_ctr_drbg.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/gen_random_havege.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/generic_sum.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/hello.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/key_app.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/key_app_writer.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/key_ladder_demo.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/load_roots.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/mbedTLS.sln
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/mbedTLS.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/mini_client.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/mpi_demo.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/pem2der.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/pk_decrypt.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/pk_encrypt.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/pk_sign.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/pk_verify.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/psa_constant_names.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/query_compile_time_config.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/req_app.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/rsa_decrypt.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/rsa_encrypt.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/rsa_genkey.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/rsa_sign.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/rsa_sign_pss.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/rsa_verify.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/rsa_verify_pss.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/selftest.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/ssl_client1.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/ssl_client2.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/ssl_context_info.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/ssl_fork_server.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/ssl_mail_client.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/ssl_server.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/ssl_server2.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/strerror.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/udp_proxy.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/visualc/VS2010/zeroize.vcxproj
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/BRANCHES.md
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/BUGS.md
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/CMakeLists.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/CONTRIBUTING.md
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/ChangeLogKSDK.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/DartConfiguration.tcl
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/README.md
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/SECURITY.md
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/SUPPORT.md
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/add_mbedtls_v2.yml
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/add_mbedtls_v3.yml
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/dco.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/mbeTLS_for_Kinetis_SDK_v2.0_readme.txt
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/ChangeLog
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/LICENSE
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/Makefile
+      hidden: true
+      exclude: true
+    package_base_path: middleware/mbedtls
+  belong_to: set.middleware.mbedtls
+  section_info:
+    description: mbedTLS files unused by projects
+    version: 2.28.3
+    type: other
+    user_visible: never
+    full_name: MbedTLS unused files
+    display_name: unused_files
+set.middleware.mbedtls:
+  section-type: set
+  belong_to: set.middleware.mbedtls
+  section_info:
+    fixed_id: arm_mbedtls
+    version: 2.28.3
+    display_name: mbedTLS
+    description: mbedTLS SSL/TLS library
+    set_location:
+      repo_base_path: middleware/mbedtls
+    type: middleware
+    vendor: NXP
+    product:
+      kex_package:
+        kex_web_ui:
+          ui_control: true
+          ui_release_specific: true
+          ui_control_default: true
+          ui_category: Middleware
+        scr:
+        - scr.middleware.mbedtls
+      cmsis_pack:
+        vendor: NXP
+        pack_root:
+          pack_type: SWP
+          pack_name: MBEDTLS
+          pack_version: 1.0.0
+        scr:
+        - scr.middleware.mbedtls
+    component_taxonomy:
+      mbedtls:
+        cclass: Security
+        cgroup: mbedTLS library
+        cbundle: Mbed_TLS
+        cbundle_version: 2.28.3
+  dependency:
+    anyOf:
+    - device_id:
+      - LPC54S005
+      - LPC54S016
+      - LPC54S018
+      - LPC54S018J2M
+      - LPC54S018J4M
+      - MCIMX7U3xxxxx
+      - MCIMX7U5xxxxx
+      - MIMXRT1165xxxxx
+      - MIMXRT1166xxxxx
+      - MIMXRT1171xxxxx
+      - MIMXRT1172xxxxx
+      - MIMXRT1173xxxxx
+      - MIMXRT1175xxxxx
+      - MIMXRT1176xxxxx
+      - K32L3A60xxx
+      - LPC54005
+      - LPC54016
+      - LPC54018
+      - LPC54018J2M
+      - LPC54018J4M
+      - LPC54628J512
+      - LPC55S04
+      - LPC55S06
+      - LPC55S14
+      - LPC55S16
+      - LPC55S26
+      - LPC55S28
+      - LPC55S66
+      - LPC55S69
+      - MIMXRT533S
+      - MIMXRT555S
+      - MIMXRT595S
+      - MIMXRT633S
+      - MIMXRT685S
+      - MIMXRT1011xxxxx
+      - MIMXRT1015xxxxx
+      - MIMXRT1021xxxxx
+      - MIMXRT1024xxxxx
+      - MIMXRT1041xxxxB
+      - MIMXRT1042xxxxB
+      - MIMXRT1051xxxxB
+      - MIMXRT1052xxxxB
+      - MIMXRT1061xxxxA
+      - MIMXRT1061xxxxB
+      - MIMXRT1062xxxxA
+      - MIMXRT1062xxxxB
+      - MIMXRT1064xxxxA
+      - K32L2A31xxxxA
+      - K32L2A41xxxxA
+      - MK22FN128xxx12
+      - MK22FN256xxx12
+      - MK22FN512xxx12
+      - MKM14Z64Axxx5
+      - MKM14Z128Axxx5
+      - MKM33Z64Axxx5
+      - MKM33Z128Axxx5
+      - MKM34Z256xxx7
+      - MKM34Z128Axxx5
+      - MKM35Z512xxx7
+      - MKM35Z256xxx7
+    - device_id:
+      - LPC54628J512
+      - LPC54018
+      - LPC54S018
+      - LPC54S018J2M
+      - LPC54S018J4M
+    - set.middleware.mmcau
+license.mbedtls_license:
+  section-type: license
+  belong_to: set.middleware.mbedtls
+  contents:
+    repo_base_path: middleware/mbedtls
+    files:
+    - source: middleware/mbedtls/LICENSE
+    package_base_path: middleware/mbedtls
+  section_info:
+    Outgoing License: Apache-2.0
+scr.middleware.mbedtls:
+  belong_to: set.middleware.mbedtls
+  section-type: scr
+  contents:
+    license:
+    - license.mbedtls_license
+    Name: Mbed TLS
+    Version: 2.28.3
+    Format: source code
+    Description: Cryptographic and SSL/TLS Library
+    Location: middleware/mbedtls
+    Origin: ARM(Apache-2.0) - https://github.com/Mbed-TLS/mbedtls/releases/tag/v2.28.3
+middleware.mbedtls.port.ksdk:
+  section-type: component
+  contents:
+    repo_base_path: middleware/mbedtls
+    project_base_path: mbedtls
+    cc-include:
+    - repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+    files:
+    - source: middleware/mbedtls/port/ksdk/ksdk_mbedtls.c
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: src
+    - source: middleware/mbedtls/port/ksdk/ksdk_mbedtls.h
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: c_include
+    - source: middleware/mbedtls/port/ksdk/ksdk_mbedtls_config.h
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: c_include
+    - source: middleware/mbedtls/port/ksdk/sha1_alt.h
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: c_include
+    - source: middleware/mbedtls/port/ksdk/sha256_alt.h
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: c_include
+    - source: middleware/mbedtls/port/ksdk/des_alt.h
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: c_include
+    - source: middleware/mbedtls/port/ksdk/des_alt.c
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: src
+    - source: middleware/mbedtls/port/ksdk/aes_alt.h
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: c_include
+    - source: middleware/mbedtls/port/ksdk/aes_alt.c
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: src
+    - source: middleware/mbedtls/port/ksdk/ccm_alt.h
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: c_include
+    - source: middleware/mbedtls/port/ksdk/ecp_alt.h
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: c_include
+    - source: middleware/mbedtls/port/ksdk/ecp_alt.c
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: src
+    - source: middleware/mbedtls/port/ksdk/ecp_curves_alt.c
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: src
+    - source: middleware/mbedtls/port/ksdk/ecp_alt_ksdk.c
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: src
+    - source: middleware/mbedtls/port/ksdk/threading_alt.h
+      repo_relative_path: port/ksdk
+      project_relative_path: port/ksdk
+      package_relative_path: port/ksdk
+      type: c_include
+    - source: middleware/mbedtls/middleware_mbedtls_port_ksdk.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    package_base_path: middleware/mbedtls
+  belong_to: set.middleware.mbedtls
+  section_info:
+    description: mbedTLS port library for KPSDK
+    type: middleware
+    version: 2.28.3
+    user_visible: always
+    full_name: MbedTLS MCUX SDK port layer
+    taxonomy:
+      csub: ksdk
+      cclass: Security
+      cgroup: mbedTLS library
+      cbundle: Mbed_TLS
+      cbundle_version: 2.28.3
+    display_name: mbedtls_ksdk
+    vendor: NXP
+  dependency:
+    allOf:
+    - middleware.mbedtls
+    - middleware.mbedtls.template
+    - anyOf:
+      - allOf:
+        - driver.sha
+        - driver.rng
+        - driver.aes
+        - device_id:
+          - LPC54S005
+          - LPC54S016
+          - LPC54S018
+          - LPC54S018J2M
+          - LPC54S018J4M
+      - allOf:
+        - driver.sha
+        - driver.rng
+        - device_id:
+          - LPC54005
+          - LPC54016
+          - LPC54018
+          - LPC54018J2M
+          - LPC54018J4M
+          - LPC54628J512
+      - allOf:
+        - driver.rng
+        - device_id:
+          - LPC54605J512
+          - LPC54605J256
+          - LPC54606J512
+          - LPC54606J256
+          - LPC54607J256
+          - LPC54607J512
+          - LPC54608J512
+          - LPC54616J512
+          - LPC54616J256
+          - LPC54618J512
+      - allOf:
+        - driver.rng_1
+        - driver.casper
+        - driver.hashcrypt
+        - device_id:
+          - LPC55S04
+          - LPC55S06
+          - LPC55S14
+          - LPC55S16
+          - LPC55S26
+          - LPC55S28
+          - LPC55S66
+          - LPC55S69
+      - allOf:
+        - driver.trng
+        - driver.casper
+        - driver.hashcrypt
+        - device_id:
+          - MIMXRT533S
+          - MIMXRT555S
+          - MIMXRT595S
+          - MIMXRT633S
+          - MIMXRT685S
+      - allOf:
+        - driver.dcp
+        - driver.trng
+        - driver.cache_armv7_m7
+        - device_id:
+          - MIMXRT1011xxxxx
+          - MIMXRT1021xxxxx
+          - MIMXRT1024xxxxx
+          - MIMXRT1041xxxxB
+          - MIMXRT1042xxxxB
+          - MIMXRT1051xxxxB
+          - MIMXRT1052xxxxB
+          - MIMXRT1061xxxxA
+          - MIMXRT1061xxxxB
+          - MIMXRT1062xxxxA
+          - MIMXRT1062xxxxB
+          - MIMXRT1064xxxxA
+      - allOf:
+        - driver.trng
+        - middleware.mmcau.cm0p
+        - device_id:
+          - K32L2A31xxxxA
+          - K32L2A41xxxxA
+      - allOf:
+        - driver.trng
+        - middleware.mmcau.cm4_cm7
+        - device_id:
+          - K32L2A41xxxxA
+      - allOf:
+        - driver.rnga
+        - middleware.mmcau.cm4_cm7
+        - device_id:
+          - MKM35Z512xxx7
+          - MKM35Z256xxx7
+      - allOf:
+        - driver.rnga
+        - middleware.mmcau.cm0p
+        - device_id:
+          - MKM35Z512xxx7
+          - MKM35Z256xxx7
+      - allOf:
+        - driver.cau3
+        - driver.trng
+        - device_id:
+          - K32L3A60xxx
+      - allOf:
+        - driver.trng
+        - driver.ltc
+        - middleware.mmcau.cm4_cm7
+        - device_id:
+          - MCIMX7U5xxxxx
+      - allOf:
+        - driver.caam
+        - device_id:
+          - MIMXRT1165xxxxx
+          - MIMXRT1166xxxxx
+          - MIMXRT1171xxxxx
+          - MIMXRT1172xxxxx
+          - MIMXRT1173xxxxx
+          - MIMXRT1175xxxxx
+          - MIMXRT1176xxxxx
+  meta-name: middleware.mbedtls.port.ksdk
+  cmake_module_name: middleware_mbedtls_port_ksdk
+middleware.mbedtls:
+  section-type: component
+  contents:
+    configuration:
+      tools:
+        iar:
+          cx-flags:
+          - "--diag_suppress Pa167,Pe177,Pe191,Pe546"
+    repo_base_path: middleware/mbedtls
+    project_base_path: mbedtls
+    cc-include:
+    - repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+    - repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+    files:
+    - source: middleware/mbedtls/include/mbedtls/aes.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/aesni.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/arc4.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/aria.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/asn1.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/asn1write.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/base64.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/bignum.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/blowfish.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/bn_mul.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/camellia.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/ccm.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/certs.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/chacha20.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/chachapoly.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/check_config.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/cipher.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/cipher_internal.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/cmac.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/compat-1.3.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/config.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/config_psa.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/constant_time.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/ctr_drbg.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/debug.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/des.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/dhm.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/ecdh.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/ecdsa.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/ecjpake.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/ecp.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/ecp_internal.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/entropy.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/entropy_poll.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/error.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/gcm.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/havege.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/hkdf.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/hmac_drbg.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/md.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/md_internal.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/md2.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/md4.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/md5.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/memory_buffer_alloc.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/net.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/net_sockets.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/nist_kw.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/oid.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/padlock.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/pem.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/pk.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/pk_internal.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/pkcs5.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/pkcs11.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/pkcs12.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/platform.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/platform_time.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/platform_util.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/poly1305.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/psa_util.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/ripemd160.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/rsa.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/rsa_internal.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/sha1.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/sha256.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/sha512.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/ssl.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/ssl_cache.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/ssl_ciphersuites.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/ssl_cookie.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/ssl_internal.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/ssl_ticket.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/threading.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/timing.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/version.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/x509.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/x509_crl.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/x509_crt.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/x509_csr.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/mbedtls/xtea.h
+      repo_relative_path: include/mbedtls
+      project_relative_path: include/mbedtls
+      package_relative_path: include/mbedtls
+      type: c_include
+    - source: middleware/mbedtls/include/psa/crypto.h
+      repo_relative_path: include/psa
+      project_relative_path: include/psa
+      package_relative_path: include/psa
+      type: c_include
+    - source: middleware/mbedtls/include/psa/crypto_builtin_composites.h
+      repo_relative_path: include/psa
+      project_relative_path: include/psa
+      package_relative_path: include/psa
+      type: c_include
+    - source: middleware/mbedtls/include/psa/crypto_builtin_primitives.h
+      repo_relative_path: include/psa
+      project_relative_path: include/psa
+      package_relative_path: include/psa
+      type: c_include
+    - source: middleware/mbedtls/include/psa/crypto_compat.h
+      repo_relative_path: include/psa
+      project_relative_path: include/psa
+      package_relative_path: include/psa
+      type: c_include
+    - source: middleware/mbedtls/include/psa/crypto_config.h
+      repo_relative_path: include/psa
+      project_relative_path: include/psa
+      package_relative_path: include/psa
+      type: c_include
+    - source: middleware/mbedtls/include/psa/crypto_driver_common.h
+      repo_relative_path: include/psa
+      project_relative_path: include/psa
+      package_relative_path: include/psa
+      type: c_include
+    - source: middleware/mbedtls/include/psa/crypto_driver_contexts_composites.h
+      repo_relative_path: include/psa
+      project_relative_path: include/psa
+      package_relative_path: include/psa
+      type: c_include
+    - source: middleware/mbedtls/include/psa/crypto_driver_contexts_primitives.h
+      repo_relative_path: include/psa
+      project_relative_path: include/psa
+      package_relative_path: include/psa
+      type: c_include
+    - source: middleware/mbedtls/include/psa/crypto_extra.h
+      repo_relative_path: include/psa
+      project_relative_path: include/psa
+      package_relative_path: include/psa
+      type: c_include
+    - source: middleware/mbedtls/include/psa/crypto_platform.h
+      repo_relative_path: include/psa
+      project_relative_path: include/psa
+      package_relative_path: include/psa
+      type: c_include
+    - source: middleware/mbedtls/include/psa/crypto_se_driver.h
+      repo_relative_path: include/psa
+      project_relative_path: include/psa
+      package_relative_path: include/psa
+      type: c_include
+    - source: middleware/mbedtls/include/psa/crypto_sizes.h
+      repo_relative_path: include/psa
+      project_relative_path: include/psa
+      package_relative_path: include/psa
+      type: c_include
+    - source: middleware/mbedtls/include/psa/crypto_struct.h
+      repo_relative_path: include/psa
+      project_relative_path: include/psa
+      package_relative_path: include/psa
+      type: c_include
+    - source: middleware/mbedtls/include/psa/crypto_types.h
+      repo_relative_path: include/psa
+      project_relative_path: include/psa
+      package_relative_path: include/psa
+      type: c_include
+    - source: middleware/mbedtls/include/psa/crypto_values.h
+      repo_relative_path: include/psa
+      project_relative_path: include/psa
+      package_relative_path: include/psa
+      type: c_include
+    - source: middleware/mbedtls/library/aes.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/aesni.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/arc4.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/aria.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/asn1parse.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/asn1write.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/base64.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/bignum.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/blowfish.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/camellia.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ccm.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/certs.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/chacha20.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/chachapoly.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/check_crypto_config.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/cipher.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/cipher_wrap.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/cmac.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/common.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/constant_time.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/constant_time_internal.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/constant_time_invasive.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/ctr_drbg.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/debug.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/des.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/dhm.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ecdh.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ecdsa.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ecjpake.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ecp.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ecp_curves.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ecp_invasive.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/entropy.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/entropy_poll.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/error.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/gcm.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/havege.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/hkdf.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/hmac_drbg.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/md.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/md2.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/md4.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/md5.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/memory_buffer_alloc.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/mps_common.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/mps_error.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/mps_reader.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/mps_reader.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/mps_trace.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/mps_trace.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/net_sockets.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/nist_kw.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/oid.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/padlock.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/pem.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/pk.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/pk_wrap.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/pkcs5.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/pkcs11.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/pkcs12.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/pkparse.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/pkwrite.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/platform.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/platform_util.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/poly1305.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/psa_crypto.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/psa_crypto_aead.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/psa_crypto_aead.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/psa_crypto_cipher.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/psa_crypto_cipher.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/psa_crypto_client.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/psa_crypto_core.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/psa_crypto_driver_wrappers.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/psa_crypto_driver_wrappers.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/psa_crypto_ecp.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/psa_crypto_ecp.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/psa_crypto_hash.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/psa_crypto_hash.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/psa_crypto_invasive.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/psa_crypto_its.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/psa_crypto_mac.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/psa_crypto_mac.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/psa_crypto_random_impl.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/psa_crypto_rsa.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/psa_crypto_rsa.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/psa_crypto_se.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/psa_crypto_se.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/psa_crypto_slot_management.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/psa_crypto_slot_management.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/psa_crypto_storage.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/psa_crypto_storage.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/psa_its_file.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ripemd160.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/rsa.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/rsa_internal.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/sha1.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/sha256.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/sha512.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ssl_cache.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ssl_ciphersuites.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ssl_cli.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ssl_cookie.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ssl_msg.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ssl_srv.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ssl_ticket.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ssl_tls.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ssl_tls13_keys.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/ssl_tls13_keys.h
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: c_include
+    - source: middleware/mbedtls/library/threading.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/timing.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/version.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/version_features.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/x509.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/x509_create.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/x509_crl.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/x509_crt.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/x509_csr.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/x509write_crt.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/x509write_csr.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/library/xtea.c
+      repo_relative_path: library
+      project_relative_path: library
+      package_relative_path: library
+      type: src
+    - source: middleware/mbedtls/middleware_mbedtls.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    package_base_path: middleware/mbedtls
+  belong_to: set.middleware.mbedtls
+  section_info:
+    description: mbedTLS library
+    type: middleware
+    version: 2.28.3
+    user_visible: always
+    full_name: MbedTLS open source SSL library
+    taxonomy:
+      csub: mbedtls
+      cclass: Security
+      cgroup: mbedTLS library
+      cbundle: Mbed_TLS
+      cbundle_version: 2.28.3
+    display_name: mbedtls
+    vendor: NXP
+  dependency:
+    allOf:
+    - utility.debug_console
+    - anyOf:
+      - middleware.mbedtls.port.ksdk
+  meta-name: middleware.mbedtls
+  cmake_module_name: middleware_mbedtls

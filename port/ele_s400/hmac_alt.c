@@ -28,6 +28,7 @@ int mbedtls_md_hmac(const mbedtls_md_info_t *md_info,
                     unsigned char *output)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    uint32_t out_size = 0;
 
     if (md_info == NULL) {
         return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
@@ -47,8 +48,8 @@ int mbedtls_md_hmac(const mbedtls_md_info_t *md_info,
     }
 #endif
 
-    if (ELE_GenericHmac(S3MU, (const uint8_t *) input, output, ilen, key, keylen,
-                        kELE_Hmac256) == kStatus_Success) {
+     if (ELE_GenericHmac(S3MU, (const uint8_t *)input, ilen, output, &out_size,
+                         key, keylen, kELE_Hmac256) == kStatus_Success) {
         ret = 0u;
     } else {
         ret = MBEDTLS_ERR_MD_HW_ACCEL_FAILED;

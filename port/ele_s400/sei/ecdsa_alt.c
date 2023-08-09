@@ -212,6 +212,8 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
         g_ele_ctx.is_keystore_opened = true;
     }
 
+    uint16_t keySize = 0;
+
     /* Keypair generation */
     ele_gen_key_t NISTkeyGenParam;
     NISTkeyGenParam.key_type      = kKeyType_ECC_KEY_PAIR_SECP_R1_NIST;
@@ -224,7 +226,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
     NISTkeyGenParam.pub_key_size  = pubKeyLen;
     NISTkeyGenParam.key_group     = ELE_KEYGROUP_ID;
 
-    if (ELE_GenerateKey(S3MU, g_ele_ctx.key_management_handle, &NISTkeyGenParam, &ctx->key_id) != kStatus_Success)
+    if (ELE_GenerateKey(S3MU, g_ele_ctx.key_management_handle, &NISTkeyGenParam, &ctx->key_id, &keySize) != kStatus_Success)
     {
         mbedtls_free(pubKey);
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -324,6 +326,8 @@ static int ecdsa_sign_restartable(mbedtls_ecp_group *grp,
         }
     }
 
+    uint32_t signSize = 0;
+
     ele_sign_t NISTsignGenParam;
     NISTsignGenParam.key_id     = g_ele_ctx.keystore_chunks.ECDSA_KeyID;
     NISTsignGenParam.msg        = (const uint8_t *)buf;
@@ -333,7 +337,7 @@ static int ecdsa_sign_restartable(mbedtls_ecp_group *grp,
     NISTsignGenParam.scheme     = kSig_ECDSA_SHA256;
     NISTsignGenParam.input_flag = false; // Hash message as input
 
-    if (ELE_Sign(S3MU, g_ele_ctx.signature_gen_handle, &NISTsignGenParam) != kStatus_Success)
+    if (ELE_Sign(S3MU, g_ele_ctx.signature_gen_handle, &NISTsignGenParam, &signSize) != kStatus_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto exit;

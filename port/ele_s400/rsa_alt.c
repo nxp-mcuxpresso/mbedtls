@@ -437,6 +437,8 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign(mbedtls_rsa_context *ctx,
     /* Signature destination */
     GenericRsaPssSign.signature      = (uint32_t) sig;
     GenericRsaPssSign.signature_size = olen;
+    /* Flags */
+    GenericRsaPssSign.flags = kFlagDigest;
 
 
     if (ELE_GenericRsa(S3MU, &GenericRsaPssSign) != kStatus_Success) {
@@ -545,6 +547,8 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify(mbedtls_rsa_context *ctx,
     /* Signature destination */
     GenericRsaPssVerif.signature      = (uint32_t) sig;
     GenericRsaPssVerif.signature_size = sig_len;
+    /* Flags */
+    GenericRsaPssVerif.flags = kFlagDigest;
 
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0) {
@@ -991,6 +995,8 @@ int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
     GenericRsaPssSign.signature_size = olen;
     /* Salt */
     GenericRsaPssSign.salt_size = slen;
+    /* Flags */
+    GenericRsaPssSign.flags = kFlagDigest;
 
     if (ELE_GenericRsa(S3MU, &GenericRsaPssSign) != kStatus_Success) {
         ret = MBEDTLS_ERR_RSA_PUBLIC_FAILED;
@@ -1131,6 +1137,8 @@ int mbedtls_rsa_rsassa_pss_verify_ext(mbedtls_rsa_context *ctx,
     GenericRsaPssVerif.signature_size = siglen;
     /* Salt size */
     GenericRsaPssVerif.salt_size = expected_salt_len;
+    /* Flags */
+    GenericRsaPssVerif.flags = kFlagDigest;
 
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0) {

@@ -128,7 +128,7 @@ int mbedtls_sha512_finish_ret(mbedtls_sha512_context *ctx,
                               unsigned char output[64])
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    uint32_t out_size = 0;
+    uint32_t out_length = 0u;
 
     SHA512_VALIDATE_RET(ctx != NULL);
     SHA512_VALIDATE_RET((unsigned char *) output != NULL);
@@ -140,7 +140,7 @@ int mbedtls_sha512_finish_ret(mbedtls_sha512_context *ctx,
 #endif
 
     if (ELE_Hash_Finish(S3MU, &ctx->ele_ctx, ctx->is384 ? kELE_Sha384 : kELE_Sha512,
-                        output, &out_size, NULL, 0u) != kStatus_Success) {
+                        output, 64u, &out_length, NULL, 0u) != kStatus_Success) {
         ret = MBEDTLS_ERR_SHA512_HW_ACCEL_FAILED;
     } else {
         ret = 0;

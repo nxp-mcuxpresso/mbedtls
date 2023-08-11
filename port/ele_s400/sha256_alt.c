@@ -127,7 +127,7 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx,
                               unsigned char output[32])
 {
     int ret = MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
-    uint32_t out_size = 0;
+    uint32_t out_length = 0u;
 
     SHA256_VALIDATE_RET(ctx != NULL);
     SHA256_VALIDATE_RET((unsigned char *) output != NULL);
@@ -139,7 +139,7 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx,
 #endif
 
     if (ELE_Hash_Finish(S3MU, &ctx->ele_ctx, ctx->is224 ? kELE_Sha224 : kELE_Sha256,
-                        output, &out_size, NULL, 0u) != kStatus_Success) {
+                        output, 32u, &out_length, NULL, 0u) != kStatus_Success) {
         ret = MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
     } else {
         ret = 0;

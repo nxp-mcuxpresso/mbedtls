@@ -383,8 +383,8 @@
 //#define MBEDTLS_GCM_ONE_GO_ALT  /* Disable by default because of ctx conflict with streaming */
 //#define MBEDTLS_RSA_ALT
 #define MBEDTLS_RSA_KEYGEN_ALT
-//#define MBEDTLS_PKCS1_V15_ALT /* TODO: enable when supported in ELE FW */
-//#define MBEDTLS_PKCS1_V21_ALT /* TODO: enable when supported in ELE FW */
+#define MBEDTLS_PKCS1_V15_ALT
+#define MBEDTLS_PKCS1_V21_ALT
 //#define MBEDTLS_SHA1_ALT
 #define MBEDTLS_SHA256_ALT
 #define MBEDTLS_SHA512_ALT

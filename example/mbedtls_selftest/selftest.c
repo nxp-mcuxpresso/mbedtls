@@ -614,7 +614,7 @@ int main(int argc, char *argv[])
         fflush( stdout ); getchar();
 #endif
     }
-    
+
     while (1)
     {
         char ch = GETCHAR();

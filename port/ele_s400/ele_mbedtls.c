@@ -111,6 +111,12 @@ status_t CRYPTO_InitHardware(void)
             }
         }
 
+        /****************** Start RNG ***********************/
+        result = ELE_StartRng(S3MU);
+        if (result != kStatus_Success) {
+            break;
+        }
+
         /****************** Open EdgeLock session ******************/
         result = ELE_OpenSession(S3MU, &g_ele_ctx.session_handle);
         if (result != kStatus_Success) {

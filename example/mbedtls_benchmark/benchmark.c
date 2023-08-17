@@ -54,13 +54,15 @@
 #elif defined(MBEDTLS_MCUX_ELS_API)
 #include "platform_hw_ip.h"
 #include "els_mbedtls.h"
+#elif defined(MBEDTLS_MCUX_ELE_S400_API)
+#include "ele_mbedtls.h"
 #else
 #include "ksdk_mbedtls.h"
 #endif
 
 #define mbedtls_printf PRINTF
 #define mbedtls_snprintf snprintf
-#define MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED -0x0072 /**< The requested feature is not supported by the platform */     
+#define MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED -0x0072 /**< The requested feature is not supported by the platform */
 #define mbedtls_exit(x) \
     do                  \
     {                   \
@@ -338,11 +340,11 @@ void ecp_clear_precomputed( mbedtls_ecp_group *grp )
 #define ecp_clear_precomputed( g )
 #endif
 
-/* NXP: Move buffer to NON-CACHED memory because of HW accel */ 
+/* NXP: Move buffer to NON-CACHED memory because of HW accel */
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
     AT_NONCACHEABLE_SECTION_INIT(static unsigned char buf[BUFSIZE]);
 #else
-    unsigned char buf[BUFSIZE];    
+    unsigned char buf[BUFSIZE];
 #endif /* DCACHE */
 
 #if defined(MBEDTLS_ECP_C)
@@ -544,15 +546,15 @@ int main( int argc, char *argv[] )
     };
     const mbedtls_ecp_curve_info *curve_list = mbedtls_ecp_curve_list( );
 #endif
-    
+
 #if defined(MBEDTLS_ECP_C)
     (void) curve_list; /* Unused in some configurations where no benchmark uses ECC */
     (void) single_curve; /* Unused in some configurations where no benchmark uses ECC */
     (void) set_ecp_curve; /* Unused in some configurations where no benchmark uses ECC */
-#endif    
+#endif
 
     (void) i;
-    
+
 #if defined(FREESCALE_KSDK_BM)
     /* HW init */
     BOARD_InitHardware();
@@ -839,7 +841,7 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(MBEDTLS_CCM_C)
     if( todo.aes_ccm )
-    {      
+    {
         int keysize;
         mbedtls_ccm_context ccm;
 
@@ -1095,24 +1097,48 @@ int main( int argc, char *argv[] )
         int keysize;
         mbedtls_rsa_context rsa;
 
+#if defined(MBEDTLS_MCUX_ELE_S400) && defined(MBEDTLS_RSA_KEYGEN_ALT)
+        /* ELE can't do the public / private primitive operations,
+           so benchmark analogous sign / verify operations, that ELE can do */
+        unsigned char sha256sum[32] = {0}; // Any value is good
+        unsigned char rsa_ciphertext[2048];
+
+        /* Minimum keysize ELE can do is 2048. Skip 4096 */
+        for (keysize = 2048; keysize <= 2048; keysize *= 2)
+        {
+            mbedtls_rsa_init(&rsa, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_SHA256);
+            mbedtls_rsa_gen_key( &rsa, NULL, NULL, keysize, 65537 );
+
+            mbedtls_snprintf( title, sizeof( title ), "RSA-%d", keysize );
+
+            TIME_PUBLIC( title, "private",
+                    ret = mbedtls_rsa_pkcs1_sign(&rsa, NULL, NULL, MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_SHA256, 0, sha256sum, rsa_ciphertext) );
+
+            TIME_PUBLIC( title, " public",
+                    ret = mbedtls_rsa_pkcs1_verify(&rsa, NULL, NULL, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA256, 0, sha256sum, rsa_ciphertext) );
+
+            mbedtls_rsa_free( &rsa );
+        }
+#else
         /* Skip 2048 and 4096 bit keys, generating takes too long */
         for (keysize = 1024; keysize <= 1024; keysize *= 2)
         {
-            mbedtls_snprintf( title, sizeof( title ), "RSA-%d", keysize );
-
             mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
             mbedtls_rsa_gen_key( &rsa, myrand, NULL, keysize, 65537 );
 
-            TIME_PUBLIC( title, " public",
-                    buf[0] = 0;
-                    ret = mbedtls_rsa_public( &rsa, buf, buf ) );
+            mbedtls_snprintf( title, sizeof( title ), "RSA-%d", keysize );
 
             TIME_PUBLIC( title, "private",
                     buf[0] = 0;
                     ret = mbedtls_rsa_private( &rsa, myrand, NULL, buf, buf ) );
 
+            TIME_PUBLIC( title, " public",
+                    buf[0] = 0;
+                    ret = mbedtls_rsa_public( &rsa, buf, buf ) );
+
             mbedtls_rsa_free( &rsa );
         }
+#endif
     }
 #endif
 
@@ -1401,7 +1427,7 @@ int main( int argc, char *argv[] )
         }
     }
 #endif
-    
+
 #if defined(MBEDTLS_ECDH_C) && defined(MBEDTLS_NXP_SSSAPI)
     if( todo.ecdh )
     {
@@ -1417,13 +1443,13 @@ int main( int argc, char *argv[] )
             if( ! mbedtls_ecdh_can_do( curve_info->grp_id ) )
                 continue;
 
-            
+
             mbedtls_snprintf( title, sizeof( title ), "ECDHE-%s", curve_info->name );
             TIME_PUBLIC( title, "full handshake",
                 const unsigned char * p_srv = buf_srv;
-                         
+
                 mbedtls_ecdh_init( &ecdh_srv );
-                mbedtls_ecdh_init( &ecdh_cli );         
+                mbedtls_ecdh_init( &ecdh_cli );
 
                 CHECK_AND_CONTINUE( mbedtls_ecdh_setup( &ecdh_srv, curve_info->grp_id ) );
                 CHECK_AND_CONTINUE( mbedtls_ecdh_make_params( &ecdh_srv, &olen, buf_srv, sizeof( buf_srv ), myrand, NULL ) );

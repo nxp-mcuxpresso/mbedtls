@@ -565,12 +565,16 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify(mbedtls_rsa_context *ctx,
     }
 
 cleanup:
+    if (modulo_tmp != NULL) {
+        mbedtls_free(modulo_tmp);
+    }
 
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0) {
         return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
     }
 #endif
+
     return ret;
 }
 

@@ -258,8 +258,10 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
 
     mcuxClRandom_Mode_t randomMode = mcuxClRandomModes_Mode_ELS_Drbg ;
     
+#ifdef MCUXCL_FEATURE_ECC_STRENGTH_CHECK    
+
     uint32_t value = (uint32_t)MCUX_PKC_MIN((nByteLength * 8u) / 2u,256u);
-#ifdef MCUXCL_FEATURE_ECC_STRENGTH_CHECK
+
     if(value <= 128u)  /* 128-bit security strength */
     {
       randomMode = mcuxClRandomModes_Mode_ELS_Drbg;

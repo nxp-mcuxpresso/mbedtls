@@ -248,13 +248,18 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
 
     /* The code is added as per documentation of CL usage, where it specifies following:
     mcuxClEcc_Sign function uses DRBG and PRNG. Caller needs to check if DRBG and PRNG are ready.*/
-#if defined(MBEDTLS_MCUX_ELS_PKC_API)    
+    
     /* Initialize the RNG context, with maximum size */
+#ifdef MCUXCL_FEATURE_RANDOMMODES_SECSTRENGTH_256    
     uint32_t rng_ctx[MCUXCLRANDOMMODES_CTR_DRBG_AES256_CONTEXT_SIZE_IN_WORDS] = {0u};
+#else // MCUXCL_FEATURE_RANDOMMODES_SECSTRENGTH_256
+    uint32_t rng_ctx[16] = {0u};
+#endif
 
-    mcuxClRandom_Mode_t randomMode = NULL;
+    mcuxClRandom_Mode_t randomMode = mcuxClRandomModes_Mode_ELS_Drbg ;
     
     uint32_t value = (uint32_t)MCUX_PKC_MIN((nByteLength * 8u) / 2u,256u);
+#ifdef MCUXCL_FEATURE_ECC_STRENGTH_CHECK
     if(value <= 128u)  /* 128-bit security strength */
     {
       randomMode = mcuxClRandomModes_Mode_ELS_Drbg;
@@ -263,6 +268,7 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
     {
       randomMode = mcuxClRandomModes_Mode_CtrDrbg_AES256_DRG3;
     }
+#endif /* MCUXCL_FEATURE_ECC_STRENGTH_CHECK */
 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(randomInit_result, randomInit_token,
                                      mcuxClRandom_init(&session, (mcuxClRandom_Context_t)rng_ctx, randomMode));
@@ -273,7 +279,7 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;
     }
-#endif /* MBEDTLS_MCUX_ELS_PKC_API */
+
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
         return ret;

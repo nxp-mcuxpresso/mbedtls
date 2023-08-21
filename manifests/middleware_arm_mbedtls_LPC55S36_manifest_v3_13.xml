@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ksdk:manifest xmlns:ksdk="http://nxp.com/ksdk/2.0/ksdk_manifest_v3.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="SDK_2.x_middleware_arm_mbedtls_LPC55S36_manifest_v3_13" name="mbedTLS" brief="mbedTLS SSL/TLS library" format_version="3.13" api_version="2.0.0" xsi:schemaLocation="http://nxp.com/ksdk/2.0/ksdk_manifest_v3.0.xsd http://nxp.com/mcuxpresso/sdk/sdk_manifest_v3.13.xsd">
+
+  <externalDefinitions>
+    <definition extID="LPC55S36"/>
+    <definition extID="armgcc"/>
+  </externalDefinitions>
+  <ksdk id="MCUXpressoSDK2140_middleware_arm_mbedtls_LPC55S36_manifest_v3_13" name="MCUXpressoSDK2140_middleware_arm_mbedtls_LPC55S36_manifest_v3_13" version="2.14.0" revision="Provided by Script"/>
+  <components>
+    <component id="middleware.mbedtls.template.LPC55S36" name="mbedtls_template" brief="mbedTLS Template" version="2.28.3" full_name="mbedTLS Template" devices="LPC55S36" category="Security/mbedTLS library" user_visible="false" type="project_template" package_base_path="../middleware/mbedtls" project_base_path="mbedtls">
+      <defines>
+        <define name="MBEDTLS_CONFIG_FILE" value="'&quot;ksdk_mbedtls_config.h&quot;'"/>
+      </defines>
+      <source relative_path="../../port/ksdk" project_relative_path="port/ksdk" config="true" type="c_include">
+        <files mask="ksdk_mbedtls_config.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_mbedtls_template.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../../port/ksdk" project_relative_path="port/ksdk" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.mbedtls.els_pkc.config.LPC55S36" name="els_pkc_config" brief="els_pkc config" version="2.28.3" full_name="els_pkc config" devices="LPC55S36" category="Security/mbedTLS library" user_visible="false" type="software_component" package_base_path="../middleware/mbedtls" project_base_path="mbedtls">
+      <defines>
+        <define name="MBEDTLS_CONFIG_FILE" value="'&quot;els_pkc_mbedtls_config.h&quot;'"/>
+      </defines>
+      <source relative_path="../../port/pkc" project_relative_path="port/pkc" config="true" type="c_include">
+        <files mask="els_pkc_mbedtls_config.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_mbedtls_els_pkc_config.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../../port/pkc" project_relative_path="port/pkc" type="c_include"/>
+      </include_paths>
+    </component>
+  </components>
+</ksdk:manifest>

@@ -52,9 +52,19 @@ middleware.mbedtls.port.ele_s400:
     - source: port/ele_s400/aes_alt.c
     - source: port/ele_s400/ccm_alt.h
     - source: port/ele_s400/ccm_alt.c
+    - source: port/ele_s400/gcm_alt.h
+    - source: port/ele_s400/gcm_alt.c
     - source: port/ele_s400/rsa_alt.h
     - source: port/ele_s400/rsa_alt.c
     - source: port/ele_s400/threading_alt.h
+    - source: port/ele_s400/ecdsa_alt.h
+    - source: port/ele_s400/ecdsa_alt.c
+    - source: port/ele_s400/pk_alt.c
+    - source: port/ele_s400/sha256_alt.c
+    - source: port/ele_s400/sha256_alt.h
+    - source: port/ele_s400/sha512_alt.c
+    - source: port/ele_s400/sha512_alt.h
+    - source: port/ele_s400/hmac_alt.c
   component_info:
     common:
       description: mbedTLS port library for ELE S40x

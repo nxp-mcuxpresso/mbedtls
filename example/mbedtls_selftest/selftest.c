@@ -368,6 +368,8 @@ static int bench_print_features(void)
     text = "ELS HW accelerated SHA256";
 #elif defined(MBEDTLS_MCUX_ELS_SHA512)
     text = "ELS HW accelerated SHA512";
+#elif defined(MBEDTLS_MCUX_ELE_S400)
+    text = "ELE S40x HW accelerated";
 #else
     text = "Software implementation";
 #endif

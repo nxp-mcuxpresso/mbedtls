@@ -371,42 +371,42 @@ mbedtls_ecdsa_sei:
             __common__:
               ld-flags:
               - "--diag_suppress 6329"
-  modules:
-    demo:
-      required: true
-      cc-include:
-      - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei
-        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
-        project_path: board
-      - path: middleware/mbedtls/example/mbedtls_ecdsa_sei/mbedtls_ecdsa_sei/
-        package_path: middleware/mbedtls/example/mbedtls_ecdsa_sei/${multicore_foldername}
-        project_path: board
-      files:
-      - source: middleware/mbedtls/example/mbedtls_ecdsa_sei/mbedtls_ecdsa_sei.c
-        merge-to-main: main
-        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
-        project_path: source
-      - source: middleware/mbedtls/example/mbedtls_ecdsa_sei/ele_ecc_sei_mbedtls_config.h
-        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
-        project_path: source
-      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/pin_mux.c
-        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
-        project_path: board
-      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/pin_mux.h
-        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
-        project_path: board
-    pinset:
-      required: true
-      cc-include:
-      - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
-        project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}"
-      files:
-      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}/hardware_init.c
-        merge-to-main: sub
-        project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}"
-      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}/app.h
-        merge-to-main: sub
-        project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}"
+    modules:
+      demo:
+        required: true
+        cc-include:
+        - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+          project_path: board
+        - path: middleware/mbedtls/example/mbedtls_ecdsa_sei/mbedtls_ecdsa_sei/
+          package_path: middleware/mbedtls/example/mbedtls_ecdsa_sei/${multicore_foldername}
+          project_path: board
+        files:
+        - source: middleware/mbedtls/example/mbedtls_ecdsa_sei/mbedtls_ecdsa_sei.c
+          merge-to-main: main
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+          project_path: source
+        - source: middleware/mbedtls/example/mbedtls_ecdsa_sei/ele_ecc_sei_mbedtls_config.h
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+          project_path: source
+        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/pin_mux.c
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+          project_path: board
+        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/pin_mux.h
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+          project_path: board
+      pinset:
+        required: true
+        cc-include:
+        - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+          project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}"
+        files:
+        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}/hardware_init.c
+          merge-to-main: sub
+          project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}"
+        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}/app.h
+          merge-to-main: sub
+          project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}"
 mbedtls_ecdsa_write_cert_sei:
   section-type: application
   belong_to:
@@ -446,39 +446,39 @@ mbedtls_ecdsa_write_cert_sei:
             __common__:
               ld-flags:
               - "--diag_suppress 6329"
-  modules:
-    demo:
-      required: true
-      cc-include:
-      - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/
-        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
-        project_path: board
-      - path: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/
-        package_path: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
-        project_path: board
-      files:
-      - source: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/mbedtls_ecdsa_write_cert_sei.c
-        merge-to-main: main
-        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
-        project_path: source
-      - source: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/ele_ecc_sei_mbedtls_config.h
-        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
-        project_path: source
-      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/pin_mux.c
-        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
-        project_path: board
-      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/pin_mux.h
-        package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
-        project_path: board
-    pinset:
-      required: true
-      cc-include:
-      - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
-        project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}"
-      files:
-      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}/hardware_init.c
-        merge-to-main: sub
-        project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}"
-      - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}/app.h
-        merge-to-main: sub
-        project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}"
+    modules:
+      demo:
+        required: true
+        cc-include:
+        - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+          project_path: board
+        - path: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/
+          package_path: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+          project_path: board
+        files:
+        - source: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/mbedtls_ecdsa_write_cert_sei.c
+          merge-to-main: main
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+          project_path: source
+        - source: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/ele_ecc_sei_mbedtls_config.h
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+          project_path: source
+        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/pin_mux.c
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+          project_path: board
+        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/pin_mux.h
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+          project_path: board
+      pinset:
+        required: true
+        cc-include:
+        - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+          project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}"
+        files:
+        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}/hardware_init.c
+          merge-to-main: sub
+          project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}"
+        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}/app.h
+          merge-to-main: sub
+          project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}"

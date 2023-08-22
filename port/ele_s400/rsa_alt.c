@@ -503,7 +503,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify(mbedtls_rsa_context *ctx,
     memset(&GenericRsaPssVerif, 0, sizeof(ele_generic_rsa_t));
 
     /* Set MGF (HASH) algo */
-    switch (ctx->hash_id) {
+    switch (md_alg) {
         case (MBEDTLS_MD_SHA224):
             GenericRsaPssVerif.algo     = RSA_PKCS1_V1_5_SHA224_SIGN;
             break;
@@ -518,7 +518,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify(mbedtls_rsa_context *ctx,
             break;
         case (MBEDTLS_MD_NONE):
         default:
-            goto cleanup;
+            return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
 
     /* Alocate MPI structure for Public modulus */

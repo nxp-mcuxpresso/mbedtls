@@ -492,6 +492,10 @@ middleware.mbedtls:
         iar:
           cx-flags:
           - "--diag_suppress Pa167,Pe177,Pe191,Pe546"
+        armgcc:
+          cc-flags:
+          - "-fomit-frame-pointer"
+          - "-Wno-unused-function"
     repo_base_path: middleware/mbedtls
     project_base_path: mbedtls
     cc-include:
@@ -762,9 +766,6 @@ middleware.mbedtls.default_heap_stack:
         armgcc:
           config:
             __common__:
-              cc-flags:
-              - "-fomit-frame-pointer"
-              - "-Wno-unused-function"
               ad-flags:
               - "-Xlinker --defsym=__stack_size__=0x2000"
               - "-Xlinker --defsym=__heap_size__=0x8000"

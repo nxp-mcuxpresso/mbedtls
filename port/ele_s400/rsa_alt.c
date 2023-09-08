@@ -418,6 +418,8 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign(mbedtls_rsa_context *ctx,
             GenericRsaPssSign.algo     = RSA_PKCS1_V1_5_SHA512_SIGN;
             break;
         case (MBEDTLS_MD_NONE):
+            ret = MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED;
+            goto cleanup;
         default:
             goto cleanup;
     }
@@ -517,6 +519,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify(mbedtls_rsa_context *ctx,
             GenericRsaPssVerif.algo     = RSA_PKCS1_V1_5_SHA512_SIGN;
             break;
         case (MBEDTLS_MD_NONE):
+            return MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED;
         default:
             return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
@@ -978,6 +981,8 @@ int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
             GenericRsaPssSign.algo     = RSA_PKCS1_PSS_MGF1_SHA512;
             break;
         case (MBEDTLS_MD_NONE):
+            ret = MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED;
+            goto exit;
         default:
             goto exit;
     }

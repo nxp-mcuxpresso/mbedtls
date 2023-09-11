@@ -186,7 +186,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt(mbedtls_rsa_context *ctx,
         return MBEDTLS_ERR_MPI_ALLOC_FAILED;
     }
 
-    /* Read motulus data from MPI ctx structure */
+    /* Read modulus data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, olen);
 
     /* Read public exponent data from MPI ctx structure */
@@ -287,7 +287,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt(mbedtls_rsa_context *ctx,
         goto cleanup;
     }
 
-    /* Read motulus data from MPI ctx structure */
+    /* Read modulus data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, ilen);
 
     /* Read private exponent data from MPI ctx structure */
@@ -397,14 +397,14 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign(mbedtls_rsa_context *ctx,
         goto cleanup;
     }
 
-    /* Read motulus data from MPI ctx structure */
+    /* Read modulus data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, olen);
 
     /* Read private exponent data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->D, (unsigned char *) priv_exp_tmp, olen);
 
     /* Set MGF (HASH) algo */
-    switch (ctx->hash_id) {
+    switch (md_alg) {
         case (MBEDTLS_MD_SHA224):
             GenericRsaPssSign.algo     = RSA_PKCS1_V1_5_SHA224_SIGN;
             break;
@@ -530,7 +530,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify(mbedtls_rsa_context *ctx,
         return MBEDTLS_ERR_MPI_ALLOC_FAILED;
     }
 
-    /* Read motulus data from MPI ctx structure */
+    /* Read modulus data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, sig_len);
 
     /* Read public exponent data from MPI ctx structure */
@@ -661,7 +661,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt(mbedtls_rsa_context *ctx,
         return MBEDTLS_ERR_MPI_ALLOC_FAILED;
     }
 
-    /* Read motulus data from MPI ctx structure */
+    /* Read modulus data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, olen);
 
     /* Read public exponent data from MPI ctx structure */
@@ -813,7 +813,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
         goto cleanup;
     }
 
-    /* Read motulus data from MPI ctx structure */
+    /* Read modulus data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, ilen);
 
     /* Read private exponent data from MPI ctx structure */
@@ -960,7 +960,7 @@ int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
         goto exit;
     }
 
-    /* Read motulus data from MPI ctx structure */
+    /* Read modulus data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, olen);
 
     /* Read private exponent data from MPI ctx structure */
@@ -981,9 +981,8 @@ int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
             GenericRsaPssSign.algo     = RSA_PKCS1_PSS_MGF1_SHA512;
             break;
         case (MBEDTLS_MD_NONE):
-            ret = MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED;
-            goto exit;
         default:
+            ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
             goto exit;
     }
 
@@ -1099,8 +1098,8 @@ int mbedtls_rsa_rsassa_pss_verify_ext(mbedtls_rsa_context *ctx,
 
     memset(&GenericRsaPssVerif, 0, sizeof(ele_generic_rsa_t));
 
-    /* Set MGF (HASH) algo */
-    switch (md_alg) {
+    /* Set MGF (HASH) algo - in rsa_rsassa_pss_sign() this is wrapped in ctx->hash_id */
+    switch (mgf1_hash_id) {
         case (MBEDTLS_MD_SHA224):
             GenericRsaPssVerif.algo     = RSA_PKCS1_PSS_MGF1_SHA224;
             break;
@@ -1124,7 +1123,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext(mbedtls_rsa_context *ctx,
         return MBEDTLS_ERR_MPI_ALLOC_FAILED;
     }
 
-    /* Read motulus data from MPI ctx structure */
+    /* Read modulus data from MPI ctx structure */
     mbedtls_mpi_write_binary(&ctx->N, (unsigned char *) modulo_tmp, siglen);
 
     /* Read public exponent data from MPI ctx structure */

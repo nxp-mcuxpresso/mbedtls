@@ -154,5 +154,40 @@ int mbedtls_sha512_finish_ret(mbedtls_sha512_context *ctx,
     return ret;
 }
 
+int mbedtls_internal_sha512_process(mbedtls_sha512_context *ctx, const unsigned char data[128])
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    SHA512_VALIDATE_RET(ctx != NULL);
+    SHA512_VALIDATE_RET((const unsigned char *) data != NULL);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex) != 0) {
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+    }
+#endif
+
+    if (ELE_Hash_Update(S3MU, &ctx->ele_ctx, ctx->is384 ? kELE_Sha384 : kELE_Sha512,
+                        (const uint8_t *) data, 128) != kStatus_Success) {
+        ret = MBEDTLS_ERR_SHA512_HW_ACCEL_FAILED;
+    } else {
+        ret = 0;
+    }
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0) {
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+    }
+#endif
+    return ret;
+}
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+void mbedtls_sha512_process(mbedtls_sha512_context *ctx, const unsigned char data[128])
+{
+    (void) mbedtls_internal_sha512_process(ctx, data);
+}
+#endif
+
 #endif /* MBEDTLS_SHA512_ALT */
 #endif /* MBEDTLS_SHA512_C */

@@ -153,5 +153,40 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx,
     return ret;
 }
 
+int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
+{
+    int ret = MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
+
+    SHA256_VALIDATE_RET(ctx != NULL);
+    SHA256_VALIDATE_RET((const unsigned char *) data != NULL);
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex) != 0) {
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+    }
+#endif
+
+    if (ELE_Hash_Update(S3MU, &ctx->ele_ctx, ctx->is224 ? kELE_Sha224 : kELE_Sha256,
+                        (const uint8_t *) data, 64) != kStatus_Success) {
+        ret = MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
+    } else {
+        ret = 0;
+    }
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_ele_mutex) != 0) {
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+    }
+#endif
+    return ret;
+}
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+void mbedtls_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
+{
+    (void) mbedtls_internal_sha256_process(ctx, data);
+}
+#endif
+
 #endif /* MBEDTLS_SHA256_ALT */
 #endif /* MBEDTLS_SHA256_C */

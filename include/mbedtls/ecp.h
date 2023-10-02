@@ -415,6 +415,7 @@ typedef void mbedtls_ecp_restart_ctx;
 
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
+/* NXP added to suport alt implementation */
 #if !defined(MBEDTLS_ECP_GENKEY_ALT)
 /**
  * \brief    The ECP key-pair structure.
@@ -435,6 +436,7 @@ mbedtls_ecp_keypair;
 typedef mbedtls_ecdsa_context mbedtls_ecp_keypair ;
 
 #endif /* MBEDTLS_ECP_GENKEY_ALT */
+/* NXP added to suport alt implementation */
 /*
  * Point formats, from RFC 4492's enum ECPointFormat
  */
@@ -1086,7 +1088,7 @@ int mbedtls_ecp_muladd_restartable(
  *
  *                  It only checks that the point is non-zero, has
  *                  valid coordinates and lies on the curve. It does not verify
- *                  that it is indeed a multiple of \p G. This additional
+ *                  that it is indeed a multiple of \c G. This additional
  *                  check is computationally more expensive, is not required
  *                  by standards, and should not be necessary if the group
  *                  used has a small cofactor. In particular, it is useless for
@@ -1111,7 +1113,7 @@ int mbedtls_ecp_check_pubkey(const mbedtls_ecp_group *grp,
                              const mbedtls_ecp_point *pt);
 
 /**
- * \brief           This function checks that an \p mbedtls_mpi is a
+ * \brief           This function checks that an \c mbedtls_mpi is a
  *                  valid private key for this curve.
  *
  * \note            This function uses bare components rather than an

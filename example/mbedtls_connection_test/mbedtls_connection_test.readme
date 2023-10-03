@@ -1,0 +1,298 @@
+Overview
+========
+
+This example serves as a connection test for internal purposes. It runs both server
+and a client on the same board connected through the loopback interface.
+
+Prepare the Demo
+================
+
+1. Connect a USB cable between the PC host and the OpenSDA(or USB to Serial) USB port on the target board.
+2.  Open a serial terminal on PC for OpenSDA serial(or USB to Serial) device with these settings:
+    - 115200 baud rate
+    - 8 data bits
+    - No parity
+    - One stop bit
+    - No flow control
+3.  Download the program to the target board.
+4.  Either press the reset button on your board or launch the debugger in your IDE to begin running the demo.
+
+Running the Demo
+================
+
+Demo does not require any input from the user. It all runs automatically.
+Demo should display this:
+
+Initializing crypto...
+Initializing https fs...
+Initializing https server...
+lwip_socket(UNKNOWN, SOCK_STREAM, 0) = 0
+lwip_setsockopt(0, IPPROTO_TCP, TCP_NODELAY) -> on
+lwip_bind(0, addr=0:0:0:0:0:0:0:0 port=443)
+lwip_bind(0) succeeded
+lwip_listen(0, backlog=0)
+Initializations done!
+lwip_select(1, 8001CC4C, 0, 0, tvsec=-1 tvusec=-1)
+Starting server!
+Seeding the random number generator... 
+Loading the CA root certificate... ok (0 skipped)
+Loading the client cert. and key... ok
+Connecting to 127.0.0.1/443
+lwip_socket(PF_INET, SOCK_STREAM, 0) = 1
+lwip_connect(1, addr=127.0.0.1 port=443)
+lwip_selscan: fd=0 ready for reading
+lwip_select: nready=1
+lwip_accept(0)...
+lwip_accept(0) returning new sock=2 addr=127.0.0.1 port=54237
+lwip_recvfrom(2, 8000B570, 5, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=0
+lwip_connect(1) succeeded
+Setting up the SSL/TLS structure... 
+SSL state connect : 0 ok
+
+SSL state connect : 0 Performing the SSL/TLS handshake...lwip_send(1, data=80020F68, size=132, flags=0x0)
+lwip_send(1) err=0 written=132
+lwip_recvfrom(1, 8001E60C, 5, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=0
+lwip_recv_tcp: netconn_recv err=0, pbuf=80001954
+lwip_recv_tcp: buflen=132 recv_left=5 off=0
+lwip_recv_tcp: lastdata now pbuf=80001954
+lwip_recvfrom(2):  addr=127.0.0.1 port=54237 len=5
+lwip_recvfrom(2, 8000B575, 127, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=80001954
+lwip_recv_tcp: buflen=127 recv_left=127 off=0
+lwip_recv_tcp: deleting pbuf=80001954
+lwip_recvfrom(2):  addr=127.0.0.1 port=54237 len=127
+lwip_send(2, data=8000DECC, size=96, flags=0x0)
+lwip_send(2) err=0 written=96
+lwip_send(2, data=8000DECC, size=842, flags=0x0)
+lwip_send(2) err=0 written=842
+lwip_recv_tcp: netconn_recv err=0, pbuf=80001A18
+lwip_recv_tcp: buflen=96 recv_left=5 off=0
+lwip_recv_tcp: lastdata now pbuf=80001A18
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=5
+lwip_recvfrom(1, 8001E611, 91, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=80001A18
+lwip_recv_tcp: buflen=91 recv_left=91 off=0
+lwip_recv_tcp: deleting pbuf=80001A18
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=91
+lwip_recvfrom(1, 8001E60C, 5, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=0
+lwip_recv_tcp: netconn_recv err=0, pbuf=800020E0
+lwip_rlwip_send(2, data=8000DECC, size=406, flags=0x0)
+lwip_send(2) err=0 written=406
+lwip_send(2, data=8000DECC, size=9, flags=0x0)
+lwip_send(2) err=0 written=9
+lwip_recvfrom(2, 8000B570, 5, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=0
+ecv_tcp: buflen=842 recv_left=5 off=0
+lwip_recv_tcp: lastdata now pbuf=800020E0
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=5
+lwip_recvfrom(1, 8001E611, 837, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=800020E0
+lwip_recv_tcp: buflen=837 recv_left=837 off=0
+lwip_recv_tcp: deleting pbuf=800020E0
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=837
+
+Verify requested for (Depth 1):
+cert. version     : 3
+serial number     : 03
+issuer name       : C=NL, O=PolarSSL, CN=PolarSSL Test CA
+subject name      : C=NL, O=PolarSSL, CN=PolarSSL Test CA
+issued  on        : 2019-02-10 14:44:00
+expires on        : 2029-02-10 14:44:00
+signed using      : RSA with SHA-256
+RSA key size      : 2048 bits
+basic constraints : CA=true
+This certificate has no flags
+
+Verify requested for (Depth 0):
+cert. version     : 3
+serial number     : 02
+issuer name       : C=NL, O=PolarSSL, CN=PolarSSL Test CA
+subject name      : C=NL, O=PolarSSL, CN=localhost
+issued  on        : 2019-02-10 14:44:06
+expires on        : 2029-02-10 14:44:06
+signed using      : RSA with SHA-256
+RSA key size      : 2048 bits
+basic constraints : CA=false
+cert. version     : 3
+serial number     : 02
+issuer name       : C=NL, O=PolarSSL, CN=PolarSSL Test CA
+subject name      : C=NL, O=PolarSSL, CN=localhost
+issued  on        : 2019-02-10 14:44:06
+expires on        : 2029-02-10 14:44:06
+signed using      : RSA with SHA-256
+RSA key size      : 2048 bits
+basic constraints : CA=false
+cert. version     : 3
+serial number     : 02
+issuer name       : C=NL, O=PolarSSL, CN=PolarSSL Test CA
+subject name      : C=NL, O=PolarSSL, CN=localhost
+issued  on        : 2019-02-10 14:44:06
+expires on        : 2029-02-10 14:44:06
+signed using      : RSA with SHA-256
+RSA key size      : 2048 bits
+basic constraints : CA=false
+
+lwip_recvfrom(1, 8001E60C, 5, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=0
+lwip_recv_tcp: netconn_recv err=0, pbuf=80001920
+lwip_recv_tcp: buflen=415 recv_left=5 off=0
+lwip_recv_tcp: lastdata now pbuf=80001920
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=5
+lwip_recvfrom(1, 8001E611, 401, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=80001920
+lwip_recv_tcp: buflen=410 recv_left=401 off=0
+lwip_recv_tcp: lastdata now pbuf=80001920
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=401
+lwip_recvfrom(1, 8001E60C, 5, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=80001920
+lwip_recv_tcp: buflen=9 recv_left=5 off=0
+lwip_recv_tcp: lastdata now pbuf=80001920
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=5
+lwip_recvfrom(1, 8001E611, 4, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=80001920
+lwip_recv_tcp: buflen=4 recv_left=4 off=0
+lwip_recv_tcp: deleting pbuf=80001920
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=4
+lwip_send(1, data=80020F68, size=143, flags=0x0)
+lwip_send(1) err=0 written=143
+lwip_recv_tcp: netconn_recv err=0, pbuf=80001960
+lwip_recv_tcp: buflen=143 recv_left=5 off=0
+lwip_recv_tcp: lastdata now pbuf=80001960
+lwip_recvfrom(2):  addr=127.0.0.1 port=54237 len=5
+lwip_recvfrom(2, 8000B575, 138, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=80001960
+lwip_recv_tcp: buflen=138 recv_left=138 off=0
+lwip_recv_tcp: deleting pbuf=80001960
+lwip_recvfrom(2):  addr=127.0.0.1 port=54237 len=138
+lwip_send(1, data=80020F68, size=6, flags=0x0)
+lwip_send(1) err=0 written=6
+lwip_send(1, data=80020F68, size=45, flags=0x0)
+lwip_send(1) err=0 written=45
+lwip_recvfrom(1, 8001E60C, 5, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=0
+lwip_recvfrom(2, 8000B570, 5, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=0
+lwip_recv_tcp: netconn_recv err=0, pbuf=8000186C
+lwip_recv_tcp: buflen=51 recv_left=5 off=0
+lwip_recv_tcp: lastdata now pbuf=8000186C
+lwip_recvfrom(2):  addr=127.0.0.1 port=54237 len=5
+lwip_recvfrom(2, 8000B575, 1, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=8000186C
+lwip_recv_tcp: buflen=46 recv_left=1 off=0
+lwip_recv_tcp: lastdata now pbuf=8000186C
+lwip_recvfrom(2):  addr=127.0.0.1 port=54237 len=1
+lwip_recvfrom(2, 8000B570, 5, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=8000186C
+lwip_recv_tcp: buflen=45 recv_left=5 off=0
+lwip_recv_tcp: lastdata now pbuf=8000186C
+lwip_recvfrom(2):  addr=127.0.0.1 port=54237 len=5
+lwip_recvfrom(2, 8000B575, 40, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=8000186C
+lwip_recv_tcp: buflen=40 recv_left=40 off=0
+lwip_recv_tcp: deleting pbuf=8000186C
+lwip_recvfrom(2):  addr=127.0.0.1 port=54237 len=40
+lwip_send(2, data=8000DECC, size=6, flags=0x0)
+lwip_send(2) err=0 written=6
+lwip_send(2, data=8000DECC, size=45, flags=0x0)
+lwip_send(2) err=0 written=45
+lwip_select(1, 8001CC4C, 0, 0, tvsec=-1 tvusec=-1)
+lwip_recv_tcp: netconn_recv err=0, pbuf=800018D8
+lwip_recv_tcp: buflen=6 recv_left=5 off=0
+lwip_recv_tcp: lastdata now pbuf=800018D8
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=5
+lwip_recvfrom(1, 8001E611, 1, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=800018D8
+lwip_recv_tcp: buflen=1 recv_left=1 off=0
+lwip_recv_tcp: deleting pbuf=800018D8
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=1
+lwip_recvfrom(1, 8001E60C, 5, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=0
+lwip_recvfrom(2, 8000B570, 5, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=0
+lwip_recv_tcp: netconn_recv err=0, pbuf=80001F48
+lwip_recv_tcp: buflen=45 recv_left=5 off=0
+lwip_recv_tcp: lastdata now pbuf=80001F48
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=5
+lwip_recvfrom(1, 8001E611, 40, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=80001F48
+lwip_recv_tcp: buflen=40 recv_left=40 off=0
+lwip_recv_tcp: deleting pbuf=80001F48
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=40
+ok
+[ Protocol is TLSv1.2 ]
+[ Ciphersuite is TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256 ]
+[ Record expansion is 29 ]
+Verifying peer X.509 certificate... Server Verification skipped
+
+lwip_send(1, data=80020F68, size=71, flags=0x0)
+lwip_send(1) err=0 written=71
+[Client writes 42B]: GET /index.html HTTP/1.0
+Host: 127.0.0.1
+
+
+[Client reads]: lwip_recvfrom(1, 8001E60C, 5, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=0
+lwip_recv_tcp: netconn_recv err=0, pbuf=80001F48
+lwip_recv_tcp: buflen=71 recv_left=5 off=0
+lwip_recv_tcp: lastdata now pbuf=80001F48
+lwip_recvfrom(2):  addr=127.0.0.1 port=54237 len=5
+lwip_recvfrom(2, 8000B575, 66, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=80001F48
+lwip_recv_tcp: buflen=66 recv_left=66 off=0
+lwip_recv_tcp: deleting pbuf=80001F48
+lwip_recvfrom(2):  addr=127.0.0.1 port=54237 len=66
+lwip_send(2, data=8000DECC, size=193, flags=0x0)
+lwip_send(2) err=0 written=193
+lwip_send(2, data=8000DECC, size=83, flags=0x0)
+lwip_send(2) err=0 written=83
+lwip_recv_tcp: netconn_recv err=0, pbuf=80001A40
+lwip_recv_tcp: buflen=193 recv_left=5 off=0
+lwip_recv_tcp: lastdata now pbuf=80001A40
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=5
+lwip_recvfrom(1, 8001E611, 188, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=80001A40
+lwip_recv_tcp: buflen=188 recv_left=188 off=0
+lwip_recv_tcp: deleting pbuf=80001A40
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=188
+HTTP/1.1 200 OK
+Connection: close
+Server: HTTPSRV/0.1 - NXP Embedded Web Server v0.1
+Content-Type: text/html
+Cache-Control: max-age=3600
+Content-Length: 54
+
+lwip_recvfrom(1, 8001E60C, 5, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=0
+lwip_recv_tcp: netconn_recv err=0, pbuf=8000186C
+lwip_recv_tcp: buflen=83 recv_left=5 off=0
+lwip_recv_tcp: lastdata now pbuf=8000186C
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=5
+lwip_recvfrom(1, 8001E611, 78, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=8000186C
+lwip_recv_tcp: buflen=78 recv_left=78 off=0
+lwip_recv_tcp: deleting pbuf=8000186C
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=78
+MbedTLS connection test should recieve this message
+lwip_recvfrom(1, 8001E60C, 5, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=0
+lwip_send(2, data=8000DECC, size=31, flags=0x0)
+lwip_send(2) err=0 written=31
+lwip_shutdown(2, how=1)
+lwip_recv_tcp: netconn_recv err=0, pbuf=800018F0
+lwip_recv_tcp: buflen=31 recv_left=5 off=0
+lwip_recv_tcp: lastdata now pbuf=800018F0
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=5
+lwip_recvfrom(1, 8001E611, 26, 0x0, ..)
+lwip_recv_tcp: top while sock->lastdata=800018F0
+lwip_recv_tcp: buflen=26 recv_left=26 off=0
+lwip_recv_tcp: deleting pbuf=800018F0
+lwip_recvfrom(1):  addr=127.0.0.1 port=443 len=26
+[Client]: Peer connection closed!
+========================
+Client send: OK!
+Client read: OK!
+lwip_close(1)
+lwip_close(2)

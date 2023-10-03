@@ -543,7 +543,6 @@ mbedtls_connection_test:
     document:
       name: mbedtls_connection_test
       readme:
-      - boards/${board}/mbedtls_examples/mbedtls_connection_test/board.readme
       - middleware/mbedtls/example/mbedtls_connection_test/mbedtls_connection_test.readme
       category: mbedtls_examples
       brief: Internal testing example. HTTPS server and client are connected through loopback interface.

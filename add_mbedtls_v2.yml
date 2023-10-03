@@ -1,6 +1,6 @@
 ---
 __variable__:
-  mbedtls_version: 2.28.3
+  mbedtls_version: 2.28.4
 middleware.mbedtls.template:
   section-type: component
   __requires__:
@@ -223,7 +223,7 @@ middleware.mbedtls.port.css_pkc:
     common:
       description: mbedTLS port library for PKC
       type: middleware
-      version: 2.26.0
+      version: "${mbedtls_version}"
       change_log: "./ChangeLogKSDK.txt"
       component_bundle: bundles.mbedtls
       user_visible: true
@@ -269,7 +269,7 @@ middleware.mbedtls.port.css:
     common:
       description: mbedTLS port library for CSS
       type: middleware
-      version: 2.26.0
+      version: "${mbedtls_version}"
       change_log: "./ChangeLogKSDK.txt"
       component_bundle: bundles.mbedtls
       user_visible: true

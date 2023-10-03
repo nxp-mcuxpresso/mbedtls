@@ -546,10 +546,7 @@ mbedtls_connection_test:
       - boards/${board}/mbedtls_examples/mbedtls_connection_test/board.readme
       - middleware/mbedtls/example/mbedtls_connection_test/mbedtls_connection_test.readme
       category: mbedtls_examples
-      brief: The mbedtls_httpsrv_mbedTLS demo application demonstrates an HTTPServer
-        set up on lwIP TCP/IP and the MbedTLS stack withFreeRTOS. The user uses an
-        Internet browser to send an https request for connection. The board acts as
-        an HTTP serverand sends a Web page back to the PC.
+      brief: Internal testing example. HTTPS server and client are connected through loopback interface.
     project-root-path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
     configuration:
       tools:

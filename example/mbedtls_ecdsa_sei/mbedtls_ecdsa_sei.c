@@ -42,14 +42,14 @@
 #include "app.h"
 
 #if defined(MBEDTLS_MCUX_ELE_S400_API)
-#include "ele_mbedtls.h"
+#include "sei/ele_mbedtls.h"
 #else
 #error "No port layer"
 #endif
 
 #define mbedtls_printf PRINTF
 #define mbedtls_snprintf snprintf
-#define MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED -0x0072 /**< The requested feature is not supported by the platform */     
+#define MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED -0x0072 /**< The requested feature is not supported by the platform */
 #define mbedtls_exit(x) \
     do                  \
     {                   \
@@ -81,12 +81,12 @@
 #include <stdlib.h>
 
 #include "mbedtls/timing.h"
-      
+
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/md.h"
 
-      
+
 #include "mbedtls/error.h"
 
 /*******************************************************************************
@@ -120,11 +120,11 @@ extern ele_ctx_t g_ele_ctx; /* Global context */
  * Code
  ******************************************************************************/
 
-/* NXP: Move buffer to NON-CACHED memory because of HW accel */ 
+/* NXP: Move buffer to NON-CACHED memory because of HW accel */
 #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
     AT_NONCACHEABLE_SECTION_INIT(static unsigned char buf[BUFSIZE]);
 #else
-    unsigned char buf[BUFSIZE];    
+    unsigned char buf[BUFSIZE];
 #endif /* DCACHE */
 
 
@@ -134,7 +134,7 @@ int main( int argc, char *argv[] )
     unsigned char sig[200]; /* 64 bytes for ECDSA P256 signature + ASN.1 encoding (72B) */
 
     uint8_t ECDSAkeyblobBuffer[sizeof(mbedtls_ele_chunks_t)];
-    
+
     BOARD_InitHardware();
     if( CRYPTO_InitHardware() != kStatus_Success )
     {
@@ -142,13 +142,13 @@ int main( int argc, char *argv[] )
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
     mbedtls_printf( "Initialization of crypto HW Success\n" );
-    
+
     mbedtls_printf( "\n" );
 
     mbedtls_ecdsa_context ecdsa;
     mbedtls_pk_context pkey;
     size_t sig_len;
-    
+
     memset( buf, 0x2A, sizeof( buf ) );
 
 
@@ -163,7 +163,7 @@ int main( int argc, char *argv[] )
     if( mbedtls_ecdsa_genkey( &ecdsa, MBEDTLS_ECP_DP_SECP256R1, NULL, NULL ) != 0 )
         mbedtls_exit( 1 );
     mbedtls_printf( "- *Success*\n\n" );
-    
+
     /* Sign with generated key */
     mbedtls_printf( "Sign message with ECC private key inside ELE " );
     if( mbedtls_ecdsa_write_signature( &ecdsa, MBEDTLS_MD_SHA256, buf, HASH_SIZE,
@@ -175,7 +175,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "Verify signature with ECC public key " );
     if( mbedtls_ecdsa_read_signature( &ecdsa, buf, HASH_SIZE , sig, sig_len ) != 0 )
         mbedtls_exit( 1 );
-    mbedtls_printf( "- *Success*\n\n" );       
+    mbedtls_printf( "- *Success*\n\n" );
 
     /* Write ELE Keyblob into ECDSAkeyblobBuffer */
     mbedtls_printf( "Writing keyblob into buffer" );
@@ -183,7 +183,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "- *Success*\n\n" );
 
     /* Deinit and close sessions */
-    mbedtls_printf( "Deinit of ELE (Close sessions, services and keystore)" ); 
+    mbedtls_printf( "Deinit of ELE (Close sessions, services and keystore)" );
     if( CRYPTO_DeinitHardware() != kStatus_Success )
     {
         mbedtls_printf( "Deinitialization of crypto HW failed\n" );
@@ -193,7 +193,7 @@ int main( int argc, char *argv[] )
 
     /* Clear global structure to act like after PoR */
     memset((void*)&g_ele_ctx, 0u, sizeof(ele_ctx_t));
-    
+
     /* Init again and open new session */
     mbedtls_printf( "Initialization of crypto HW" );
     if( CRYPTO_InitHardware() != kStatus_Success )
@@ -204,18 +204,18 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "- *Success*\n\n" );
 
     /* PK Parse ELE keyblob and load it into ELE */
-    mbedtls_printf( "Read encrypted keyblob into ELE and open keystore and reconstruct Public key" );    
+    mbedtls_printf( "Read encrypted keyblob into ELE and open keystore and reconstruct Public key" );
     if( mbedtls_pk_parse_key(&pkey, ECDSAkeyblobBuffer, sizeof(mbedtls_ele_chunks_t), NULL, 0u) != 0 )
         mbedtls_exit( 1 );
     mbedtls_printf( "- *Success*\n\n" );
-    
+
     /* Sign with loaded key */
     mbedtls_printf( "Sign message with ECC private key loaded back inside ELE " );
     if( mbedtls_ecdsa_write_signature((mbedtls_ecdsa_context*)pkey.pk_ctx, MBEDTLS_MD_SHA256, buf, HASH_SIZE,
                                         sig, &sig_len, NULL, NULL ) != 0 )
         mbedtls_exit( 1 );
     mbedtls_printf( "- *Success*\n\n" );
-    
+
     /* Verify */
     mbedtls_printf( "Verify signature with ECC public key reconstructed into CTX " );
     if( mbedtls_ecdsa_read_signature((mbedtls_ecdsa_context*)pkey.pk_ctx, buf, HASH_SIZE, sig, sig_len ) != 0 )
@@ -228,11 +228,11 @@ int main( int argc, char *argv[] )
 
     /******************************** HMAC *************************************/
     const mbedtls_md_info_t *md_info;
-    
+
     md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
 
     /* HMAC plaintext key */
-    SDK_ALIGN(uint8_t MACkey[32], 8u) = {0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 
+    SDK_ALIGN(uint8_t MACkey[32], 8u) = {0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61,
                                          0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61};
     /* Message for HMAC */
     SDK_ALIGN(unsigned const char MACmessage[], 8u) =  "Hello World!";
@@ -251,12 +251,12 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "- *Success*\n\n" );
 
     mbedtls_printf( "Compare expected and generated HMAC " );
-    
+
     /* Check output Hash digest data */
     if (memcmp(output, hmac256, length) != 0)
         mbedtls_exit( 1 );
     mbedtls_printf( "- *Success*\n\n" );
-    
+
     /* Deinit and close sessions */
     if( CRYPTO_DeinitHardware() != kStatus_Success )
     {

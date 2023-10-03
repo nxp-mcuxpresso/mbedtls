@@ -42,14 +42,14 @@
 #include "app.h"
 
 #if defined(MBEDTLS_MCUX_ELE_S400_API)
-#include "ele_mbedtls.h"
+#include "sei/ele_mbedtls.h"
 #else
 #error "No port layer"
 #endif
 
 #define mbedtls_printf PRINTF
 #define mbedtls_snprintf snprintf
-#define MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED -0x0072 /**< The requested feature is not supported by the platform */     
+#define MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED -0x0072 /**< The requested feature is not supported by the platform */
 #define mbedtls_exit(x) \
     do                  \
     {                   \
@@ -79,13 +79,13 @@
 #include <stdlib.h>
 
 #include "mbedtls/timing.h"
-      
+
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
-      
+
 #include "mbedtls/error.h"
 
 /*******************************************************************************
@@ -93,7 +93,7 @@
  ******************************************************************************/
 /* Generate keypair and keystore on each run, as it's silicon specific */
 #define APP_GENERATE_NEW_KEYPAIR (1u)
-      
+
 #if defined(MBEDTLS_ERROR_C)
 #define PRINT_ERROR                                                     \
         mbedtls_strerror( ret, ( char * )tmp, sizeof( tmp ) );          \
@@ -126,7 +126,7 @@
 #define DFL_AUTH_IDENT          1
 #define DFL_SUBJ_IDENT          1
 #define DFL_CONSTRAINTS         1
-#define DFL_DIGEST              MBEDTLS_MD_SHA256        
+#define DFL_DIGEST              MBEDTLS_MD_SHA256
 
 /*******************************************************************************
  * Prototypes
@@ -140,7 +140,7 @@ extern ele_ctx_t g_ele_ctx; /* Global context */
 /* Keyblob with encrypted key material and metadata specific for earch silicon. */
 /* If APP_GENERATE_NEW_KEYPAIR=1, new keypair and keystore is created           */
 /* User can ectract keyblob from mbedtls_pk_write_key_der() and set in this buf */
-uint8_t ECDSAkeyblobBuffer[sizeof(mbedtls_ele_chunks_t)] = 
+uint8_t ECDSAkeyblobBuffer[sizeof(mbedtls_ele_chunks_t)] =
 #if defined(APP_GENERATE_NEW_KEYPAIR)
 {0u};
 #elif !defined(APP_GENERATE_NEW_KEYPAIR) /* SoC specific test vector */
@@ -174,7 +174,7 @@ uint8_t ECDSAkeyblobBuffer[sizeof(mbedtls_ele_chunks_t)] =
 #endif /* APP_GENERATE_NEW_KEYPAIR */
 
 /* Print buffer */
-char buf[1024] = {0u};    
+char buf[1024] = {0u};
 
 /*
  * global cert options
@@ -204,7 +204,7 @@ struct options {
 int main( int argc, char *argv[] )
 {
     int ret;
-    
+
     BOARD_InitHardware();
     if( CRYPTO_InitHardware() != kStatus_Success )
     {
@@ -212,7 +212,7 @@ int main( int argc, char *argv[] )
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
     mbedtls_printf( "Initialization of crypto HW Success\n\n" );
- 
+
     unsigned char sig[200];   /* 64 bytes for ECDSA P256 signature + ASN.1 encoding (72B) */
     unsigned char digest[32]; /* Dummy data to exercise sign/verif with loaded key */
 
@@ -224,13 +224,13 @@ int main( int argc, char *argv[] )
     size_t sig_len;
 
     const char *pers = "crt example app";
-    
+
     memset( digest, 0x2A, sizeof( digest ) );
 
     mbedtls_ctr_drbg_init(&ctr_drbg);
     mbedtls_entropy_init(&entropy);
-    
-    
+
+
     if( !mbedtls_ecdsa_can_do(MBEDTLS_ECP_DP_SECP256R1) )
         mbedtls_exit( 1 );
 
@@ -250,7 +250,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "Writing keyblob into buffer" );
     mbedtls_pk_write_key_der(&pkey, ECDSAkeyblobBuffer, sizeof(mbedtls_ele_chunks_t));
     mbedtls_printf( "- *Success*\n\n" );
-    
+
     /** Closing Keystore as mbedtls_pk_parse_key() will try to reopen it **/
     /* Deinit and close sessions */
     if( CRYPTO_DeinitHardware() != kStatus_Success )
@@ -260,22 +260,22 @@ int main( int argc, char *argv[] )
     }
 
 #endif
-    
+
     /* PK Parse ELE keyblob and load it into ELE */
-    mbedtls_printf( "Read encypted keyblob into ELE and open keystore and reconstruct Public key" );    
+    mbedtls_printf( "Read encypted keyblob into ELE and open keystore and reconstruct Public key" );
     if( mbedtls_pk_parse_key(&pkey, ECDSAkeyblobBuffer, sizeof(mbedtls_ele_chunks_t), NULL, 0u) != 0 )
         mbedtls_exit( 1 );
     mbedtls_printf( "- *Success*\n\n" );
-    
+
     /** Try to use loaded key for sign and verify just to test it's loaded properly **/
-    
+
     /* Sign with loaded key */
     mbedtls_printf( "Sign message with ECC private key loaded back inside ELE " );
     if( mbedtls_ecdsa_write_signature((mbedtls_ecdsa_context*)pkey.pk_ctx, MBEDTLS_MD_SHA256, digest, HASH_SIZE,
                                         sig, &sig_len, NULL, NULL ) != 0 )
         mbedtls_exit( 1 );
     mbedtls_printf( "- *Success*\n\n" );
-    
+
     /* Verify */
     mbedtls_printf( "Verify signature with ECC public key reconstructed into CTX " );
     if( mbedtls_ecdsa_read_signature((mbedtls_ecdsa_context*)pkey.pk_ctx, digest, HASH_SIZE, sig, sig_len ) != 0 )
@@ -294,16 +294,16 @@ int main( int argc, char *argv[] )
     opt.ns_cert_type        = DFL_NS_CERT_TYPE;
     opt.version             = DFL_VERSION - 1;
     opt.md                  = DFL_DIGEST;
-    
+
     mbedtls_x509write_cert crt;
-    
+
     /* For self-signed cert issuer and subject key is the same */
     mbedtls_pk_context *issuer_key = &pkey,
                        *subject_key = &pkey;
-    opt.subject_name = opt.issuer_name;    
+    opt.subject_name = opt.issuer_name;
 
     mbedtls_x509write_crt_init(&crt);
-    
+
 
     mbedtls_x509write_crt_set_subject_key(&crt, subject_key);
     mbedtls_x509write_crt_set_issuer_key(&crt, issuer_key);
@@ -336,7 +336,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
     mbedtls_printf(" ok\n");
-    
+
     /*
      * 1.0. Check the names for validity
      */
@@ -358,7 +358,7 @@ int main( int argc, char *argv[] )
 
     mbedtls_x509write_crt_set_version(&crt, opt.version);
     mbedtls_x509write_crt_set_md_alg(&crt, opt.md);
-    
+
 
     ret = mbedtls_x509write_crt_set_serial(&crt, &serial);
     if (ret != 0) {
@@ -377,8 +377,8 @@ int main( int argc, char *argv[] )
     }
 
     mbedtls_printf(" ok\n");
-    
-        
+
+
     mbedtls_printf("  . Adding the Basic Constraints extension ...");
 
     ret = mbedtls_x509write_crt_set_basic_constraints(&crt, opt.is_ca,
@@ -391,7 +391,7 @@ int main( int argc, char *argv[] )
     }
 
     mbedtls_printf(" ok\n");
-    
+
     mbedtls_printf("  . Adding the Subject Key Identifier ...");
 
     ret = mbedtls_x509write_crt_set_subject_key_identifier(&crt);
@@ -418,19 +418,19 @@ int main( int argc, char *argv[] )
 
     mbedtls_printf(" ok\n");
 
-    
+
      /*
      * 1.2. Writing the certificate
      */
     mbedtls_printf("  . Writing the certificate...");
 
     unsigned char cert_buf[4096];
-    size_t cert_len = 0u; 
+    size_t cert_len = 0u;
     mbedtls_x509_crt parsed_cert;
-    
+
 
     memset(cert_buf, 0, 4096);
-    
+
     if ((ret = mbedtls_x509write_crt_pem(&crt, cert_buf, 4096,
                                          mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
         mbedtls_strerror(ret, buf, 1024);
@@ -440,13 +440,13 @@ int main( int argc, char *argv[] )
     }
 
     mbedtls_printf(" ok\n");
-    
+
     /*
      * 1.2. Parsing the certificate
      */
 
     cert_len = strlen((char const*)cert_buf) + 1;
-    
+
     PRINTF("  . Loading the certificate ...");
     ret = mbedtls_x509_crt_parse(&parsed_cert, (const unsigned char *)cert_buf,
                                  cert_len);
@@ -456,9 +456,9 @@ int main( int argc, char *argv[] )
         PRINTF(" failed\n  !  mbedtls_x509_crt_parse returned -0x%x while parsing root cert\n\n", -ret);
         goto exit;
     }
- 
+
     mbedtls_printf(" ok\n");
-    
+
     /* Deinit and close sessions */
     if( CRYPTO_DeinitHardware() != kStatus_Success )
     {
@@ -467,7 +467,7 @@ int main( int argc, char *argv[] )
     }
 
     mbedtls_printf( "\n End of example\n" );
-    
+
 exit:
     mbedtls_pk_free( &pkey );
     mbedtls_x509_crt_free(&parsed_cert);

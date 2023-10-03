@@ -77,7 +77,7 @@ ele_ctx_t g_ele_ctx = {0u}; /* Global context */
 status_t CRYPTO_InitHardware(void)
 {
     status_t result = kStatus_Fail;
-  
+
     if(g_isCryptoHWInitialized == true)
     {
         return (0);
@@ -115,13 +115,19 @@ status_t CRYPTO_InitHardware(void)
             }
         }
 
+        /****************** Start RNG ***********************/
+        result = ELE_StartRng(S3MU);
+        if (result != kStatus_Success) {
+            break;
+        }
+
         /****************** Open EdgeLock session ******************/
         result = ELE_OpenSession(S3MU, &g_ele_ctx.session_handle);
         if (result != kStatus_Success)
         {
             break;
         }
-        
+
         /****************** Open NVM Storage service **************************/
         result = ELE_OpenNvmStorageService(S3MU, g_ele_ctx.session_handle, &g_ele_ctx.storage_handle);
         if (result != kStatus_Success)
@@ -150,7 +156,7 @@ status_t CRYPTO_InitHardware(void)
 status_t CRYPTO_DeinitHardware(void)
 {
     status_t result = kStatus_Fail;
-  
+
     if(g_isCryptoHWInitialized == false)
     {
         return (0);
@@ -160,12 +166,12 @@ status_t CRYPTO_DeinitHardware(void)
     if ((result = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_ele_mutex)) != 0)
         return result;
 #endif
-    
+
     do
     {
         /****************** Close Sign Service ********************************/
         if( g_ele_ctx.signature_gen_handle != 0u )
-        {  
+        {
             result = ELE_CloseSignService(S3MU, g_ele_ctx.signature_gen_handle);
             if (result != kStatus_Success)
             {
@@ -176,7 +182,7 @@ status_t CRYPTO_DeinitHardware(void)
 
         /****************** Close Verify Service ******************************/
         if( g_ele_ctx.signature_verif_handle != 0u )
-        {  
+        {
             result = ELE_CloseVerifyService(S3MU, g_ele_ctx.signature_verif_handle);
             if (result != kStatus_Success)
             {
@@ -184,10 +190,10 @@ status_t CRYPTO_DeinitHardware(void)
             }
             g_ele_ctx.signature_verif_handle = 0u;
         }
-        
+
         /****************** Close Key Management Service **********************/
         if( g_ele_ctx.key_management_handle != 0u )
-        {  
+        {
             result = ELE_CloseKeyService(S3MU, g_ele_ctx.key_management_handle);
             if (result != kStatus_Success)
             {
@@ -198,7 +204,7 @@ status_t CRYPTO_DeinitHardware(void)
 
         /****************** Close Key Store  ***********************************/
         if( g_ele_ctx.key_store_handle != 0u )
-        {  
+        {
             result = ELE_CloseKeystore(S3MU, g_ele_ctx.key_store_handle);
             if (result != kStatus_Success)
             {
@@ -210,7 +216,7 @@ status_t CRYPTO_DeinitHardware(void)
 
         /****************** Close NVM storage session **************************/
         if( g_ele_ctx.storage_handle != 0u )
-        {  
+        {
             result = ELE_CloseNvmStorageService(S3MU, g_ele_ctx.storage_handle);
             if (result != kStatus_Success)
             {
@@ -218,16 +224,16 @@ status_t CRYPTO_DeinitHardware(void)
             }
             g_ele_ctx.storage_handle = 0u;
         }
-        
+
         /****************** Close EdgeLock session ******************/
         result = ELE_CloseSession(S3MU, g_ele_ctx.session_handle);
         if (result != kStatus_Success)
         {
             break;
         }
-        
+
         g_ele_ctx.session_handle = 0u;
-        
+
         g_isCryptoHWInitialized = false;
 
     } while (0);
@@ -335,8 +341,8 @@ int mcux_mbedtls_mutex_unlock(mbedtls_threading_mutex_t *mutex)
 static void CRYPTO_ConfigureThreadingMcux(void)
 {
     /* Configure mbedtls to use FreeRTOS mutexes. */
-    mbedtls_threading_set_alt(mcux_mbedtls_mutex_init, 
-                              mcux_mbedtls_mutex_free, 
+    mbedtls_threading_set_alt(mcux_mbedtls_mutex_init,
+                              mcux_mbedtls_mutex_free,
                               mcux_mbedtls_mutex_lock,
                               mcux_mbedtls_mutex_unlock);
 }

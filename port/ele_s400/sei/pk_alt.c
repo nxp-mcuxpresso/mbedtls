@@ -72,7 +72,7 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
     {
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    
+
     /* Copy ELE blob structure into buf */
     memcpy(buf, (void*)&g_ele_ctx.keystore_chunks, keyBlobLen);
 
@@ -84,6 +84,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
                   const unsigned char *pwd, size_t pwdlen )
 {
     int ret = 0;
+    size_t key_size = 0;
 
    MBEDTLS_INTERNAL_VALIDATE_RET((pk != NULL), MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
    MBEDTLS_INTERNAL_VALIDATE_RET((key != NULL), MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
@@ -99,11 +100,11 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     //mbedtls_ecdsa_context *keyCtx = (mbedtls_ecdsa_context *) mbedtls_pk_ec( *pk );
     mbedtls_ecp_context *keyCtx = (mbedtls_ecp_context *)pk->pk_ctx;
     mbedtls_ecp_group_load(&keyCtx->grp, MBEDTLS_ECP_DP_SECP256R1);
-    
+
     size_t keyLen = (keyCtx->grp.pbits) / 8u;
 
     mbedtls_ele_chunks_t *chunks_ptr = (mbedtls_ele_chunks_t*)key;
-    
+
     uint8_t pubKey[64] = {0u};
 
     if (CRYPTO_InitHardware() != kStatus_Success)
@@ -116,7 +117,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
 
     /****************** Open Key Store ************************************/
-    
+
     ele_keystore_t keystoreParam;
     keystoreParam.id            = ELE_KEYSTORE_ID;
     keystoreParam.nonce         = ELE_KEYSTORE_NONCE;
@@ -136,14 +137,14 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
 
     /****************** Reconstruct Public Key ****************************/
-    if (ELE_GeneratePubKey(S3MU, g_ele_ctx.key_store_handle, chunks_ptr->ECDSA_KeyID, (uint32_t*)&pubKey, sizeof(pubKey)) !=  kStatus_Success)
+    if (ELE_GeneratePubKey(S3MU, g_ele_ctx.key_store_handle, chunks_ptr->ECDSA_KeyID, (uint32_t*)&pubKey, sizeof(pubKey), (uint16_t*)&key_size) !=  kStatus_Success)
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    
+
     /***************** Copy ELE Chunks into internal global CTX ***********/
-    
+
     memcpy((void*)&g_ele_ctx.keystore_chunks, key, keylen);
     g_ele_ctx.keystore_chunks.ECDSA_KeyID = chunks_ptr->ECDSA_KeyID;
-    
+
     if (ret == 0)
     {
         ret = mbedtls_mpi_read_binary(&keyCtx->Q.X, pubKey, keyLen);
@@ -157,7 +158,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
         keyCtx->d.s = MBEDTLS_MPI_S_HAVE_OBJECT;
         keyCtx->d.n = MBEDTLS_MPI_N_HAVE_OBJECT;
         keyCtx->d.p = (mbedtls_mpi_uint *)(uintptr_t)&keyCtx->key_id;
-        
+
     }
 
 

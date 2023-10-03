@@ -100,7 +100,7 @@ void mbedtls_ecdsa_free(mbedtls_ecdsa_context *ctx)
 
     mbedtls_ecp_group_free( &ctx->grp );
     mbedtls_ecp_point_free( &ctx->Q );
-    
+
 }
 
 #if defined(MBEDTLS_ECDSA_SIGN_ALT)     || \
@@ -138,7 +138,7 @@ int mbedtls_ecdsa_from_keypair( mbedtls_ecdsa_context *ctx, const mbedtls_ecp_ke
     {
         mbedtls_ecdsa_free( ctx );
     }
-    
+
     /* Set internal Key ID reference */
     ctx->key_id = key->key_id;
 
@@ -158,7 +158,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
 {
     int ret = 0;
     status_t result = kStatus_Fail;
-    
+
     MBEDTLS_INTERNAL_VALIDATE_RET((key != NULL), MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
     ret = mbedtls_ecp_group_load(&ctx->grp, gid);
     if (ret != 0)
@@ -183,7 +183,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
         mbedtls_free(pubKey);
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    
+
     /* Check if keystore already created */
     if(g_ele_ctx.is_keystore_opened == false)
     {
@@ -208,7 +208,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
             mbedtls_free(pubKey);
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
-        
+
         g_ele_ctx.is_keystore_opened = true;
     }
 
@@ -226,7 +226,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
     NISTkeyGenParam.pub_key_size  = pubKeyLen;
     NISTkeyGenParam.key_group     = ELE_KEYGROUP_ID;
 
-    if (ELE_GenerateKey(S3MU, g_ele_ctx.key_management_handle, &NISTkeyGenParam, &ctx->key_id, &keySize) != kStatus_Success)
+    if (ELE_GenerateKey(S3MU, g_ele_ctx.key_management_handle, &NISTkeyGenParam, &ctx->key_id, &keySize, false, false) != kStatus_Success)
     {
         mbedtls_free(pubKey);
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -261,7 +261,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
             mbedtls_free(g_ele_ctx.keystore_chunks.KeyStoreChunk);
         if(g_ele_ctx.keystore_chunks.KeyGroupSize != 0u)
             mbedtls_free(g_ele_ctx.keystore_chunks.KeyGroupChunk);
-        
+
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     else
@@ -269,7 +269,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
         g_ele_ctx.keystore_chunks.ECDSA_KeyID = ctx->key_id;
     }
 
-    
+
     mbedtls_platform_zeroize(pubKey, pubKeyLen);
     mbedtls_free(pubKey);
     return ret;
@@ -304,7 +304,7 @@ static int ecdsa_sign_restartable(mbedtls_ecp_group *grp,
     {
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    
+
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
     if (grp->N.p == NULL)
     {
@@ -410,26 +410,26 @@ static int ecdsa_verify_restartable(mbedtls_ecp_group *grp,
     int ret;
     bool result_nist = false;
     ele_verify_t NISTverifyParam;
-    
+
     size_t coordinateLen   = (grp->pbits + 7u) / 8u;
     size_t signatureSize   = 2u * coordinateLen;
     size_t pubKeyLen       = 2u * coordinateLen;
     uint8_t *signature     = mbedtls_calloc(signatureSize, sizeof(uint8_t));
-    uint8_t *pubKey        = mbedtls_calloc(pubKeyLen, sizeof(uint8_t));   
+    uint8_t *pubKey        = mbedtls_calloc(pubKeyLen, sizeof(uint8_t));
 
     if(signature == NULL || pubKey == NULL)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto exit;
     }
-    
+
     /* Init HW */
     if (CRYPTO_InitHardware() != kStatus_Success)
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto exit;
     }
-    
+
     /* Convert signature into array */
     if (((ret = mbedtls_mpi_write_binary(r, signature, coordinateLen)) != 0) ||
         ((ret = mbedtls_mpi_write_binary(s, &signature[coordinateLen], coordinateLen)) != 0 ))
@@ -445,7 +445,7 @@ static int ecdsa_verify_restartable(mbedtls_ecp_group *grp,
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto exit;
     }
-    
+
     /* Open verify service */
     if(g_ele_ctx.signature_verif_handle == 0u)
     {
@@ -481,7 +481,7 @@ static int ecdsa_verify_restartable(mbedtls_ecp_group *grp,
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-    
+
 exit:
     if(signature != NULL)
         mbedtls_free(signature);

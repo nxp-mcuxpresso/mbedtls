@@ -25,6 +25,18 @@ __hierarchy__:
             config:
               release: {}
       modules:
+        httpsrv_fs_data:
+          required: false
+          files:
+          - source: middleware/mbedtls/example/mbedtls_connection_test/httpsrv_fs_data.c
+            package_path: project-root-path
+            project_path: source
+          - source: middleware/mbedtls/example/mbedtls_connection_test/index.html
+            hidden: true
+            exclude: true
+            type: other
+            package_path: project-root-path/webpage
+            project_path: src/webpage
         boardset:
           required: true
           cc-include:
@@ -482,3 +494,164 @@ mbedtls_ecdsa_write_cert_sei:
         - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}/app.h
           merge-to-main: sub
           project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}"
+mbedtls_connection_test_heap_stack:
+  section-type: project_segment
+  contents:
+    configuration:
+      tools:
+        iar:
+          config:
+            __common__:
+              ad-flags:
+              - __stack_size__=0x4000
+              - __heap_size__=0x40000
+        mdk:
+          config:
+            __common__:
+              ad-flags:
+              - --predefine="-D__stack_size__=0x4000"
+              - --predefine="-D__heap_size__=0x40000"
+        armgcc:
+          config:
+            __common__:
+              ad-flags:
+              - "-Xlinker --defsym=__stack_size__=0x4000"
+              - "-Xlinker --defsym=__heap_size__=0x40000"
+        mcux:
+          config:
+            __common__:
+              ad-flags:
+              - "-Xlinker --defsym=__stack_size__=0x4000"
+              - "-Xlinker --defsym=__heap_size__=0x40000"
+mbedtls_connection_test:
+  section-type: application
+  dependency:
+  - middleware.lwip.apps.httpssrv
+  - middleware.mbedtls
+  - driver.port
+  - driver.sim
+  - driver.clock
+  - middleware.freertos-kernel.heap_3
+  __remove__:
+    merge_segment:
+    - middleware.lwip.default_heap_stack
+    - middleware.mbedtls.default_heap_stack
+  merge_segment:
+  - middleware.mbedtls.default_heap_stack
+  - mbedtls_connection_test_heap_stack
+  contents:
+    document:
+      name: mbedtls_connection_test
+      readme:
+      - boards/${board}/mbedtls_examples/mbedtls_connection_test/board.readme
+      - middleware/mbedtls/example/mbedtls_connection_test/mbedtls_connection_test.readme
+      category: mbedtls_examples
+      brief: The mbedtls_httpsrv_mbedTLS demo application demonstrates an HTTPServer
+        set up on lwIP TCP/IP and the MbedTLS stack withFreeRTOS. The user uses an
+        Internet browser to send an https request for connection. The board acts as
+        an HTTP serverand sends a Web page back to the PC.
+    project-root-path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+    configuration:
+      tools:
+        __common__:
+          config:
+            __common__:
+              cc-define:
+                USE_RTOS: 1
+                PRINTF_ADVANCED_ENABLE: 1
+                HTTPSRV_CFG_MBEDTLS_ENABLE: 1
+                MBEDTLS_CONFIG_FILE: '"ksdk_mbedtls_config.h"'
+                LWIP_SOCKET: 1
+        mcux:
+          config:
+            __common__:
+              cc-define:
+                _POSIX_SOURCE:
+                HTTPSRV_CFG_MBEDTLS_ENABLE: 1
+            debug:
+              cc-flags:
+              - "-Og"
+              cx-flags:
+              - "-g3"
+              __remove__:
+                cc-flags:
+                - "-O0"
+        iar:
+          config:
+            __common__:
+              __remove__:
+                cc-flags:
+                - "-On"
+              cc-flags:
+                - "-Ol"
+    modules:
+      demo:
+        required: true
+        cc-include:
+        - path: middleware/mbedtls/example/mbedtls_connection_test
+          package_path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          project_path: source
+        - path: boards/${board}
+          package_path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          project_path: source
+        - path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          package_path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          project_path: board
+        as-include:
+        - path: middleware/mbedtls/example/mbedtls_connection_test
+          package_path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          project_path: source
+        - path: boards/${board}
+          project_path: source
+        files:
+        - source: middleware/mbedtls/example/mbedtls_connection_test/mbedtls_connection_test.c
+          merge-to-main: main
+          package_path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          project_path: source
+        - source: middleware/mbedtls/example/mbedtls_connection_test/mbedtls_httpscli.c
+          merge-to-main: main
+          package_path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          project_path: source
+        - source: middleware/mbedtls/example/mbedtls_connection_test/mbedtls_httpscli.h
+          merge-to-main: main
+          package_path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          project_path: source
+        - source: middleware/mbedtls/example/mbedtls_connection_test/httpsclient.h
+          merge-to-main: main
+          package_path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          project_path: source
+        - source: middleware/mbedtls/example/mbedtls_connection_test/httpsclient.c
+          merge-to-main: main
+          package_path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          project_path: source
+        - source: middleware/mbedtls/example/mbedtls_connection_test/lwipopts.h
+          package_path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          project_path: source
+        - source: middleware/mbedtls/example/mbedtls_connection_test/FreeRTOSConfig.h
+          merge-to-freertosconfig: main
+          package_path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          project_path: source
+        - source: boards/${board}/FreeRTOSConfigBoard.h
+          merge-to-freertosconfig: sub
+          package_path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          project_path: source
+        - source: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}/pin_mux.c
+          package_path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          project_path: board
+        - source: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}/pin_mux.h
+          package_path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          project_path: board
+      httpsrv_fs_data:
+        required: true
+      pinset:
+        required: true
+        cc-include:
+        - path: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}
+          project_path: board
+        files:
+        - source: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}/hardware_init.c
+          merge-to-main: sub
+          project_path: board
+        - source: boards/${board}/mbedtls_examples/mbedtls_connection_test/${multicore_foldername}/app.h
+          merge-to-main: sub
+          project_path: board

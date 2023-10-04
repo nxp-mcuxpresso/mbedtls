@@ -344,7 +344,7 @@ mbedtls_benchmark:
         - source: boards/${board}/mbedtls_examples/mbedtls_benchmark/${multicore_foldername}/app.h
           merge-to-main: sub
           project_path: "${board}/mbedtls_examples/mbedtls_benchmark/${multicore_foldername}"
-mbedtls_ecdsa_sei:
+mbedtls_ele_ecc_opaque_key:
   section-type: application
   belong_to:
     kex_package: set.board.${board}
@@ -356,14 +356,14 @@ mbedtls_ecdsa_sei:
   - middleware.mbedtls.default_heap_stack
   contents:
     document:
-      name: mbedtls_ecdsa_sei
+      name: mbedtls_ele_ecc_opaque_key
       readme:
-      - boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/board.readme
-      - middleware/mbedtls/example/mbedtls_ecdsa_sei/mbedtls_ecdsa_sei.readme
+      - boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/board.readme
+      - middleware/mbedtls/example/mbedtls_ele_ecc_opaque_key/mbedtls_ele_ecc_opaque_key.readme
       category: mbedtls_examples
-      brief: The mbdedTLS ECDSA SEI demo application performs ECDSA algorithm
+      brief: The mbdedTLS ECC opaque key demo application performs ECDSA algorithm
         operations for specific opaque use case with one ECDSA P256 key pair.
-    project-root-path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+    project-root-path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/${multicore_foldername}
     configuration:
       tools:
         __common__:
@@ -373,7 +373,7 @@ mbedtls_ecdsa_sei:
                 PRINTF_ADVANCED_ENABLE: 1
                 PRINTF_FLOAT_ENABLE: 1
                 FREESCALE_KSDK_BM:
-                MBEDTLS_CONFIG_FILE: '"ele_ecc_sei_mbedtls_config.h"'
+                MBEDTLS_CONFIG_FILE: '"ecc_opaque/ele_ecc_opaque_mbedtls_config.h"'
         armgcc:
           config:
             __remove__:
@@ -387,39 +387,36 @@ mbedtls_ecdsa_sei:
       demo:
         required: true
         cc-include:
-        - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei
-          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+        - path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/${multicore_foldername}
           project_path: board
-        - path: middleware/mbedtls/example/mbedtls_ecdsa_sei/mbedtls_ecdsa_sei/
-          package_path: middleware/mbedtls/example/mbedtls_ecdsa_sei/${multicore_foldername}
+        - path: middleware/mbedtls/example/mbedtls_ele_ecc_opaque_key/mbedtls_ele_ecc_opaque_key/
+          package_path: middleware/mbedtls/example/mbedtls_ele_ecc_opaque_key/${multicore_foldername}
           project_path: board
         files:
-        - source: middleware/mbedtls/example/mbedtls_ecdsa_sei/mbedtls_ecdsa_sei.c
+        - source: middleware/mbedtls/example/mbedtls_ele_ecc_opaque_key/mbedtls_ele_ecc_opaque_key.c
           merge-to-main: main
-          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/${multicore_foldername}
           project_path: source
-        - source: middleware/mbedtls/example/mbedtls_ecdsa_sei/ele_ecc_sei_mbedtls_config.h
-          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
-          project_path: source
-        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/pin_mux.c
-          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+        - source: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/pin_mux.c
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/${multicore_foldername}
           project_path: board
-        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/pin_mux.h
-          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
+        - source: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/pin_mux.h
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/${multicore_foldername}
           project_path: board
       pinset:
         required: true
         cc-include:
-        - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}
-          project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}"
+        - path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/${multicore_foldername}
+          project_path: "${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/${multicore_foldername}"
         files:
-        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}/hardware_init.c
+        - source: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/${multicore_foldername}/hardware_init.c
           merge-to-main: sub
-          project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}"
-        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}/app.h
+          project_path: "${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/${multicore_foldername}"
+        - source: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/${multicore_foldername}/app.h
           merge-to-main: sub
-          project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_sei/${multicore_foldername}"
-mbedtls_ecdsa_write_cert_sei:
+          project_path: "${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/${multicore_foldername}"
+mbedtls_ele_ecc_opaque_key_cert:
   section-type: application
   belong_to:
     kex_package: set.board.${board}
@@ -431,14 +428,14 @@ mbedtls_ecdsa_write_cert_sei:
   - middleware.mbedtls.default_heap_stack
   contents:
     document:
-      name: mbedtls_ecdsa_write_cert_sei
+      name: mbedtls_ele_ecc_opaque_key_cert
       readme:
-      - boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/board.readme
-      - middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/mbedtls_ecdsa_write_cert_sei.readme
+      - boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/board.readme
+      - middleware/mbedtls/example/mbedtls_ele_ecc_opaque_key_cert/mbedtls_ele_ecc_opaque_key_cert.readme
       category: mbedtls_examples
-      brief: The mbdedTLS ECDSA SEI demo application performs ECDSA algorithm
-        operations for specific opaque use case with one ECDSA P256 key pair.
-    project-root-path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+      brief: The mbdedTLS ECC write certificate demo application performs ECDSA algorithm
+        operations for specific opaque use case with one ECDSA P256 key pair to self-sign an X509 certificate.
+    project-root-path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/${multicore_foldername}
     configuration:
       tools:
         __common__:
@@ -448,7 +445,7 @@ mbedtls_ecdsa_write_cert_sei:
                 PRINTF_ADVANCED_ENABLE: 1
                 PRINTF_FLOAT_ENABLE: 1
                 FREESCALE_KSDK_BM:
-                MBEDTLS_CONFIG_FILE: '"ele_ecc_sei_mbedtls_config.h"'
+                MBEDTLS_CONFIG_FILE: '"ecc_opaque/ele_ecc_opaque_mbedtls_config.h"'
         armgcc:
           config:
             __remove__:
@@ -462,38 +459,35 @@ mbedtls_ecdsa_write_cert_sei:
       demo:
         required: true
         cc-include:
-        - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/
-          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+        - path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/${multicore_foldername}
           project_path: board
-        - path: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/
-          package_path: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+        - path: middleware/mbedtls/example/mbedtls_ele_ecc_opaque_key_cert/
+          package_path: middleware/mbedtls/example/mbedtls_ele_ecc_opaque_key_cert/${multicore_foldername}
           project_path: board
         files:
-        - source: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/mbedtls_ecdsa_write_cert_sei.c
+        - source: middleware/mbedtls/example/mbedtls_ele_ecc_opaque_key_cert/mbedtls_ele_ecc_opaque_key_cert.c
           merge-to-main: main
-          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/${multicore_foldername}
           project_path: source
-        - source: middleware/mbedtls/example/mbedtls_ecdsa_write_cert_sei/ele_ecc_sei_mbedtls_config.h
-          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
-          project_path: source
-        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/pin_mux.c
-          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+        - source: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/pin_mux.c
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/${multicore_foldername}
           project_path: board
-        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/pin_mux.h
-          package_path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
+        - source: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/pin_mux.h
+          package_path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/${multicore_foldername}
           project_path: board
       pinset:
         required: true
         cc-include:
-        - path: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}
-          project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}"
+        - path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/${multicore_foldername}
+          project_path: "${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/${multicore_foldername}"
         files:
-        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}/hardware_init.c
+        - source: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/${multicore_foldername}/hardware_init.c
           merge-to-main: sub
-          project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}"
-        - source: boards/${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}/app.h
+          project_path: "${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/${multicore_foldername}"
+        - source: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/${multicore_foldername}/app.h
           merge-to-main: sub
-          project_path: "${board}/mbedtls_examples/mbedtls_ecdsa_write_cert_sei/${multicore_foldername}"
+          project_path: "${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/${multicore_foldername}"
 mbedtls_connection_test_heap_stack:
   section-type: project_segment
   contents:

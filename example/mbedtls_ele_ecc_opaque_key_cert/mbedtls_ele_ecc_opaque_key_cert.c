@@ -42,7 +42,7 @@
 #include "app.h"
 
 #if defined(MBEDTLS_MCUX_ELE_S400_API)
-#include "sei/ele_mbedtls.h"
+#include "ecc_opaque/ele_mbedtls.h"
 #else
 #error "No port layer"
 #endif

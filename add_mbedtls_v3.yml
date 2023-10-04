@@ -74,14 +74,14 @@ middleware.mbedtls.port.ele_s400:
     allOf:
     - driver.s3mu
     - component.ele_crypto
-middleware.mbedtls.port.ele_s400_sei:
+middleware.mbedtls.port.ele_s400_ecc_opaque:
   section-type: component
   contents:
     repo_base_path: middleware/mbedtls
     project_base_path: mbedtls
     cc-include:
     - repo_relative_path: port/ele_s400
-    - repo_relative_path: port/ele_s400/sei
+    - repo_relative_path: port/ele_s400/ecc_opaque
     files:
     - source: port/ele_s400/ele_fw.h
     - source: port/ele_s400/ele_entropy.c
@@ -99,16 +99,16 @@ middleware.mbedtls.port.ele_s400_sei:
     - source: port/ele_s400/sha512_alt.c
     - source: port/ele_s400/sha512_alt.h
     - source: port/ele_s400/hmac_alt.c
-    - source: port/ele_s400/sei/ele_ecc_sei_mbedtls_config.h
-    - source: port/ele_s400/sei/ele_mbedtls.c
-    - source: port/ele_s400/sei/ele_mbedtls.h
-    - source: port/ele_s400/sei/ecdsa_alt.h
-    - source: port/ele_s400/sei/ecdsa_alt.c
-    - source: port/ele_s400/sei/pk_alt.c
+    - source: port/ele_s400/ecc_opaque/ele_ecc_opaque_mbedtls_config.h
+    - source: port/ele_s400/ecc_opaque/ele_mbedtls.c
+    - source: port/ele_s400/ecc_opaque/ele_mbedtls.h
+    - source: port/ele_s400/ecc_opaque/ecdsa_alt.h
+    - source: port/ele_s400/ecc_opaque/ecdsa_alt.c
+    - source: port/ele_s400/ecc_opaque/pk_alt.c
     configuration:
       cc-define:
         MBEDTLS_MCUX_ELE_S400_API: 
-        MBEDTLS_CONFIG_FILE: '"sei/ele_ecc_sei_mbedtls_config.h"'
+        MBEDTLS_CONFIG_FILE: '"ecc_opaque/ele_ecc_opaque_mbedtls_config.h"'
   belong_to: set.middleware.mbedtls
   section_info:
     description: mbedTLS port library for ELE S40x
@@ -739,7 +739,7 @@ middleware.mbedtls:
       - middleware.mbedtls.port.ksdk
       - middleware.mbedtls.port.sssapi
       - middleware.mbedtls.port.ele_s400
-      - middleware.mbedtls.port.ele_s400_sei
+      - middleware.mbedtls.port.ele_s400_ecc_opaque
       - middleware.mbedtls.port.els_pkc
 middleware.mbedtls.default_heap_stack:
   section-type: project_segment

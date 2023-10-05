@@ -35,6 +35,7 @@
 #include <mbedtls/sha512.h>
 #include <mcuxClEls.h>
 #include <mcuxClHash.h>
+#include <mcuxClHashModes.h>
 #include <mcuxClSession.h>
 
 #if !defined(MBEDTLS_SHA512_CTX_ALT) || !defined(MBEDTLS_SHA512_STARTS_ALT) || !defined(MBEDTLS_SHA512_UPDATE_ALT) || \

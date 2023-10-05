@@ -35,6 +35,7 @@
 #include <mbedtls/sha256.h>
 #include <mcuxClEls.h>
 #include <mcuxClHash.h>
+#include <mcuxClHashModes.h>
 #include <mcuxClSession.h>
 
 #include "mcux_els.h"

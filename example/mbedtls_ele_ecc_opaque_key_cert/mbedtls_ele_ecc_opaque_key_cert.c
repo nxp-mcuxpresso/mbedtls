@@ -223,6 +223,10 @@ int main( int argc, char *argv[] )
     mbedtls_mpi serial;
     size_t sig_len;
 
+    g_ele_ctx.key_store_id    = ELE_KEYSTORE_ID;
+    g_ele_ctx.key_store_nonce = ELE_KEYSTORE_NONCE;
+    g_ele_ctx.key_group_id    = ELE_KEYGROUP_ID;
+
     const char *pers = "crt example app";
 
     memset( digest, 0x2A, sizeof( digest ) );

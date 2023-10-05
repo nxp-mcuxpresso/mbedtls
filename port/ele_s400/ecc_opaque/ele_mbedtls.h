@@ -64,6 +64,9 @@ typedef struct
     bool is_keystore_opened;
     uint32_t cipher_handle;
     uint32_t mac_handle;
+    uint32_t key_store_nonce;
+    uint32_t key_store_id;
+    uint32_t key_group_id;
     mbedtls_ele_chunks_t keystore_chunks;
 } ele_ctx_t;
 

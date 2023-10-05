@@ -133,8 +133,8 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     /****************** Open Key Store ************************************/
 
     ele_keystore_t keystoreParam;
-    keystoreParam.id            = ELE_KEYSTORE_ID;
-    keystoreParam.nonce         = ELE_KEYSTORE_NONCE;
+    keystoreParam.id            = g_ele_ctx.key_store_id;
+    keystoreParam.nonce         = g_ele_ctx.key_store_nonce;
     keystoreParam.max_updates   = 0xff;
     keystoreParam.min_mac_check = false;
     keystoreParam.min_mac_len   = 0u;
@@ -147,7 +147,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
 
     /****************** Key Management Chunk Import ***********************/
-    if (ELE_ManageKeyGroup(S3MU, g_ele_ctx.key_management_handle, ELE_KEYGROUP_ID, kELE_keyMngImport, chunks_ptr->KeyGroupChunkData, chunks_ptr->KeyGroupSize) !=  kStatus_Success)
+    if (ELE_ManageKeyGroup(S3MU, g_ele_ctx.key_management_handle, g_ele_ctx.key_group_id, kELE_keyMngImport, chunks_ptr->KeyGroupChunkData, chunks_ptr->KeyGroupSize) !=  kStatus_Success)
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
 
     /****************** Reconstruct Public Key ****************************/

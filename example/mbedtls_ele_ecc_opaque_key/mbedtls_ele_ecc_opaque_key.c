@@ -151,6 +151,10 @@ int main( int argc, char *argv[] )
 
     memset( buf, 0x2A, sizeof( buf ) );
 
+    g_ele_ctx.key_store_id    = ELE_KEYSTORE_ID;
+    g_ele_ctx.key_store_nonce = ELE_KEYSTORE_NONCE;
+    g_ele_ctx.key_group_id    = ELE_KEYGROUP_ID;
+
 
     if( !mbedtls_ecdsa_can_do(MBEDTLS_ECP_DP_SECP256R1) )
         mbedtls_exit( 1 );
@@ -202,6 +206,10 @@ int main( int argc, char *argv[] )
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
     mbedtls_printf( "- *Success*\n\n" );
+
+    g_ele_ctx.key_store_id    = ELE_KEYSTORE_ID;
+    g_ele_ctx.key_store_nonce = ELE_KEYSTORE_NONCE;
+    g_ele_ctx.key_group_id    = ELE_KEYGROUP_ID;
 
     /* PK Parse ELE keyblob and load it into ELE */
     mbedtls_printf( "Read encrypted keyblob into ELE and open keystore and reconstruct Public key" );

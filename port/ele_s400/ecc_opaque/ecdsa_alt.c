@@ -204,8 +204,8 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
     {
         /****************** Create Key Store  *********************************/
         ele_keystore_t keystoreParam;
-        keystoreParam.id            = ELE_KEYSTORE_ID;
-        keystoreParam.nonce         = ELE_KEYSTORE_NONCE;
+        keystoreParam.id            = g_ele_ctx.key_store_id;
+        keystoreParam.nonce         = g_ele_ctx.key_store_nonce;
         keystoreParam.max_updates   = 0xff;
         keystoreParam.min_mac_check = false;
         keystoreParam.min_mac_len   = 0u;
@@ -239,7 +239,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
     NISTkeyGenParam.permitted_alg = kPermitted_ECDSA_SHA256;
     NISTkeyGenParam.pub_key_addr  = (uint32_t)pubKey;
     NISTkeyGenParam.pub_key_size  = pubKeyLen;
-    NISTkeyGenParam.key_group     = ELE_KEYGROUP_ID;
+    NISTkeyGenParam.key_group     = (uint16_t)g_ele_ctx.key_group_id;
 
     if (ELE_GenerateKey(S3MU, g_ele_ctx.key_management_handle, &NISTkeyGenParam, &ctx->key_id, &keySize, false, false) != kStatus_Success)
     {
@@ -269,7 +269,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
     g_ele_ctx.keystore_chunks.KeyStoreChunk = g_ele_ctx.keystore_chunks.KeyStoreChunkData; // Using global CTX for data
     g_ele_ctx.keystore_chunks.KeyGroupChunk = g_ele_ctx.keystore_chunks.KeyGroupChunkData; // Using global CTX for data
 
-    if (ELE_ExportChunks(S3MU, g_ele_ctx.key_management_handle, true, ELE_KEYGROUP_ID, ELE_KEYSTORE_MONOTONIC,(ele_chunks_t*)&g_ele_ctx.keystore_chunks) != kStatus_Success)
+    if (ELE_ExportChunks(S3MU, g_ele_ctx.key_management_handle, true, g_ele_ctx.key_group_id, ELE_KEYSTORE_MONOTONIC,(ele_chunks_t*)&g_ele_ctx.keystore_chunks) != kStatus_Success)
     {
         mbedtls_free(pubKey);
         if(g_ele_ctx.keystore_chunks.KeyStoreSize != 0u)

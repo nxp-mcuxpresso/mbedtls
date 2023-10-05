@@ -41,7 +41,7 @@
 #include "board.h"
 #include "app.h"
 
-#if defined(MBEDTLS_MCUX_ELE_S400_API)
+#if defined(MBEDTLS_MCUX_ELE_S400_API) && defined(NXP_ELE_ECC_OPAQUE_KEY)
 #include "ecc_opaque/ele_mbedtls.h"
 #else
 #error "No port layer"

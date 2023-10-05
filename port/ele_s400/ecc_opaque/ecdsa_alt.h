@@ -1,13 +1,18 @@
 /**
- * \file ecdsa.h
+ * \file ele_s400/ecc_opaque/ecdsa_alt.h
  *
- * \brief This file contains ECDSA definitions and functions.
+ * \brief This file contains alternative ECDSA definitions and functions.
  *
  * The Elliptic Curve Digital Signature Algorithm (ECDSA) is defined in
  * <em>Standards for Efficient Cryptography Group (SECG):
  * SEC1 Elliptic Curve Cryptography</em>.
  * The use of ECDSA for TLS is defined in <em>RFC-4492: Elliptic Curve
  * Cryptography (ECC) Cipher Suites for Transport Layer Security (TLS)</em>.
+ *
+ * \warning This implementation is not compatible with some of the other
+ * MbedTLS features (e.g. PK module key material loading/cert parsing for RSA).
+ * It is only intended to showcase P-256 opaque key handling via the EdgeLock
+ * Enclave (ELE).
  *
  */
 /*
@@ -44,10 +49,12 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+/* Guarding this file, so it can only be used when it's really meant to be */
+#if defined(NXP_ELE_ECC_OPAQUE_KEY)
+
 #include "mbedtls/ecp.h"
 #include "mbedtls/md.h"
 #include "ele_crypto.h"
-
 
 #if defined(MBEDTLS_ECDSA_ALT)
 /**
@@ -66,5 +73,6 @@ typedef struct mbedtls_ecdsa_context
 } mbedtls_ecdsa_context;
 #endif /* MBEDTLS_ECDSA_ALT */
 
-#endif /* MBEDTLS_ECDSA_ALT_H */
+#endif /* NXP_ELE_ECC_OPAQUE_KEY */
 
+#endif /* MBEDTLS_ECDSA_ALT_H */

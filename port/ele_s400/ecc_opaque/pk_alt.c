@@ -1,3 +1,14 @@
+/**
+ * \file ele_s400/ecc_opaque/pk_alt.c
+ *
+ * \brief This file contains alternative ECDSA definitions and functions.
+ *
+ * \warning This implementation is not compatible with some of the other
+ * MbedTLS features (e.g. PK module key material loading/cert parsing for RSA).
+ * It is only intended to showcase P-256 opaque key handling via the EdgeLock
+ * Enclave (ELE).
+ *
+ */
 /*
  * Copyright 2022 NXP
  * All rights reserved.
@@ -10,6 +21,9 @@
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
+
+/* Guarding this file, so it can only be used when it's really meant to be */
+#if defined(NXP_ELE_ECC_OPAQUE_KEY)
 
 #include "ele_crypto.h"
 #include "ele_mbedtls.h"
@@ -166,3 +180,4 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
 }
 #endif /* MBEDTLS_PK_KEY_ALT */
 
+#endif /* NXP_ELE_ECC_OPAQUE_KEY */

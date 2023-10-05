@@ -1,3 +1,14 @@
+/**
+ * \file ele_s400/ecc_opaque/ecdsa_alt.c
+ *
+ * \brief This file contains alternative ECDSA definitions and functions.
+ *
+ * \warning This implementation is not compatible with some of the other
+ * MbedTLS features (e.g. PK module key material loading/cert parsing for RSA).
+ * It is only intended to showcase P-256 opaque key handling via the EdgeLock
+ * Enclave (ELE).
+ *
+ */
 /*
  *  Elliptic curve DSA
  *
@@ -36,6 +47,10 @@
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
+
+/* Guarding this file, so it can only be used when it's really meant to be */
+#if defined(NXP_ELE_ECC_OPAQUE_KEY)
+
 #if defined(MBEDTLS_ECDSA_C)
 
 #include "ele_crypto.h"
@@ -514,3 +529,5 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
 #endif /* defined(MBEDTLS_ECDSA_ALT) */
 
 #endif /* MBEDTLS_ECDSA_C */
+
+#endif /* NXP_ELE_ECC_OPAQUE_KEY */

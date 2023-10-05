@@ -1,3 +1,16 @@
+/**
+ * \file ele_s400/ecc_opaque/ele_mbedtls.h
+ *
+ * This is an alternate file to the regular ele_s400/ele_mbedtls.h,
+ * containing declarations specific to the handling of opaque
+ * keys for P-256 curves.
+ *
+ * \warning This implementation is not compatible with some of the other
+ * MbedTLS features (e.g. PK module key material loading/cert parsing for RSA).
+ * It is only intended to showcase P-256 opaque key handling via the EdgeLock
+ * Enclave (ELE).
+ *
+ */
 /*
  * Copyright 2022 NXP
  * All rights reserved.
@@ -5,6 +18,9 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
+/* Guarding this file, so it can only be used when it's really meant to be */
+#if defined(NXP_ELE_ECC_OPAQUE_KEY)
 
 #ifndef ELE_MBEDTLS_H
 #define ELE_MBEDTLS_H
@@ -34,7 +50,7 @@ typedef struct _mbedtls_ele_chunks_t
     uint32_t ECDSA_KeyID;         /*!< Randomly generated ELE KEY ID reference */
 } mbedtls_ele_chunks_t;
 
-typedef struct 
+typedef struct
 {
     uint32_t session_handle;
     uint32_t key_store_handle;
@@ -92,3 +108,5 @@ status_t mbedtls_mcux_rng_init(void);
 #endif
 
 #endif /* ELE_MBEDTLS_H */
+
+#endif /* NXP_ELE_ECC_OPAQUE_KEY */

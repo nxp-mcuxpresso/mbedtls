@@ -1,3 +1,16 @@
+/**
+ * \file ele_s400/ecc_opaque/ele_mbedtls.c
+ *
+ * This is an alternate file to the regular ele_s400/ele_mbedtls.c,
+ * containing definitions specific to the handling of opaque
+ * keys for P-256 curves.
+ *
+ * \warning This implementation is not compatible with some of the other
+ * MbedTLS features (e.g. PK module key material loading/cert parsing for RSA).
+ * It is only intended to showcase P-256 opaque key handling via the EdgeLock
+ * Enclave (ELE).
+ *
+ */
 /*
  * Copyright 2022 NXP
  * All rights reserved.
@@ -11,6 +24,9 @@
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
+
+/* Guarding this file, so it can only be used when it's really meant to be */
+#if defined(NXP_ELE_ECC_OPAQUE_KEY)
 
 #if defined(MBEDTLS_THREADING_C)
 /* Threading mutex implementations for mbedTLS. */
@@ -347,3 +363,5 @@ static void CRYPTO_ConfigureThreadingMcux(void)
                               mcux_mbedtls_mutex_unlock);
 }
 #endif /* defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) */
+
+#endif /* NXP_ELE_ECC_OPAQUE_KEY */

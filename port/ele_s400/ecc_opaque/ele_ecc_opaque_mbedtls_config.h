@@ -473,7 +473,22 @@
 #define MBEDTLS_ECDSA_ALT
 #define MBEDTLS_ECDSA_GENKEY_ALT
 #define MBEDTLS_ECP_GENKEY_ALT
-#define MBEDTLS_PK_KEY_ALT   
+#define MBEDTLS_PK_KEY_ALT
+
+/**
+ * \def NXP_ELE_ECC_OPAQUE_KEY
+ *
+ * NXP prorietary macro used for guarding implementation files for
+ * the P-256 ECC opaque key showcase examples.
+ *
+ * \warning This macro is only added to this specific ECC opaque key MbedTLS
+ * configuration file. It is used to guard the implementation files for the
+ * ECC opaque key use case, as it is not compatible with the rest of the ECC
+ * and PK MbedTLS APIs. The impacted files are separated to their own subfolder
+ * and should not be used as regular _alt files for the ordinary ELE
+ * port layer.
+ */
+#define NXP_ELE_ECC_OPAQUE_KEY
 
 /**
  * \def MBEDTLS_ECP_INTERNAL_ALT

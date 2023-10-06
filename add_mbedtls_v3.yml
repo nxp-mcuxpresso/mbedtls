@@ -108,7 +108,7 @@ middleware.mbedtls.port.ele_s400_ecc_opaque:
     configuration:
       cc-define:
         MBEDTLS_MCUX_ELE_S400_API: 
-        MBEDTLS_CONFIG_FILE: '"ecc_opaque/ele_ecc_opaque_mbedtls_config.h"'
+        MBEDTLS_CONFIG_FILE: '"ele_ecc_opaque_mbedtls_config.h"'
   belong_to: set.middleware.mbedtls
   section_info:
     description: mbedTLS port library for ELE S40x

@@ -373,7 +373,7 @@ mbedtls_ele_ecc_opaque_key:
                 PRINTF_ADVANCED_ENABLE: 1
                 PRINTF_FLOAT_ENABLE: 1
                 FREESCALE_KSDK_BM:
-                MBEDTLS_CONFIG_FILE: '"ecc_opaque/ele_ecc_opaque_mbedtls_config.h"'
+                MBEDTLS_CONFIG_FILE: '"ele_ecc_opaque_mbedtls_config.h"'
         armgcc:
           config:
             __remove__:
@@ -445,7 +445,7 @@ mbedtls_ele_ecc_opaque_key_cert:
                 PRINTF_ADVANCED_ENABLE: 1
                 PRINTF_FLOAT_ENABLE: 1
                 FREESCALE_KSDK_BM:
-                MBEDTLS_CONFIG_FILE: '"ecc_opaque/ele_ecc_opaque_mbedtls_config.h"'
+                MBEDTLS_CONFIG_FILE: '"ele_ecc_opaque_mbedtls_config.h"'
         armgcc:
           config:
             __remove__:

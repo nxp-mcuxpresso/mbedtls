@@ -387,6 +387,8 @@
 //#define MBEDTLS_DHM_ALT
 //#define MBEDTLS_ECJPAKE_ALT
 //#define MBEDTLS_GCM_ALT
+#define MBEDTLS_HMAC_ONE_GO_ALT /* This one go implementation support only SHA2-256 256bit key */
+//#define MBEDTLS_GCM_ONE_GO_ALT /* Disable by default because of ctx conflict with streaming */
 //#define MBEDTLS_NIST_KW_ALT
 //#define MBEDTLS_MD5_ALT
 //#define MBEDTLS_POLY1305_ALT

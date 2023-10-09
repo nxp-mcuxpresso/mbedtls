@@ -58,6 +58,7 @@ middleware.mbedtls.port.ele_s400:
     configuration:
       cc-define:
         MBEDTLS_MCUX_ELE_S400_API: 
+        MBEDTLS_CONFIG_FILE: '"ele_s400_mbedtls_config.h"'
   belong_to: set.middleware.mbedtls
   section_info:
     description: mbedTLS port library for ELE S40x

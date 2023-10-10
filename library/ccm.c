@@ -33,6 +33,7 @@
 #include "mbedtls/ccm.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "mbedtls/constant_time.h"
 
 /* NXP added */
 #if defined(MBEDTLS_CCM_USE_AES_CBC_MAC)

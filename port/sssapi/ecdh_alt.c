@@ -196,7 +196,7 @@ static int ecdh_compute_shared_restartable(mbedtls_ecp_group *grp,
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
 
-    /* Check if private key is sw or S200 generated */
+    /* Check if private key is sw or ELE200 generated */
     if ((d->s == MBEDTLS_MPI_S_HAVE_OBJECT) && (d->n == MBEDTLS_MPI_N_HAVE_OBJECT)) {
         pSecretKey = (sss_sscp_object_t *) (uintptr_t) d->p;
         bFreeSecretKey = true;

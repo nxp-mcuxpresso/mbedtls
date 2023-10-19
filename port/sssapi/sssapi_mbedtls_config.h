@@ -37,9 +37,9 @@
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
 
-/* Define ALT functions for MBEDTLS_NXP_SSSAPI and SENTINEL unit. */
+/* Define ALT functions for MBEDTLS_NXP_SSSAPI and ELE unit. */
 #if defined(MBEDTLS_NXP_SSSAPI)
-#if defined(MBEDTLS_NXP_SENTINEL200) || defined(MBEDTLS_NXP_SENTINEL300)
+#if defined(MBEDTLS_NXP_ELE200) || defined(MBEDTLS_NXP_ELE300)
 #define MBEDTLS_AES_ALT
 #define MBEDTLS_AES_SETKEY_ENC_ALT
 #define MBEDTLS_AES_SETKEY_DEC_ALT
@@ -896,7 +896,7 @@
  *
  * A man-in-the-browser attacker can recover authentication tokens sent through
  * a TLS connection using a 3DES based cipher suite (see "On the Practical
- * (In-)Security of 64-bit Block Ciphers" by Karthikeyan Bhargavan and Gaëtan
+ * (In-)Security of 64-bit Block Ciphers" by Karthikeyan Bhargavan and Gatan
  * Leurent, see https://sweet32.info/SWEET32_CCS16.pdf). If this attack falls
  * in your threat model or you are unsure, then you should keep this option
  * enabled to remove 3DES based cipher suites.

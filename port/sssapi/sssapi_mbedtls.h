@@ -11,10 +11,10 @@
 #ifndef SSSAPI_MBEDTLS_H
 #define SSSAPI_MBEDTLS_H
 
-#if defined(MBEDTLS_NXP_SENTINEL200)
-#define SSS_SUBSYSTEM (kType_SSS_Sentinel200)
-#elif defined(MBEDTLS_NXP_SENTINEL300)
-#define SSS_SUBSYSTEM (kType_SSS_Sentinel300)
+#if defined(MBEDTLS_NXP_ELEMU200)
+#define SSS_SUBSYSTEM (kType_SSS_Elemu200)
+#elif defined(MBEDTLS_NXP_ELEMU300)
+#define SSS_SUBSYSTEM (kType_SSS_Elemu300)
 #else
 #define SSS_SUBSYSTEM (kType_SSS_Software)
 #endif
@@ -57,10 +57,10 @@ status_t CRYPTO_ReinitHardware(void);
 #ifndef SSSAPI_MBEDTLS_H
 #define SSSAPI_MBEDTLS_H
 
-#if defined(MBEDTLS_NXP_SENTINEL200)
-#define SSS_SUBSYSTEM (kType_SSS_Sentinel200)
-#elif defined(MBEDTLS_NXP_SENTINEL300)
-#define SSS_SUBSYSTEM (kType_SSS_Sentinel300)
+#if defined(MBEDTLS_NXP_ELEMU200)
+#define SSS_SUBSYSTEM (kType_SSS_Elemu200)
+#elif defined(MBEDTLS_NXP_ELEMU300)
+#define SSS_SUBSYSTEM (kType_SSS_Elemu300)
 #else
 #define SSS_SUBSYSTEM (kType_SSS_Software)
 #endif

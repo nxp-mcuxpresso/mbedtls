@@ -272,7 +272,7 @@ middleware.mbedtls.port.sssapi:
     configuration:
       cc-define:
         MBEDTLS_NXP_SSSAPI: 
-        MBEDTLS_NXP_SENTINEL200: 
+        MBEDTLS_NXP_ELE200: 
         MBEDTLS_CONFIG_FILE: '"sssapi_mbedtls_config.h"'
   belong_to: set.middleware.mbedtls
   section_info:
@@ -288,7 +288,7 @@ middleware.mbedtls.port.sssapi:
   dependency:
     allOf:
     - middleware.mbedtls
-    - middleware.secure-subsystem.snt.port_kw45_k4w1
+    - middleware.secure-subsystem.elemu.port_kw45_k4w1
     - device:
       - K32W1480
       - KW45B41Z52

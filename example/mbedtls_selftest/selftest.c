@@ -359,10 +359,10 @@ static int bench_print_features(void)
     text = "HASHCRYPT HW accelerated";
 #elif defined(MBEDTLS_FREESCALE_CAAM_SHA256)
     text = "CAAM HW accelerated";
-#elif defined(MBEDTLS_NXP_SENTINEL200)
-    text = "S200 HW accelerated";
-#elif defined(MBEDTLS_NXP_SENTINEL300)
-    text = "S300 HW accelerated";
+#elif defined(MBEDTLS_NXP_ELE200)
+    text = "ELE200 HW accelerated";
+#elif defined(MBEDTLS_NXP_ELE300)
+    text = "ELE300 HW accelerated";
 #elif defined(MBEDTLS_MCUX_ELS_SHA256) && defined(MBEDTLS_MCUX_ELS_SHA512)
     text = "ELS HW accelerated SHA256 and SHA512";
 #elif defined(MBEDTLS_MCUX_ELS_SHA256)
@@ -389,10 +389,10 @@ static int bench_print_features(void)
     text = "HASHCRYPT HW accelerated";
 #elif defined(MBEDTLS_FREESCALE_CAAM_AES)
     text = "CAAM HW accelerated";
-#elif defined(MBEDTLS_NXP_SENTINEL200)
-    text = "S200 HW accelerated ECB, CBC, CCM and CMAC";
-#elif defined(MBEDTLS_NXP_SENTINEL300)
-    text = "SW AES, S300 HW accelerated CCM and CMAC";
+#elif defined(MBEDTLS_NXP_ELE200)
+    text = "ELE200 HW accelerated ECB, CBC, CCM and CMAC";
+#elif defined(MBEDTLS_NXP_ELE300)
+    text = "SW AES, ELE300 HW accelerated CCM and CMAC";
 #elif defined(MBEDTLS_MCUX_ELS_AES)
     text = "ELS HW accelerated";
 #elif defined(MBEDTLS_MCUX_ELE_S400)
@@ -437,10 +437,10 @@ static int bench_print_features(void)
     text = "CASPER HW accelerated ECC256/384/521 and RSA verify";
 #elif defined(MBEDTLS_FREESCALE_CAAM_PKHA)
     text = "CAAM HW accelerated";
-#elif defined(MBEDTLS_NXP_SENTINEL200)
-    text = "S200 HW accelerated ECDSA and ECDH";
-#elif defined(MBEDTLS_NXP_SENTINEL300)
-    text = "S300 HW accelerated ECDSA and ECDH";
+#elif defined(MBEDTLS_NXP_ELE200)
+    text = "ELE200 HW accelerated ECDSA and ECDH";
+#elif defined(MBEDTLS_NXP_ELE300)
+    text = "ELE200 HW accelerated ECDSA and ECDH";
 #elif defined(MBEDTLS_MCUX_USE_PKC)
     text = "PKC HW accelerated";
 #elif defined(MBEDTLS_MCUX_ELE_S400)

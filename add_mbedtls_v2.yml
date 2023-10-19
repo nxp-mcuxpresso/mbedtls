@@ -287,7 +287,7 @@ middleware.mbedtls.port.els_pkc.devices:
 middleware.mbedtls.port.sssapi:
   section-type: component
   __requires__:
-  - middleware.mbedtls.ui_control middleware.mbedtls.port.sssapi.devices middleware.mbedtls middleware.secure-subsystem.snt.port_kw45_k4w1
+  - middleware.mbedtls.ui_control middleware.mbedtls.port.sssapi.devices middleware.mbedtls middleware.secure-subsystem.elemu.port_kw45_k4w1
   configuration:
     tools:
       __common__:
@@ -296,7 +296,7 @@ middleware.mbedtls.port.sssapi:
   contents:
     cc-define:
       MBEDTLS_NXP_SSSAPI:
-      MBEDTLS_NXP_SENTINEL200:
+      MBEDTLS_NXP_ELE200:
       MBEDTLS_CONFIG_FILE: '"sssapi_mbedtls_config.h"'
     repo_base_path: middleware/mbedtls
     project_base_path: mbedtls
@@ -784,7 +784,7 @@ middleware.mbedtls.ui_control:
   - driver.trng.support
   - driver.rnga.support
   - driver.rng.support
-  - driver.snt.support
+  - driver.elemu.support
   - middleware.mmcau.ui_control
   - component.css_pkc.ui_control
   - component.ele_crypto.ui_control

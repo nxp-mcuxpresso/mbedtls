@@ -440,22 +440,6 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
 }
 #endif /* MBEDTLS_ECDSA_GENKEY_ALT */
 
-int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid)
-{
-    switch (gid) {
-#ifdef MBEDTLS_ECP_DP_CURVE25519_ENABLED
-        case MBEDTLS_ECP_DP_CURVE25519:
-            return 0;
-#endif
-#ifdef MBEDTLS_ECP_DP_CURVE448_ENABLED
-        case MBEDTLS_ECP_DP_CURVE448:
-            return 0;
-#endif
-        default:
-            return 1;
-    }
-}
-
 /*
  * Compute ECDSA signature of a hashed message
  */

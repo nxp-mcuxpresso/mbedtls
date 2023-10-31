@@ -5672,7 +5672,17 @@ int mbedtls_sha1_starts_ret(mbedtls_sha1_context *ctx)
 int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char data[64])
 {
     status_t ret = kStatus_Fail;
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_hashcrypt_mutex)) != 0) {
+        return ret;
+    }
+#endif
     ret          = HASHCRYPT_SHA_Update(HASHCRYPT, ctx, data, 64);
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_hashcrypt_mutex)) != 0) {
+        return ret;
+    }
+#endif
     if (ret != kStatus_Success) {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
     }
@@ -5685,7 +5695,17 @@ int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx, const unsigned char
 int mbedtls_sha1_update_ret(mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen)
 {
     status_t ret = kStatus_Fail;
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_hashcrypt_mutex)) != 0) {
+        return ret;
+    }
+#endif
     ret          = HASHCRYPT_SHA_Update(HASHCRYPT, ctx, input, ilen);
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_hashcrypt_mutex)) != 0) {
+        return ret;
+    }
+#endif
     if (ret != kStatus_Success) {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
     }
@@ -5699,7 +5719,17 @@ int mbedtls_sha1_finish_ret(mbedtls_sha1_context *ctx, unsigned char output[20])
 {
     status_t ret      = kStatus_Fail;
     size_t outputSize = 20;
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_hashcrypt_mutex)) != 0) {
+        return ret;
+    }
+#endif
     ret               = HASHCRYPT_SHA_Finish(HASHCRYPT, ctx, output, &outputSize);
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_hashcrypt_mutex)) != 0) {
+        return ret;
+    }
+#endif
     if (ret != kStatus_Success) {
         return MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED;
     }
@@ -6448,7 +6478,17 @@ int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
 int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned char data[64])
 {
     status_t ret = kStatus_Fail;
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_hashcrypt_mutex)) != 0) {
+        return ret;
+    }
+#endif
     ret          = HASHCRYPT_SHA_Update(HASHCRYPT, ctx, data, 64);
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_hashcrypt_mutex)) != 0) {
+        return ret;
+    }
+#endif
     if (ret != kStatus_Success) {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
     }
@@ -6461,7 +6501,17 @@ int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx, const unsigned 
 int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen)
 {
     status_t ret = kStatus_Fail;
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_hashcrypt_mutex)) != 0) {
+        return ret;
+    }
+#endif
     ret          = HASHCRYPT_SHA_Update(HASHCRYPT, ctx, input, ilen);
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_hashcrypt_mutex)) != 0) {
+        return ret;
+    }
+#endif
     if (ret != kStatus_Success) {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
     }
@@ -6474,8 +6524,18 @@ int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *
 int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx, unsigned char output[32])
 {
     status_t ret      = kStatus_Fail;
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_hashcrypt_mutex)) != 0) {
+        return ret;
+    }
+#endif
     size_t outputSize = 32;
     ret               = HASHCRYPT_SHA_Finish(HASHCRYPT, ctx, output, &outputSize);
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_hashcrypt_mutex)) != 0) {
+        return ret;
+    }
+#endif
     if (ret != kStatus_Success) {
         return MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED;
     }

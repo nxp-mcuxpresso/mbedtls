@@ -131,6 +131,13 @@ status_t CRYPTO_InitHardware(void)
             }
         }
 
+        /****************** Initialize EdgeLock services ************/
+        result = ELE_InitServices(S3MU);
+        if (result != kStatus_Success)
+        {
+            break;
+        }
+
         /****************** Start RNG ***********************/
         result = ELE_StartRng(S3MU);
         if (result != kStatus_Success) {

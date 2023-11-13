@@ -40,13 +40,13 @@
 /*! @brief ELE Chunks container structure. */
 typedef struct _mbedtls_ele_chunks_t
 {
-    uint32_t MasterChunk[MASTER_CHUNK_SIZE / sizeof(uint32_t)]; /*!< Master storage chunk. Always 96 Bytes */
+    uint32_t MasterChunk[MASTER_CHUNK_SIZE / sizeof(uint32_t)]; /*!< Master storage chunk. Always 100 Bytes */
     uint32_t *KeyStoreChunk;  /*!< Key store chunk destination pointer */
     uint32_t *KeyGroupChunk; /*!< Key group chunk destination pointer */
     size_t KeyStoreSize;     /*!< Key store chunk size, set by SW if HEAP for key store destination is used */
     size_t KeyGroupSize;     /*!< Key group chunk size, set by SW if HEAP for key group destination is used */
-    uint32_t KeyStoreChunkData[96u / sizeof(uint32_t)];  /*!< Key store chunk destination (for one ECC P256 keypair it's 92 Bytes) */
-    uint32_t KeyGroupChunkData[144u / sizeof(uint32_t)]; /*!< Key group chunk destination (for one ECC P256 keypair it's 144 Bytes) */
+    uint32_t KeyStoreChunkData[(896u / sizeof(uint32_t))]; /*!< Key store chunk destination (for one ECC P256 keypair it's 896 Bytes) */
+    uint32_t KeyGroupChunkData[(152u / sizeof(uint32_t))]; /*!< Key group chunk destination (for one ECC P256 keypair it's 152 Bytes) */
     uint32_t ECDSA_KeyID;         /*!< Randomly generated ELE KEY ID reference */
 } mbedtls_ele_chunks_t;
 

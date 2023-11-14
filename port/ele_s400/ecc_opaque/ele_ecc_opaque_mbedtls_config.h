@@ -480,7 +480,7 @@
 /**
  * \def NXP_ELE_ECC_OPAQUE_KEY
  *
- * NXP prorietary macro used for guarding implementation files for
+ * NXP proprietary macro used for guarding implementation files for
  * the P-256 ECC opaque key showcase examples.
  *
  * \warning This macro is only added to this specific ECC opaque key MbedTLS

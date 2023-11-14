@@ -292,7 +292,7 @@ mbedtls_benchmark:
       - boards/${board}/mbedtls_examples/mbedtls_benchmark/board.readme
       - middleware/mbedtls/example/mbedtls_benchmark/mbedtls_benchmark.readme
       category: mbedtls_examples
-      brief: The mbdedTLS Benchmark demo application performs cryptographic algorithm
+      brief: The mbedTLS Benchmark demo application performs cryptographic algorithm
         benchmarking and prints results to the terminal.
     project-root-path: boards/${board}/mbedtls_examples/mbedtls_benchmark/${multicore_foldername}
     configuration:
@@ -361,7 +361,7 @@ mbedtls_ele_ecc_opaque_key:
       - boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/board.readme
       - middleware/mbedtls/example/mbedtls_ele_ecc_opaque_key/mbedtls_ele_ecc_opaque_key.readme
       category: mbedtls_examples
-      brief: The mbdedTLS ECC opaque key demo application performs ECDSA algorithm
+      brief: The mbedTLS ECC opaque key demo application performs ECDSA algorithm
         operations for specific opaque use case with one ECDSA P256 key pair.
     project-root-path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key/${multicore_foldername}
     configuration:
@@ -433,7 +433,7 @@ mbedtls_ele_ecc_opaque_key_cert:
       - boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/board.readme
       - middleware/mbedtls/example/mbedtls_ele_ecc_opaque_key_cert/mbedtls_ele_ecc_opaque_key_cert.readme
       category: mbedtls_examples
-      brief: The mbdedTLS ECC write certificate demo application performs ECDSA algorithm
+      brief: The mbedTLS ECC write certificate demo application performs ECDSA algorithm
         operations for specific opaque use case with one ECDSA P256 key pair to self-sign an X509 certificate.
     project-root-path: boards/${board}/mbedtls_examples/mbedtls_ele_ecc_opaque_key_cert/${multicore_foldername}
     configuration:

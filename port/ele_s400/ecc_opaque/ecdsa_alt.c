@@ -118,29 +118,6 @@ void mbedtls_ecdsa_free(mbedtls_ecdsa_context *ctx)
 
 }
 
-#if defined(MBEDTLS_ECDSA_SIGN_ALT)     || \
-    defined(MBEDTLS_ECDSA_VERIFY_ALT)
-int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid)
-{
-    switch (gid)
-    {
-#ifdef MBEDTLS_ECP_DP_CURVE25519_ENABLED
-        case MBEDTLS_ECP_DP_CURVE25519:
-            return 0;
-#endif
-#ifdef MBEDTLS_ECP_DP_CURVE448_ENABLED
-        case MBEDTLS_ECP_DP_CURVE448:
-            return 0;
-#endif
-        case MBEDTLS_ECP_DP_SECP256R1:
-            return 1;
-
-        default:
-            return 0;
-    }
-}
-#endif /* MBEDTLS_ECDSA_SIGN_ALT || MBEDTLS_ECDSA_VERIFY_ALT */
-
 int mbedtls_ecdsa_from_keypair( mbedtls_ecdsa_context *ctx, const mbedtls_ecp_keypair *key )
 {
     int ret;

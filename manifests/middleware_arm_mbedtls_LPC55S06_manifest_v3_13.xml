@@ -9,37 +9,37 @@
     <definition extID="platform.drivers.hashcrypt.LPC55S06"/>
     <definition extID="utility.debug_console.LPC55S06"/>
   </externalDefinitions>
-  <ksdk id="MCUXpressoSDK2140_middleware_arm_mbedtls_LPC55S06_manifest_v3_13" name="MCUXpressoSDK2140_middleware_arm_mbedtls_LPC55S06_manifest_v3_13" version="2.14.0"/>
+  <ksdk id="MCUXpressoSDK2140_middleware_arm_mbedtls_LPC55S06_manifest_v3_13" name="MCUXpressoSDK2140_middleware_arm_mbedtls_LPC55S06_manifest_v3_13" version="2.14.0" revision="2.14.0"/>
   <components>
-    <component id="middleware.mbedtls.template.LPC55S06" name="mbedtls_template" brief="mbedTLS Template" version="2.28.3" full_name="mbedTLS Template" devices="LPC55S06" category="Security/mbedTLS library" user_visible="false" type="project_template" package_base_path="../middleware/mbedtls" project_base_path="mbedtls">
+    <component id="middleware.mbedtls.template.LPC55S06" name="mbedtls_template" brief="mbedTLS Template" version="2.28.3" full_name="mbedTLS Template" devices="LPC55S06" category="Security/mbedTLS library" user_visible="false" type="project_template" package_base_path=".././" project_base_path="mbedtls">
       <defines>
         <define name="MBEDTLS_CONFIG_FILE" value="'&quot;ksdk_mbedtls_config.h&quot;'"/>
       </defines>
-      <source relative_path="../../port/ksdk" project_relative_path="port/ksdk" config="true" type="c_include">
+      <source relative_path="./port/ksdk" project_relative_path="port/ksdk" config="true" type="c_include">
         <files mask="ksdk_mbedtls_config.h"/>
       </source>
       <source toolchain="armgcc" relative_path="./" type="workspace">
         <files mask="middleware_mbedtls_template.cmake" hidden="true"/>
       </source>
       <include_paths>
-        <include_path relative_path="../../port/ksdk" project_relative_path="port/ksdk" type="c_include"/>
+        <include_path relative_path="./port/ksdk" project_relative_path="port/ksdk" type="c_include"/>
       </include_paths>
     </component>
-    <component id="middleware.mbedtls.els_pkc.config.LPC55S06" name="els_pkc_config" brief="els_pkc config" version="2.28.3" full_name="els_pkc config" devices="LPC55S06" category="Security/mbedTLS library" user_visible="false" type="software_component" package_base_path="../middleware/mbedtls" project_base_path="mbedtls">
+    <component id="middleware.mbedtls.els_pkc.config.LPC55S06" name="els_pkc_config" brief="els_pkc config" version="2.28.3" full_name="els_pkc config" devices="LPC55S06" category="Security/mbedTLS library" user_visible="false" type="software_component" package_base_path=".././" project_base_path="mbedtls">
       <defines>
         <define name="MBEDTLS_CONFIG_FILE" value="'&quot;els_pkc_mbedtls_config.h&quot;'"/>
       </defines>
-      <source relative_path="../../port/pkc" project_relative_path="port/pkc" config="true" type="c_include">
+      <source relative_path="./port/pkc" project_relative_path="port/pkc" config="true" type="c_include">
         <files mask="els_pkc_mbedtls_config.h"/>
       </source>
       <source toolchain="armgcc" relative_path="./" type="workspace">
         <files mask="middleware_mbedtls_els_pkc_config.cmake" hidden="true"/>
       </source>
       <include_paths>
-        <include_path relative_path="../../port/pkc" project_relative_path="port/pkc" type="c_include"/>
+        <include_path relative_path="./port/pkc" project_relative_path="port/pkc" type="c_include"/>
       </include_paths>
     </component>
-    <component id="middleware.mbedtls.port.ksdk.LPC55S06" name="mbedtls_ksdk" brief="mbedTLS port library for KPSDK" version="2.28.3" full_name="MbedTLS MCUX SDK port layer" devices="LPC55S06" category="Security/mbedTLS library" user_visible="true" type="middleware" package_base_path="../middleware/mbedtls" project_base_path="mbedtls">
+    <component id="middleware.mbedtls.port.ksdk.LPC55S06" name="mbedtls_ksdk" brief="mbedTLS port library for KPSDK" version="2.28.3" full_name="MbedTLS MCUX SDK port layer" devices="LPC55S06" category="Security/mbedTLS library" user_visible="true" type="middleware" package_base_path=".././" project_base_path="mbedtls">
       <dependencies>
         <all>
           <component_dependency value="middleware.mbedtls.LPC55S06"/>
@@ -49,7 +49,7 @@
           <component_dependency value="platform.drivers.hashcrypt.LPC55S06"/>
         </all>
       </dependencies>
-      <source relative_path="../../port/ksdk" project_relative_path="port/ksdk" type="src">
+      <source relative_path="./port/ksdk" project_relative_path="port/ksdk" type="src">
         <files mask="ksdk_mbedtls.c"/>
         <files mask="des_alt.c"/>
         <files mask="aes_alt.c"/>
@@ -57,7 +57,7 @@
         <files mask="ecp_curves_alt.c"/>
         <files mask="ecp_alt_ksdk.c"/>
       </source>
-      <source relative_path="../../port/ksdk" project_relative_path="port/ksdk" type="c_include">
+      <source relative_path="./port/ksdk" project_relative_path="port/ksdk" type="c_include">
         <files mask="ksdk_mbedtls.h"/>
         <files mask="ksdk_mbedtls_config.h"/>
         <files mask="sha1_alt.h"/>
@@ -72,17 +72,17 @@
         <files mask="middleware_mbedtls_port_ksdk.cmake" hidden="true"/>
       </source>
       <include_paths>
-        <include_path relative_path="../../port/ksdk" project_relative_path="port/ksdk" type="c_include"/>
+        <include_path relative_path="./port/ksdk" project_relative_path="port/ksdk" type="c_include"/>
       </include_paths>
     </component>
-    <component id="middleware.mbedtls.LPC55S06" name="mbedtls" brief="mbedTLS library" version="2.28.3" full_name="MbedTLS open source SSL library" devices="LPC55S06" category="Security/mbedTLS library" user_visible="true" type="middleware" package_base_path="../middleware/mbedtls" project_base_path="mbedtls">
+    <component id="middleware.mbedtls.LPC55S06" name="mbedtls" brief="mbedTLS library" version="2.28.3" full_name="MbedTLS open source SSL library" devices="LPC55S06" category="Security/mbedTLS library" user_visible="true" type="middleware" package_base_path=".././" project_base_path="mbedtls">
       <dependencies>
         <all>
           <component_dependency value="utility.debug_console.LPC55S06"/>
           <component_dependency value="middleware.mbedtls.port.ksdk.LPC55S06"/>
         </all>
       </dependencies>
-      <source relative_path="../../include/mbedtls" project_relative_path="include/mbedtls" type="c_include">
+      <source relative_path="./include/mbedtls" project_relative_path="include/mbedtls" type="c_include">
         <files mask="aes.h"/>
         <files mask="aesni.h"/>
         <files mask="arc4.h"/>
@@ -165,7 +165,7 @@
         <files mask="x509_csr.h"/>
         <files mask="xtea.h"/>
       </source>
-      <source relative_path="../../include/psa" project_relative_path="include/psa" type="c_include">
+      <source relative_path="./include/psa" project_relative_path="include/psa" type="c_include">
         <files mask="crypto.h"/>
         <files mask="crypto_builtin_composites.h"/>
         <files mask="crypto_builtin_primitives.h"/>
@@ -182,7 +182,7 @@
         <files mask="crypto_types.h"/>
         <files mask="crypto_values.h"/>
       </source>
-      <source relative_path="../../library" project_relative_path="library" type="src">
+      <source relative_path="./library" project_relative_path="library" type="src">
         <files mask="aes.c"/>
         <files mask="aesni.c"/>
         <files mask="arc4.c"/>
@@ -280,7 +280,7 @@
         <files mask="x509write_csr.c"/>
         <files mask="xtea.c"/>
       </source>
-      <source relative_path="../../library" project_relative_path="library" type="c_include">
+      <source relative_path="./library" project_relative_path="library" type="c_include">
         <files mask="check_crypto_config.h"/>
         <files mask="common.h"/>
         <files mask="constant_time_internal.h"/>
@@ -310,8 +310,8 @@
         <files mask="middleware_mbedtls.cmake" hidden="true"/>
       </source>
       <include_paths>
-        <include_path relative_path="../../include" project_relative_path="include" type="c_include"/>
-        <include_path relative_path="../../library" project_relative_path="library" type="c_include"/>
+        <include_path relative_path="./include" project_relative_path="include" type="c_include"/>
+        <include_path relative_path="./library" project_relative_path="library" type="c_include"/>
       </include_paths>
     </component>
   </components>

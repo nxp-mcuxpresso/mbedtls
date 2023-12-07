@@ -194,6 +194,8 @@ middleware.mbedtls.port.els_pkc:
       - MCXN547
       - MCXN946
       - MCXN947
+      - MCXN235
+      - MCXN236
     - middleware.mbedtls.port.els
     - component.els_pkc
     - middleware.mbedtls.els_pkc.config

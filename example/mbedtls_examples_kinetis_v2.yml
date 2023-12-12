@@ -183,7 +183,7 @@ mbedtls_selftest_thread:
         project_path: "${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}"
   section-type: application
   __requires__:
-  - driver.port middleware.mbedtls.default_heap_stack middleware.mbedtls driver.clock middleware.freertos-kernel.heap_4
+  - driver.port middleware.mbedtls driver.clock middleware.freertos-kernel.heap_4
 mbedtls_selftest_css:
   configuration:
     tools:

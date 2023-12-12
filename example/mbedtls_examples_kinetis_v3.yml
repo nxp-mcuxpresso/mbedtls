@@ -166,7 +166,7 @@ mbedtls_selftest_thread:
       demo:
         required: true
         cc-include:
-        - path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread
+        - path: middleware/mbedtls/example/mbedtls_selftest_thread
           package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
           project_path: board
         files:
@@ -186,11 +186,11 @@ mbedtls_selftest_thread:
         - path: boards/${board}
           package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
           project_path: source
-        - path: middleware/mbedtls/example/mbedtls_examples/mbedtls_selftest_thread
+        - path: middleware/mbedtls/example/mbedtls_selftest_thread
           package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
           project_path: source
         as-include:
-        - path: middleware/mbedtls/example/mbedtls_examples/mbedtls_selftest_thread
+        - path: middleware/mbedtls/example/mbedtls_selftest_thread
           package_path: boards/${board}/mbedtls_examples/mbedtls_selftest_thread/${multicore_foldername}
           project_path: source
         - path: boards/${board}

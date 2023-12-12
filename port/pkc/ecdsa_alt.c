@@ -246,6 +246,11 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
                                         .pSignature  = pSignature,
                                         .optLen      = mcuxClEcc_Sign_Param_optLen_Pack(blen)};
 
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+        return ret;
+#endif
+
     /* The code is added as per documentation of CL usage, where it specifies following:
     mcuxClEcc_Sign function uses DRBG and PRNG. Caller needs to check if DRBG and PRNG are ready.*/
     
@@ -282,10 +287,6 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
         goto cleanup;
     }
 
-#if defined(MBEDTLS_THREADING_C)
-    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
-        return ret;
-#endif
     /* Call ECC sign. */
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retEccSign, tokenEccSign, mcuxClEcc_Sign(&session, &paramSign));
 

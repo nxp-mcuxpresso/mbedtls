@@ -16,8 +16,13 @@
 extern void CRYPTO_ConfigureThreading(void);
 #endif
 
-#include "mcux_els.h" // Power Down Wake-up Init
-#include "mcux_pkc.h" // Power Down Wake-up Init
+/* Initilize the TRNG driver if available*/
+#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+#include "fsl_trng.h"
+#endif
+
+#include "mcux_els.h"           // Power Down Wake-up Init
+#include "mcux_pkc.h"           // Power Down Wake-up Init
 #include "platform_hw_ip.h"
 #include "els_pkc_mbedtls.h"
 #include "fsl_common.h"
@@ -89,6 +94,17 @@ int mbedtls_hw_init(void)
         {
             return status;
         }
+#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+        /* Initilize the TRNG driver */
+        {
+            trng_config_t trngConfig;
+            /* Get default TRNG configs*/
+            TRNG_GetDefaultConfig(&trngConfig);
+            /* Set sample mode of the TRNG ring oscillator to Von Neumann, for better random data.*/
+            /* Initialize TRNG */
+            TRNG_Init(TRNG, &trngConfig);
+        }
+#endif
     }
     else
     {
@@ -137,6 +153,19 @@ status_t CRYPTO_InitHardware(void)
         return kStatus_Fail;
     }
 
+    /*Initilize the TRNG Driver, required by Crypto-lib*/
+#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+        /* Initilize the TRNG driver */
+        {
+            trng_config_t trngConfig;
+            /* Get default TRNG configs*/
+            TRNG_GetDefaultConfig(&trngConfig);
+            /* Set sample mode of the TRNG ring oscillator to Von Neumann, for better random data.*/
+            /* Initialize TRNG */
+            TRNG_Init(TRNG, &trngConfig);
+        }
+#endif
+    
     g_isCryptoHWInitialized = ELS_PKC_CRYPTOHW_INITIALIZED;
 
     return status;

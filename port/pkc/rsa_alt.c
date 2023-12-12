@@ -208,7 +208,10 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
 
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+    {
+        mbedlts_rsa_free(pBuf, &kMod, NULL, NULL, &kExp, NULL, NULL );
         return ret;
+    }
 #endif
 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(verify_result, verify_token, mcuxClRsa_verify(
@@ -224,7 +227,10 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
 
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+    {
+        mbedlts_rsa_free(pBuf, &kMod, NULL, NULL, &kExp, NULL, NULL );
         return ret;
+    }
 #endif
     
     if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClRsa_verify) != verify_token) || (MCUXCLRSA_STATUS_VERIFYPRIMITIVE_OK != verify_result))
@@ -269,7 +275,10 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
+    {
+        mbedlts_rsa_free(pBuf, &kMod, NULL, NULL, &kExp, NULL, NULL );
         return ret;
+    }
 #endif
     mbedlts_rsa_free(pBuf, &kMod, NULL, NULL, &kExp, NULL, NULL );
     return return_code; 
@@ -430,7 +439,10 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+    {
+        mbedlts_rsa_free(pBuf, &kP, &kQ, &kQ_inv, &kDP, &kDQ, &kE );
         return ret;
+    }
 #endif
 
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(sign_result, sign_token, mcuxClRsa_sign(
@@ -445,7 +457,10 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+    {
+        mbedlts_rsa_free(pBuf, &kP, &kQ, &kQ_inv, &kDP, &kDQ, &kE );
         return ret;
+    }
 #endif
 
     if((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClRsa_sign) != sign_token) || (MCUXCLRSA_STATUS_SIGN_OK != sign_result))
@@ -498,7 +513,10 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
+    {
+        mbedlts_rsa_free(pBuf, &kP, &kQ, &kQ_inv, &kDP, &kDQ, &kE );
         return ret;
+    }
 #endif
     mbedlts_rsa_free(pBuf, &kP, &kQ, &kQ_inv, &kDP, &kDQ, &kE );
     return return_code; 

@@ -23,8 +23,12 @@
 
 /* For RW61x, SOC_TRNG count is greater than one, this can be utilized 
    to use RNG4 as default entropy source */
-#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+#if defined(MBEDTLS_MCUX_USE_TRNG_AS_ENTROPY_SEED)
 #include "fsl_trng.h"
+/* Change required as different naming is used for TRNG for RW61x (TRNG) and MCXN (TRNG0)*/
+#ifndef TRNG
+#define TRNG TRNG0
+#endif
 
 #else /* Handle the default case, currently to include crypto-lib files
          to use PRNG for default entropy source */
@@ -64,7 +68,7 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
         rng_init_is_done = true;
     }
 
-#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+#if defined(MBEDTLS_MCUX_USE_TRNG_AS_ENTROPY_SEED)
     /* call to generate random number and have it in "output" */
     return_code = TRNG_GetRandomData(TRNG, output, len);  
 
@@ -87,7 +91,7 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
         *olen = len;
     }
 
-#if !(defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0))
+#if !(defined(MBEDTLS_MCUX_USE_TRNG_AS_ENTROPY_SEED))
 cleanup:
 #endif
 #if defined(MBEDTLS_THREADING_C)

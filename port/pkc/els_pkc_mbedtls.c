@@ -17,8 +17,12 @@ extern void CRYPTO_ConfigureThreading(void);
 #endif
 
 /* Initilize the TRNG driver if available*/
-#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+#if defined(MBEDTLS_MCUX_USE_TRNG_AS_ENTROPY_SEED)
 #include "fsl_trng.h"
+/* Change required as different naming is used for TRNG for RW61x (TRNG) and MCXN (TRNG0)*/
+#ifndef TRNG
+#define TRNG TRNG0
+#endif
 #endif
 
 #include "mcux_els.h"           // Power Down Wake-up Init
@@ -94,7 +98,7 @@ int mbedtls_hw_init(void)
         {
             return status;
         }
-#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+#if defined(MBEDTLS_MCUX_USE_TRNG_AS_ENTROPY_SEED)
         /* Initilize the TRNG driver */
         {
             trng_config_t trngConfig;
@@ -154,7 +158,7 @@ status_t CRYPTO_InitHardware(void)
     }
 
     /*Initilize the TRNG Driver, required by Crypto-lib*/
-#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+#if defined(MBEDTLS_MCUX_USE_TRNG_AS_ENTROPY_SEED)
         /* Initilize the TRNG driver */
         {
             trng_config_t trngConfig;

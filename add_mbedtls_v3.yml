@@ -74,6 +74,7 @@ middleware.mbedtls.port.ele_s400:
     allOf:
     - driver.s3mu
     - component.ele_crypto
+    - middleware.mbedtls
 middleware.mbedtls.port.ele_s400_ecc_opaque:
   section-type: component
   contents:
@@ -119,11 +120,12 @@ middleware.mbedtls.port.ele_s400_ecc_opaque:
     taxonomy:
       csub: ele_s400
       belong_to: mbedtls
-    display_name: mbedtls_ele_s400
+    display_name: mbedtls_ele_s400_ecc_opaque
   dependency:
     allOf:
     - driver.s3mu
     - component.ele_crypto
+    - middleware.mbedtls
 middleware.mbedtls.els_pkc.config:
   section-type: component
   contents:

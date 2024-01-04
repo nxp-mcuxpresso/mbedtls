@@ -52,6 +52,8 @@
 int mbedtls_sha512_starts_ret(mbedtls_sha512_context *ctx, int is384)
 {
     int return_code = 0;
+    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
+    
     if (ctx == NULL)
     {
         return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
@@ -64,7 +66,7 @@ int mbedtls_sha512_starts_ret(mbedtls_sha512_context *ctx, int is384)
 #endif
 
     /* Initialize ELS */
-    status_t ret_hw_init = mbedtls_hw_init();
+    status_t ret_hw_init = mbedtls_hw_init(pkc_init_mode);
     if (kStatus_Success != ret_hw_init)
     {
         return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;

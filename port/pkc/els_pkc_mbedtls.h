@@ -24,15 +24,58 @@ extern "C" {
 #define ELS_PKC_CRYPTOHW_INITIALIZED    (0xF0F0F0F0U)
 #define ELS_PKC_CRYPTOHW_NONINITIALIZED (0x0F0F0F0FU)
 
+#define PKC_INIT_ZEROIZE        (0xA0A0A0A0u)
+#define PKC_INIT_NO_ZEROIZE     (0x0A0A0A0Au)
 int fsl_mbedtls_printf(const char *fmt_s, ...);
 status_t CRYPTO_InitHardware(void);
 
-#if defined(MBEDTLS_THREADING_C)
+#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
 /* MUTEX FOR HW Modules*/
 extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_els_mutex;
 extern mbedtls_threading_mutex_t mbedtls_threading_hwcrypto_pkc_mutex;
-#endif /* defined(MBEDTLS_THREADING_C) */
+#endif /* (MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT) */ 
 
+#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
+static inline int mcux_els_mutex_lock(void)
+{
+    int ret;
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+    {
+        return ret;
+    }
+    return ret;
+}
+
+static inline int mcux_els_mutex_unlock(void)
+{
+    int ret;
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+    {
+        return ret;
+    }
+    return ret;
+}
+
+static inline int mcux_pkc_mutex_lock(void)
+{
+    int ret;
+    if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
+    {
+        return ret;
+    }
+    return ret;
+}
+
+static inline int mcux_pkc_mutex_unlock(void)
+{
+    int ret;
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex)) != 0)
+    {
+        return ret;
+    }
+    return ret;
+}
+#endif /* (MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT) */ 
 #ifdef __cplusplus
 }
 #endif

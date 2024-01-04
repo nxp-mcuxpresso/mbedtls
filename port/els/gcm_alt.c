@@ -92,7 +92,8 @@ int mbedtls_aes_gcm_starts_alt(mbedtls_gcm_context *ctx,
                                const unsigned char *add,
                                size_t add_len)
 {
-
+    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
+    
 #if defined(MBEDTLS_THREADING_C)
     int ret;
     if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
@@ -114,7 +115,7 @@ int mbedtls_aes_gcm_starts_alt(mbedtls_gcm_context *ctx,
     size_t key_length            = aes_ctx->keyLength;
 
     /* Initialize hardware accelerator */
-    int ret_hw_init = mbedtls_hw_init();
+    int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
     if (0 != ret_hw_init)
     {
         return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
@@ -319,6 +320,8 @@ int mbedtls_aes_gcm_update_alt(mbedtls_gcm_context *ctx,
                                unsigned char *output)
 {
     int return_code                                              = 0;
+    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
+    
     unsigned char output_buffer[MCUXCLELS_CIPHER_BLOCK_SIZE_AES] = {0};
 
 #if defined(MBEDTLS_THREADING_C)
@@ -336,7 +339,7 @@ int mbedtls_aes_gcm_update_alt(mbedtls_gcm_context *ctx,
     size_t key_length            = aes_ctx->keyLength;
 
     /* Initialize hardware accelerator */
-    int ret_hw_init = mbedtls_hw_init();
+    int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
     if (0 != ret_hw_init)
     {
         return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;
@@ -432,6 +435,7 @@ int mbedtls_aes_gcm_finish_alt(mbedtls_gcm_context *ctx, unsigned char *tag, siz
 {
     int return_code                = 0;
     mcuxClEls_AeadOption_t options = {0};
+    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
 
 #if defined(MBEDTLS_THREADING_C)
     int ret                        = 0;
@@ -446,7 +450,7 @@ int mbedtls_aes_gcm_finish_alt(mbedtls_gcm_context *ctx, unsigned char *tag, siz
     size_t key_length            = aes_ctx->keyLength;
 
     /* Initialize hardware accelerator */
-    int ret_hw_init = mbedtls_hw_init();
+    int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
     if (0 != ret_hw_init)
     {
         return_code = MBEDTLS_ERR_GCM_HW_ACCEL_FAILED;

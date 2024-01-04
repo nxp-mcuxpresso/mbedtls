@@ -25,6 +25,6 @@
  * \brief Initialization function for MCUX HW IPs. It shall be called by all alternative implementations of mbedTLS
  * functions that make use of MCUX HW IPs.
  */
-extern int mbedtls_hw_init(void);
+extern int mbedtls_hw_init(uint32_t pkc_init_mode);
 
 #endif /* PLATFORM_HW_IP_H */

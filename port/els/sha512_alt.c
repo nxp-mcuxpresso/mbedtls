@@ -24,9 +24,9 @@
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
+#include "els_pkc_mbedtls.h"
 #endif
 
-#include "els_pkc_mbedtls.h"
 #include <sha512_alt.h>
 #include <mbedtls/error.h>
 #include <mbedtls/platform.h>
@@ -51,7 +51,7 @@
 
 int mbedtls_sha512_starts_ret(mbedtls_sha512_context *ctx, int is384)
 {
-    int return_code = 0;    
+    int return_code = 0;
     if (ctx == NULL)
     {
         return MBEDTLS_ERR_ERROR_GENERIC_ERROR;

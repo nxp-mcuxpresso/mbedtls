@@ -25,6 +25,7 @@
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
+#include "els_pkc_mbedtls.h"
 #endif
 
 #include <stdint.h>
@@ -39,7 +40,6 @@
 #include <mbedtls/rsa.h>
 #include <rsa_alt.h>
 #include "mbedtls/platform_util.h"
-#include "els_pkc_mbedtls.h"
 
 
 #if !defined(MBEDTLS_RSA_CTX_ALT) || !defined(MBEDTLS_RSA_PUBLIC_ALT) || !defined(MBEDTLS_RSA_PRIVATE_ALT)
@@ -101,7 +101,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
                 unsigned char *output )
 {
     int return_code =  MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
-    uint8_t *pBuf = NULL;    
+    uint8_t *pBuf = NULL;
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( input != NULL );
     RSA_VALIDATE_RET( output != NULL );
@@ -294,7 +294,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
                  unsigned char *output )
 {
     int return_code = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
-    uint8_t *pBuf = NULL;    
+    uint8_t *pBuf = NULL;
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( input != NULL );
     RSA_VALIDATE_RET( output != NULL );

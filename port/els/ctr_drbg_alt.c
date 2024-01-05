@@ -24,9 +24,8 @@
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
-#endif
-
 #include "els_pkc_mbedtls.h"
+#endif
 
 #if defined(MBEDTLS_CTR_DRBG_ALT)
 
@@ -95,7 +94,7 @@ int mbedtls_ctr_drbg_seed(mbedtls_ctr_drbg_context *ctx,
 
 int mbedtls_ctr_drbg_random(void *p_rng, unsigned char *output, size_t output_len)
 {
-    int return_code               = 0;    
+    int return_code               = 0;
     mbedtls_ctr_drbg_context *ctx = (mbedtls_ctr_drbg_context *)p_rng;
 
     if (0 != ctx->prediction_resistance)

@@ -79,26 +79,32 @@ int mbedtls_hw_init(void)
 status_t CRYPTO_InitHardware(void)
 {
     status_t status;
-
-    /* Enable ELS and related clocks */
-    status = ELS_PowerDownWakeupInit(ELS);
-    if (status != kStatus_Success)
+    
+    if (g_isCryptoHWInitialized == ELS_PKC_CRYPTOHW_NONINITIALIZED)
     {
-        return kStatus_Fail;
-    }
-#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
-        /* Initilize the TRNG driver */
+        /* Enable ELS and related clocks */
+        status = ELS_PowerDownWakeupInit(ELS);
+        if (status != kStatus_Success)
         {
-            trng_config_t trngConfig;
-            /* Get default TRNG configs*/
-            TRNG_GetDefaultConfig(&trngConfig);
-            /* Set sample mode of the TRNG ring oscillator to Von Neumann, for better random data.*/
-            /* Initialize TRNG */
-            TRNG_Init(TRNG, &trngConfig);
+            return kStatus_Fail;
         }
+#if defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0)
+            /* Initilize the TRNG driver */
+            {
+                trng_config_t trngConfig;
+                /* Get default TRNG configs*/
+                TRNG_GetDefaultConfig(&trngConfig);
+                /* Set sample mode of the TRNG ring oscillator to Von Neumann, for better random data.*/
+                /* Initialize TRNG */
+                TRNG_Init(TRNG, &trngConfig);
+            }
 #endif    
-    g_isCryptoHWInitialized = ELS_PKC_CRYPTOHW_INITIALIZED;
-
+        g_isCryptoHWInitialized = ELS_PKC_CRYPTOHW_INITIALIZED;
+    }
+    else
+    {
+        return kStatus_Success;
+    }
     return status;
 }
 

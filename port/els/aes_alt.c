@@ -23,6 +23,7 @@
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
+#include "els_pkc_mbedtls.h"
 #endif
 
 #include <stdint.h>
@@ -33,7 +34,6 @@
 #include <platform_hw_ip.h>
 #include <mbedtls/aes.h>
 #include <aes_alt.h>
-#include "els_pkc_mbedtls.h"
 
 #if defined(MBEDTLS_AES_SETKEY_ENC_ALT) && defined(MBEDTLS_AES_SETKEY_DEC_ALT) && defined(MBEDTLS_AES_ENCRYPT_ALT) && \
     defined(MBEDTLS_AES_DECRYPT_ALT) && defined(MBEDTLS_AES_CTX_ALT)

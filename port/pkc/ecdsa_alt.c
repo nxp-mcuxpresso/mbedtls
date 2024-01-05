@@ -24,6 +24,7 @@
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
+#include "els_pkc_mbedtls.h"
 #endif
 
 #include <stdint.h>
@@ -46,7 +47,6 @@
 #include <mbedtls/ctr_drbg.h>
 #include <ecc_alt.h>
 #include <mbedtls/ecdh.h>
-#include "els_pkc_mbedtls.h"
 
 /* Definition of maximum lengths of key for RSA in bits */
 #define MCUX_PKC_RSA_KEY_SIZE_MAX (4096u)
@@ -158,7 +158,7 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng)
 {
-    int return_code = 0;    
+    int return_code = 0;
     /* Check input parameters. */
     ECDSA_VALIDATE_RET(grp != NULL);
     ECDSA_VALIDATE_RET(r != NULL);
@@ -350,7 +350,7 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
                          const mbedtls_mpi *r,
                          const mbedtls_mpi *s)
 {
-    int return_code = 0;    
+    int return_code = 0;
     /* Check input parameters. */
     ECDSA_VALIDATE_RET(grp != NULL);
     ECDSA_VALIDATE_RET(Q != NULL);
@@ -549,7 +549,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng)
 {
-    int return_code = 0;    
+    int return_code = 0;
     /* Check input parameters. */
     ECDSA_VALIDATE_RET(ctx != NULL);
     ECDSA_VALIDATE_RET(f_rng != NULL);

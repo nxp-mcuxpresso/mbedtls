@@ -24,6 +24,7 @@
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
+#include "els_pkc_mbedtls.h"
 #endif
 
 #include <sha256_alt.h>
@@ -38,7 +39,6 @@
 #include <mcuxClSession.h>
 
 #include "mcux_els.h"
-#include "els_pkc_mbedtls.h"
 
 #if !defined(MBEDTLS_SHA256_CTX_ALT) || !defined(MBEDTLS_SHA256_STARTS_ALT) || !defined(MBEDTLS_SHA256_UPDATE_ALT) || \
     !defined(MBEDTLS_SHA256_FINISH_ALT) || !defined(MBEDTLS_SHA256_FULL_ALT)
@@ -52,7 +52,7 @@
 
 int mbedtls_sha256_starts_ret(mbedtls_sha256_context *ctx, int is224)
 {
-    int return_code = 0;    
+    int return_code = 0;
     if (ctx == NULL)
     {
         return MBEDTLS_ERR_ERROR_GENERIC_ERROR;

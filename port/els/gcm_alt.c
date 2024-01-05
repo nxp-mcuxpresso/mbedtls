@@ -16,7 +16,6 @@
  */
 
 #include "gcm_alt.h"
-#include "els_pkc_mbedtls.h"
 
 #if defined(MBEDTLS_MCUX_ELS_AES_GCM)
 
@@ -37,6 +36,7 @@
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
+#include "els_pkc_mbedtls.h"
 #endif
 
 int mbedtls_aes_gcm_setkey_alt(mbedtls_gcm_context *ctx,
@@ -92,7 +92,7 @@ int mbedtls_aes_gcm_starts_alt(mbedtls_gcm_context *ctx,
                                const unsigned char *add,
                                size_t add_len)
 {
-  
+
 #if defined(MBEDTLS_THREADING_C)
     int ret;
     if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
@@ -318,7 +318,7 @@ int mbedtls_aes_gcm_update_alt(mbedtls_gcm_context *ctx,
                                const unsigned char *input,
                                unsigned char *output)
 {
-    int return_code                                              = 0;    
+    int return_code                                              = 0;
     unsigned char output_buffer[MCUXCLELS_CIPHER_BLOCK_SIZE_AES] = {0};
 
 #if defined(MBEDTLS_THREADING_C)
@@ -432,6 +432,7 @@ int mbedtls_aes_gcm_finish_alt(mbedtls_gcm_context *ctx, unsigned char *tag, siz
 {
     int return_code                = 0;
     mcuxClEls_AeadOption_t options = {0};
+
 #if defined(MBEDTLS_THREADING_C)
     int ret                        = 0;
 #endif

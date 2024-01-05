@@ -25,6 +25,7 @@
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
+#include "els_pkc_mbedtls.h"
 #endif
 
 #include <stdint.h>
@@ -45,7 +46,6 @@
 #include <platform_hw_ip.h>
 #include <mbedtls/ctr_drbg.h>
 #include <ecc_alt.h>
-#include "els_pkc_mbedtls.h"
 
 /* Definition of maximum lengths of key for RSA in bits */
 #define MCUX_PKC_RSA_KEY_SIZE_MAX (4096u)
@@ -121,7 +121,7 @@ int mbedtls_ecdh_gen_public(mbedtls_ecp_group *grp,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng)
 {
-    int return_code = 0;    
+    int return_code = 0;
     /* Check input parameters. */
     ECDH_VALIDATE_RET(grp != NULL);
     ECDH_VALIDATE_RET(d != NULL);
@@ -275,7 +275,7 @@ int mbedtls_ecdh_compute_shared(mbedtls_ecp_group *grp,
                                 int (*f_rng)(void *, unsigned char *, size_t),
                                 void *p_rng)
 {
-    int return_code = 0;    
+    int return_code = 0;
     /* Check input parameters. */
     ECDH_VALIDATE_RET(grp != NULL);
     ECDH_VALIDATE_RET(Q != NULL);

@@ -45,9 +45,8 @@
    based upon device configs*/
 static void mbedtls_mcux_rng_init(void)
 {
-    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
     /* Initialize TRNG, CSS/ELS and it's PRNG if not already initialized */
-    mbedtls_hw_init(pkc_init_mode);
+    mbedtls_hw_init();
 }
 
 /* Entropy poll callback for a hardware source */

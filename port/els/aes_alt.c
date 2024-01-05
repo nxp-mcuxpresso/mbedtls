@@ -153,8 +153,6 @@ cleanup:
 int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16])
 {
     int return_code = 0;
-    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
-    
     mcuxClEls_CipherOption_t cipherOption =
         (mcuxClEls_CipherOption_t){.bits.dcrpt  = MCUXCLELS_CIPHER_ENCRYPT,
                                    .bits.cphmde = MCUXCLELS_CIPHERPARAM_ALGORITHM_AES_ECB,
@@ -171,7 +169,7 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx, const unsigned char i
 #endif
 
     /* Initialize ELS */
-    int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
+    int ret_hw_init = mbedtls_hw_init();
     if (0 != ret_hw_init)
     {
         return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -199,8 +197,6 @@ cleanup:
 int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char input[16], unsigned char output[16])
 {
     int return_code = 0;
-    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
-    
     mcuxClEls_CipherOption_t cipherOption =
         (mcuxClEls_CipherOption_t){.bits.dcrpt  = MCUXCLELS_CIPHER_DECRYPT,
                                    .bits.cphmde = MCUXCLELS_CIPHERPARAM_ALGORITHM_AES_ECB,
@@ -217,7 +213,7 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx, const unsigned char i
 #endif
 
     /* Initialize ELS */
-    int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
+    int ret_hw_init = mbedtls_hw_init();
     if (0 != ret_hw_init)
     {
         return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -251,8 +247,6 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
 {
     int return_code = 0;
     uint32_t temp[4];
-    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
-    
 #if defined(MBEDTLS_THREADING_C)
     int ret;
     if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
@@ -296,7 +290,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
             }
         }
         /* Initialize ELS */
-        int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
+        int ret_hw_init = mbedtls_hw_init();
         if (0 != ret_hw_init)
         {
             return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -346,8 +340,6 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
                           const unsigned char *input,
                           unsigned char *output)
 {
-    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
-    
     if ((NULL == ctx) || (NULL == nc_off) || (NULL == nonce_counter) || (NULL == stream_block) || (NULL == input) ||
         (NULL == output))
     {
@@ -392,7 +384,7 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
             return ret;
 #endif
         /* Initialize ELS */
-        int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
+        int ret_hw_init = mbedtls_hw_init();
         if (0 != ret_hw_init)
         {
 #if defined(MBEDTLS_THREADING_C)

@@ -158,9 +158,7 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng)
 {
-    int return_code = 0;
-    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
-    
+    int return_code = 0;    
     /* Check input parameters. */
     ECDSA_VALIDATE_RET(grp != NULL);
     ECDSA_VALIDATE_RET(r != NULL);
@@ -176,7 +174,7 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
 #endif
 
     /* Initialize Hardware */
-    int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
+    int ret_hw_init = mbedtls_hw_init();
     if (0 != ret_hw_init)
     {
         return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -352,9 +350,7 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
                          const mbedtls_mpi *r,
                          const mbedtls_mpi *s)
 {
-    int return_code = 0;
-    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
-    
+    int return_code = 0;    
     /* Check input parameters. */
     ECDSA_VALIDATE_RET(grp != NULL);
     ECDSA_VALIDATE_RET(Q != NULL);
@@ -368,7 +364,7 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
         return ret;
 #endif
     /* Initialize Hardware */
-    int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
+    int ret_hw_init = mbedtls_hw_init();
     if (0 != ret_hw_init)
     {
         return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -553,9 +549,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng)
 {
-    int return_code = 0;
-    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
-    
+    int return_code = 0;    
     /* Check input parameters. */
     ECDSA_VALIDATE_RET(ctx != NULL);
     ECDSA_VALIDATE_RET(f_rng != NULL);
@@ -572,7 +566,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
         return thread_ret;
 #endif
     /* Initialize Hardware */
-    int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
+    int ret_hw_init = mbedtls_hw_init();
     if (0 != ret_hw_init)
     {
         return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;

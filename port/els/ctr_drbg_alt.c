@@ -95,9 +95,7 @@ int mbedtls_ctr_drbg_seed(mbedtls_ctr_drbg_context *ctx,
 
 int mbedtls_ctr_drbg_random(void *p_rng, unsigned char *output, size_t output_len)
 {
-    int return_code               = 0;
-    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
-    
+    int return_code               = 0;    
     mbedtls_ctr_drbg_context *ctx = (mbedtls_ctr_drbg_context *)p_rng;
 
     if (0 != ctx->prediction_resistance)
@@ -110,7 +108,7 @@ int mbedtls_ctr_drbg_random(void *p_rng, unsigned char *output, size_t output_le
         return ret;
 #endif
     /* Initialize ELS */
-    int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
+    int ret_hw_init = mbedtls_hw_init();
     if (0 != ret_hw_init)
     {
         return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;

@@ -121,9 +121,7 @@ int mbedtls_ecdh_gen_public(mbedtls_ecp_group *grp,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng)
 {
-    int return_code = 0;
-    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
-    
+    int return_code = 0;    
     /* Check input parameters. */
     ECDH_VALIDATE_RET(grp != NULL);
     ECDH_VALIDATE_RET(d != NULL);
@@ -137,7 +135,7 @@ int mbedtls_ecdh_gen_public(mbedtls_ecp_group *grp,
 #endif
 
     /* Initialize ELS */
-    int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
+    int ret_hw_init = mbedtls_hw_init();
     if (0 != ret_hw_init)
     {
         return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -277,9 +275,7 @@ int mbedtls_ecdh_compute_shared(mbedtls_ecp_group *grp,
                                 int (*f_rng)(void *, unsigned char *, size_t),
                                 void *p_rng)
 {
-    int return_code = 0;
-    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
-    
+    int return_code = 0;    
     /* Check input parameters. */
     ECDH_VALIDATE_RET(grp != NULL);
     ECDH_VALIDATE_RET(Q != NULL);
@@ -292,7 +288,7 @@ int mbedtls_ecdh_compute_shared(mbedtls_ecp_group *grp,
         return ret;
 #endif
     /* Initialize ELS */
-    int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
+    int ret_hw_init = mbedtls_hw_init();
     if (0 != ret_hw_init)
     {
         return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;

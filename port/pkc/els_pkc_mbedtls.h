@@ -24,8 +24,6 @@ extern "C" {
 #define ELS_PKC_CRYPTOHW_INITIALIZED    (0xF0F0F0F0U)
 #define ELS_PKC_CRYPTOHW_NONINITIALIZED (0x0F0F0F0FU)
 
-#define PKC_INIT_ZEROIZE        (0xA0A0A0A0u)
-#define PKC_INIT_NO_ZEROIZE     (0x0A0A0A0Au)
 int fsl_mbedtls_printf(const char *fmt_s, ...);
 status_t CRYPTO_InitHardware(void);
 

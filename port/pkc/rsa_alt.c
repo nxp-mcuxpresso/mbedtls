@@ -101,9 +101,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
                 unsigned char *output )
 {
     int return_code =  MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
-    uint8_t *pBuf = NULL;
-    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
-    
+    uint8_t *pBuf = NULL;    
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( input != NULL );
     RSA_VALIDATE_RET( output != NULL );
@@ -123,7 +121,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
 #endif
     
     /* Initialize Hardware */
-    int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
+    int ret_hw_init = mbedtls_hw_init();
     if(0!=ret_hw_init)
     {
         return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -296,9 +294,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
                  unsigned char *output )
 {
     int return_code = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
-    uint8_t *pBuf = NULL;
-    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
-    
+    uint8_t *pBuf = NULL;    
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( input != NULL );
     RSA_VALIDATE_RET( output != NULL );
@@ -320,7 +316,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 #endif
 
     /* Initialize Hardware */
-    int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
+    int ret_hw_init = mbedtls_hw_init();
     if(0!=ret_hw_init)
     {
         return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;

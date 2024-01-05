@@ -37,8 +37,6 @@
 int mbedtls_aes_cbc_mac(mbedtls_aes_context *ctx, size_t length, unsigned char *iv, const unsigned char *pInput)
 {
     int return_code = 0;
-    uint32_t pkc_init_mode = PKC_INIT_NO_ZEROIZE;
-    
 #ifdef MBEDTLS_CBC_MAC_USE_CMAC
     mcuxClEls_CmacOption_t cmac_options = {0};
 
@@ -64,7 +62,7 @@ int mbedtls_aes_cbc_mac(mbedtls_aes_context *ctx, size_t length, unsigned char *
         return ret;
 #endif
     /* Initialize ELS */
-    int ret_hw_init = mbedtls_hw_init(pkc_init_mode);
+    int ret_hw_init = mbedtls_hw_init();
     if (0 != ret_hw_init)
     {
         return_code = MBEDTLS_ERR_CCM_HW_ACCEL_FAILED;

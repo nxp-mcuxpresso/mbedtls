@@ -24,7 +24,6 @@
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
-#include "els_pkc_mbedtls.h"
 #endif
 
 #include <sha256_alt.h>
@@ -39,6 +38,7 @@
 #include <mcuxClSession.h>
 
 #include "mcux_els.h"
+#include "els_pkc_mbedtls.h"
 
 #if !defined(MBEDTLS_SHA256_CTX_ALT) || !defined(MBEDTLS_SHA256_STARTS_ALT) || !defined(MBEDTLS_SHA256_UPDATE_ALT) || \
     !defined(MBEDTLS_SHA256_FINISH_ALT) || !defined(MBEDTLS_SHA256_FULL_ALT)

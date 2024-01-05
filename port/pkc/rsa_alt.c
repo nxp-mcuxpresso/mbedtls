@@ -25,7 +25,6 @@
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
-#include "els_pkc_mbedtls.h"
 #endif
 
 #include <stdint.h>
@@ -40,6 +39,7 @@
 #include <mbedtls/rsa.h>
 #include <rsa_alt.h>
 #include "mbedtls/platform_util.h"
+#include "els_pkc_mbedtls.h"
 
 
 #if !defined(MBEDTLS_RSA_CTX_ALT) || !defined(MBEDTLS_RSA_PUBLIC_ALT) || !defined(MBEDTLS_RSA_PRIVATE_ALT)

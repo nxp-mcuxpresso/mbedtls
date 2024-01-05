@@ -25,7 +25,6 @@
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
-#include "els_pkc_mbedtls.h"
 #endif
 
 #include <stdint.h>
@@ -46,6 +45,7 @@
 #include <platform_hw_ip.h>
 #include <mbedtls/ctr_drbg.h>
 #include <ecc_alt.h>
+#include "els_pkc_mbedtls.h"
 
 /* Definition of maximum lengths of key for RSA in bits */
 #define MCUX_PKC_RSA_KEY_SIZE_MAX (4096u)

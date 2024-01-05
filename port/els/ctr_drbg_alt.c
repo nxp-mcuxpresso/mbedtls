@@ -24,8 +24,9 @@
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
-#include "els_pkc_mbedtls.h"
 #endif
+
+#include "els_pkc_mbedtls.h"
 
 #if defined(MBEDTLS_CTR_DRBG_ALT)
 

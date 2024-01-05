@@ -24,9 +24,9 @@
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
-#include "els_pkc_mbedtls.h"
 #endif
 
+#include "els_pkc_mbedtls.h"
 #include <sha512_alt.h>
 #include <mbedtls/error.h>
 #include <mbedtls/platform.h>

@@ -16,6 +16,7 @@
  */
 
 #include "gcm_alt.h"
+#include "els_pkc_mbedtls.h"
 
 #if defined(MBEDTLS_MCUX_ELS_AES_GCM)
 
@@ -36,7 +37,6 @@
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
-#include "els_pkc_mbedtls.h"
 #endif
 
 int mbedtls_aes_gcm_setkey_alt(mbedtls_gcm_context *ctx,

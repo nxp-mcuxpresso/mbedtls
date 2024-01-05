@@ -24,10 +24,10 @@
 #include <platform_hw_ip.h>
 #include <mcuxClEls.h>
 #include <string.h>
+#include "els_pkc_mbedtls.h"
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
-#include "els_pkc_mbedtls.h"
 #endif
 
 #if !defined(MBEDTLS_CCM_USE_AES_CBC_MAC) || !defined(MBEDTLS_AES_CTX_ALT)

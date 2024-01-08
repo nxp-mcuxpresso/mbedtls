@@ -2592,7 +2592,7 @@ int mbedtls_rsa_self_test(int verbose)
        if( verbose != 0 )
         mbedtls_printf( "passed\n");*/
 #if defined(MBEDTLS_PKCS1_V21) && defined(MBEDTLS_RSA_KEYGEN_ALT)
-    mbedtls_rsa_context rsav2;
+    mbedtls_rsa_context rsav2 = { 0 };
 
     mbedtls_rsa_init(&rsav2, MBEDTLS_RSA_PKCS_V21, MBEDTLS_MD_SHA256);
 

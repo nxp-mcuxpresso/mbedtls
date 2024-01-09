@@ -107,5 +107,5 @@ target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
 )
 
 
-include(middleware_mbedtls_rt1)
 include(utility_debug_console)
+include(middleware_mbedtls_rt1)

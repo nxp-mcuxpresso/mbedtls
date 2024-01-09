@@ -9,6 +9,6 @@ target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
 )
 
 
-include(driver_rng)
 include(driver_sha)
 include(middleware_mbedtls_port_ksdk)
+include(driver_rng)

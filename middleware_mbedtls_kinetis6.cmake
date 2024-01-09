@@ -10,5 +10,5 @@ target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
 
 
 include(middleware_mmcau_cm0p)
-include(driver_rnga)
 include(middleware_mbedtls_port_ksdk)
+include(driver_rnga)

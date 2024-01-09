@@ -60,7 +60,6 @@ typedef enum
 
 /* NXP adding for SSS API support */
 #if !defined(NXP_MBEDTLS_ECDH_ALT) 
-#define MBEDTLS_ECDH_LEGACY_CONTEXT
 
 #if !defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
 /**

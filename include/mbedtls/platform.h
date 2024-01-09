@@ -207,7 +207,11 @@ extern int (*mbedtls_printf)( const char *format, ... );
 int mbedtls_platform_set_printf( int (*printf_func)( const char *, ... ) );
 #else /* !MBEDTLS_PLATFORM_PRINTF_ALT */
 #if defined(MBEDTLS_PLATFORM_PRINTF_MACRO)
+#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
+#define mbedtls_printf(...)     do { } while (0)
+#else
 #define mbedtls_printf     MBEDTLS_PLATFORM_PRINTF_MACRO
+#endif
 #else
 #define mbedtls_printf     printf
 #endif /* MBEDTLS_PLATFORM_PRINTF_MACRO */

@@ -10,6 +10,6 @@ target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
 
 
 include(driver_casper)
-include(driver_rng_1)
-include(driver_hashcrypt)
 include(middleware_mbedtls_port_ksdk)
+include(driver_hashcrypt)
+include(driver_rng_1)

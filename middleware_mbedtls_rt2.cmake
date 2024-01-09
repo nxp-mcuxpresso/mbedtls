@@ -9,5 +9,5 @@ target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
 )
 
 
-include(driver_caam)
 include(middleware_mbedtls_port_ksdk)
+include(driver_caam)

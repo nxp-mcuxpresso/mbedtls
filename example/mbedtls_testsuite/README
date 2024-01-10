@@ -1,0 +1,28 @@
+- This is an internal only testsuite meant for unit testing support of crypto operations
+
+- Requirements
+littlefs-python (https://pypi.org/project/littlefs-python/) to generate a filesystem on the host and littlefs support on the target
+
+- How are test and data files generated
+We are reusing files from mbedtls-testsuite over here. 
+For every new version update these files should be updated.
+
+Steps to generate files:
+1. cd mbedtls/example/mbedtls_testsuite/tests
+2. python generate_test_files.py -t [test_suite_xxx.data]
+
+The mbedtls tooling generates a *.c file + a *.datax file for the selected testsuite. They are postprocessed 
+and converted/embedded in a littlefs binray file.
+
+Step 2 generates test_suite_postprocessed.c and the corresponding test_suite_postprocessed.datax.littlefs.bin.
+The .c file is part of the build process (an example for one test suite is committed), the *.littlefs.bin file 
+needs to be transferred to the target manually. The destination address needs to match the one that the c 
+file is expecting it at. For example after building the following jlink commands could be used to transfer the
+application as well as the test vectors to the target:
+
+    si 1
+    speed 4000
+    halt
+    loadfile armgcc\flash_debug\sdk20-app.bin 0x08000000
+    loadfile ..\..\..\..\middleware\mbedtls\example\mbedtls_testsuite\tests\test_suite_postprocessed.datax.littlefs.bin 0x08100000
+

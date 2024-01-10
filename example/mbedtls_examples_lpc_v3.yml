@@ -336,3 +336,76 @@ mbedtls_benchmark:
         - source: boards/${board}/mbedtls_examples/mbedtls_benchmark/${multicore_foldername}/app.h
           merge-to-main: sub
           project_path: "${board}/mbedtls_examples/mbedtls_benchmark/${multicore_foldername}"
+
+mbedtls_testsuite:
+  section-type: application
+  dependency:
+  - middleware.mbedtls
+  - middleware.mbedtls.tests
+  - middleware.littlefs
+  contents:
+    document:
+      name: mbedtls_testsuite
+      readme:
+      - boards/${board}/mbedtls_examples/mbedtls_testsuite/board.readme
+      category: mbedtls_examples
+      brief: The Mbed-Crypto PSA Dev API test application provides verification that
+        the crypto API behaviours are implemented correctly.
+    project-root-path: boards/${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}
+    configuration:
+      tools:
+        __common__:
+          config:
+            __common__:
+              cc-define:
+                MBEDTLS_CONFIG_FILE: '"mcux_mbedtls_testsuite_config.h"'
+        armgcc:
+          config:
+            __common__:
+              ad-flags:
+              - "-Xlinker --defsym=__stack_size__=0x10000"
+              - "-Xlinker --defsym=__heap_size__=0xc000"
+    modules:
+      demo:
+        required: true
+        cc-include:
+        - path: boards/${board}/mbedtls_examples/mbedtls_testsuite
+          package_path: boards/${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}
+          project_path: board
+        - path: middleware/mbedtls/example/mbedtls_testsuite
+          package_path: boards/${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}
+          project_path: board
+        - path: middleware/mbedtls/port
+          package_path: boards/${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}
+          project_path: board
+        files:
+        - source: middleware/mbedtls/example/mbedtls_testsuite/tests/test_suite_postprocessed.c 
+          merge-to-main: main
+          package_path: boards/${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}
+          project_path: source
+        - source: middleware/mbedtls/example/mbedtls_testsuite/platform_alt.h
+          package_path: boards/${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}
+          project_path: source
+        - source: middleware/mbedtls/example/mbedtls_testsuite/platform_alt.c
+          package_path: boards/${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}
+          project_path: source
+
+        - source: boards/${board}/mbedtls_examples/mbedtls_testsuite/pin_mux.c
+          package_path: boards/${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}
+          project_path: board
+        - source: boards/${board}/mbedtls_examples/mbedtls_testsuite/pin_mux.h
+          package_path: boards/${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}
+          project_path: board
+        - source: middleware/mbedtls/example/mbedtls_testsuite/mcux_mbedtls_testsuite_config.h
+          package_path: boards/${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}
+          project_path: board
+      pinset:
+        required: true
+        cc-include:
+        - path: boards/${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}
+          project_path: "${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}"
+        files:
+        - source: boards/${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}/hardware_init.c
+          project_path: "${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}"
+        - source: boards/${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}/app.h
+          project_path: "${board}/mbedtls_examples/mbedtls_testsuite/${multicore_foldername}" 

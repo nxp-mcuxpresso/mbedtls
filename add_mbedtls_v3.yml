@@ -1057,3 +1057,43 @@ scr.board.${board}.mbedtls:
       integrate middleware.
     Origin: NXP (BSD-3-Clause)
     Location: "./boards/${board}/mbedtls_examples"
+
+middleware.mbedtls.tests:
+  section-type: component
+  contents:
+    repo_base_path: middleware/mbedtls
+    project_base_path: mbedtls
+    cc-include:
+    - repo_relative_path: tests/include/test
+    - repo_relative_path: tests/include
+    files:
+    - source: tests/src/asn1_helpers.c
+    - source: tests/src/helpers.c
+    - source: tests/src/psa_crypto_helpers.c
+    - source: tests/src/psa_exercise_key.c
+    - source: tests/src/random.c
+    - source: tests/src/threading_helpers.c
+    - source: tests/src/fake_external_rng_for_test.c
+    - source: tests/src/test_helpers/ssl_helpers.c
+    - source: tests/include/test/arguments.h
+    - source: tests/include/test/asn1_helpers.h
+    - source: tests/include/test/constant_flow.h
+    - source: tests/include/test/fake_external_rng_for_test.h
+    - source: tests/include/test/helpers.h
+    - source: tests/include/test/macros.h
+    - source: tests/include/test/psa_crypto_helpers.h
+    - source: tests/include/test/psa_exercise_key.h
+    - source: tests/include/test/psa_helpers.h
+    - source: tests/include/test/random.h
+    - source: tests/include/test/ssl_helpers.h
+  belong_to: set.middleware.mbedtls
+  section_info:
+    description: mbedTLS test suite
+    type: middleware
+    version: "${mbedtls_version}"
+    user_visible: never
+    full_name: MbedTLS open source Crypto library
+    taxonomy:
+      csub: tests
+      belong_to: mbedtls
+    display_name: mbedtls_tests

@@ -28,7 +28,7 @@ middleware.mbedtls.template:
   belong_to: set.middleware.mbedtls
   section_info:
     description: mbedTLS Template
-    version: 2.28.3
+    version: 2.28.5
     type: project_template
     full_name: mbedTLS Template
     user_visible: never
@@ -37,7 +37,7 @@ middleware.mbedtls.template:
       cclass: Security
       cgroup: mbedTLS library
       cbundle: Mbed_TLS
-      cbundle_version: 2.28.3
+      cbundle_version: 2.28.5
     display_name: mbedtls_template
     vendor: NXP
   meta-name: middleware.mbedtls.template
@@ -71,7 +71,7 @@ middleware.mbedtls.els_pkc.config:
   belong_to: set.middleware.mbedtls
   section_info:
     description: els_pkc config
-    version: 2.28.3
+    version: 2.28.5
     type: software_component
     full_name: els_pkc config
     user_visible: never
@@ -80,7 +80,7 @@ middleware.mbedtls.els_pkc.config:
       cclass: Security
       cgroup: mbedTLS library
       cbundle: Mbed_TLS
-      cbundle_version: 2.28.3
+      cbundle_version: 2.28.5
     display_name: els_pkc_config
     vendor: NXP
   meta-name: middleware.mbedtls.els_pkc.config
@@ -128,6 +128,18 @@ container.middleware.mbedtls.unused_files:
       hidden: true
       exclude: true
     - source: middleware/mbedtls/configs/config-thread.h
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/docs/conf.py
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/docs/index.rst
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/docs/requirements.in
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/docs/requirements.txt
       hidden: true
       exclude: true
     - source: middleware/mbedtls/docs/use-psa-crypto.md
@@ -1135,6 +1147,12 @@ container.middleware.mbedtls.unused_files:
     - source: middleware/mbedtls/tests/suites/test_suite_pkwrite.function
       hidden: true
       exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_platform_printf.data
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_platform_printf.function
+      hidden: true
+      exclude: true
     - source: middleware/mbedtls/tests/suites/test_suite_poly1305.data
       hidden: true
       exclude: true
@@ -1271,6 +1289,12 @@ container.middleware.mbedtls.unused_files:
       hidden: true
       exclude: true
     - source: middleware/mbedtls/tests/suites/test_suite_ssl.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ssl_decrypt.function
+      hidden: true
+      exclude: true
+    - source: middleware/mbedtls/tests/suites/test_suite_ssl_decrypt.misc.data
       hidden: true
       exclude: true
     - source: middleware/mbedtls/tests/suites/test_suite_timing.data
@@ -1517,7 +1541,7 @@ container.middleware.mbedtls.unused_files:
   belong_to: set.middleware.mbedtls
   section_info:
     description: mbedTLS files unused by projects
-    version: 2.28.3
+    version: 2.28.5
     type: other
     user_visible: never
     full_name: MbedTLS unused files
@@ -1527,7 +1551,7 @@ set.middleware.mbedtls:
   belong_to: set.middleware.mbedtls
   section_info:
     fixed_id: arm_mbedtls
-    version: 2.28.3
+    version: 2.28.5
     display_name: mbedTLS
     description: mbedTLS SSL/TLS library
     set_location:
@@ -1556,17 +1580,58 @@ set.middleware.mbedtls:
         cclass: Security
         cgroup: mbedTLS library
         cbundle: Mbed_TLS
-        cbundle_version: 2.28.3
+        cbundle_version: 2.28.5
   dependency:
     anyOf:
     - device_id:
+      - JN5189
+      - JN5188
+      - K32W041A
+      - K32W041AM
+      - K32W061
+      - K32W041
       - LPC54S005
       - LPC54S016
       - LPC54S018
       - LPC54S018J2M
       - LPC54S018J4M
+      - QN9090
+      - QN9030
+      - K32W1480xxxA
+      - KW45B41Z52xxxA
+      - KW45B41Z53xxxA
+      - KW45B41Z82xxxA
+      - KW45B41Z83xxxA
+      - KW45B41Z83xxxA_NBU
+      - KW45Z41052xxxA
+      - KW45Z41053xxxA
+      - KW45Z41082xxxA
+      - KW45Z41083xxxA
       - MCIMX7U3xxxxx
       - MCIMX7U5xxxxx
+      - MK81FN256xxx15
+      - MK82FN256xxx15
+      - MKL81Z128xxx7
+      - MKL82Z128xxx7
+      - MKW20Z160xxx4
+      - MKW21Z256xxx4
+      - MKW21Z512xxx4
+      - MKW30Z160xxx4
+      - MKW31Z256xxx4
+      - MKW31Z512xxx4
+      - MKW35A512xxx4
+      - MKW35Z512xxx4
+      - MKW36A512xxx4
+      - MKW36Z512xxx4
+      - MKW37A512xxx4
+      - MKW37Z512xxx4
+      - MKW38A512xxx4
+      - MKW38Z512xxx4
+      - MKW39A512xxx4
+      - MKW40Z160xxx4
+      - MKW41Z256xxx4
+      - MKW41Z512xxx4
+      - K32H844P000xxxx
       - MIMXRT1165xxxxx
       - MIMXRT1166xxxxx
       - MIMXRT1171xxxxx
@@ -1574,7 +1639,9 @@ set.middleware.mbedtls:
       - MIMXRT1173xxxxx
       - MIMXRT1175xxxxx
       - MIMXRT1176xxxxx
+      - MIMXRT117Hxxxxx
       - K32L3A60xxx
+      - K32W032S1M2xxx
       - LPC54005
       - LPC54016
       - LPC54018
@@ -1589,11 +1656,34 @@ set.middleware.mbedtls:
       - LPC55S28
       - LPC55S66
       - LPC55S69
+      - MCXW343
+      - MCXW345
+      - MCXW748V
+      - MCXW744V
+      - MCXW748BV
+      - MCXW744BV
+      - MCXW748RV
+      - MCXW744RV
+      - MCXW748UV
+      - MCXW744UV
+      - MCXW745UV
+      - MCXW743UV
+      - MIMX8UD3xxx08
+      - MIMX8UD5xxx08
+      - MIMX8UD7xxx08
+      - MIMX8US3xxx08
+      - MIMX8US5xxx08
       - MIMXRT533S
       - MIMXRT555S
       - MIMXRT595S
       - MIMXRT633S
       - MIMXRT685S
+      - MCIMX6Y1xxx05
+      - MCIMX6Y2xxx05
+      - MCIMX6Y2xxx08
+      - MCIMX6Y2xxx09
+      - MCIMX6Y7xxx05
+      - MCIMX6Y7xxx09
       - MIMXRT1011xxxxx
       - MIMXRT1015xxxxx
       - MIMXRT1021xxxxx
@@ -1607,11 +1697,91 @@ set.middleware.mbedtls:
       - MIMXRT1062xxxxA
       - MIMXRT1062xxxxB
       - MIMXRT1064xxxxA
+      - MIMXRT1064xxxxB
+      - MIMXRT106AxxxxA
+      - MIMXRT106CxxxxA
+      - MIMXRT106FxxxxA
+      - MIMXRT106LxxxxA
+      - MIMXRT106SxxxxA
+      - MIMXRT1071xxxxA
+      - MIMXRT1072xxxxA
       - K32L2A31xxxxA
       - K32L2A41xxxxA
+      - MCXN546
+      - MCXN547
+      - MCXN946
+      - MCXN947
+      - MIMXRT798S
+      - MK27FN2M0xxx15
+      - MK27FN2M0Axxx15
+      - MK28FN2M0xxx15
+      - MK28FN2M0Axxx15
+      - MK80FN256xxx15
+      - MKL28Z512xxx7
+      - MKV56F1M0xxx24
+      - MKV56F512xxx24
+      - MKV58F1M0xxx24
+      - MKV58F512xxx24
+      - RW610
+      - RW612
+      - MK11DN512xxx5
+      - MK11DX128xxx5
+      - MK11DX256xxx5
+      - MK11DN512xxx5WS
+      - MK11DX128xxx5WS
+      - MK11DX256xxx5WS
+      - MK11DN512Axxx5
+      - MK11DX128Axxx5
+      - MK11DX256Axxx5
+      - MK11DN512Axxx5WS
+      - MK11DX128Axxx5WS
+      - MK11DX256Axxx5WS
+      - MK21DN512xxx5
+      - MK21DX128xxx5
+      - MK21DX256xxx5
+      - MK21DN512xxx5WS
+      - MK21DX128xxx5WS
+      - MK21DX256xxx5WS
+      - MK21DN512Axxx5
+      - MK21DX128Axxx5
+      - MK21DX256Axxx5
+      - MK21DN512Axxx5WS
+      - MK21DX128Axxx5WS
+      - MK21DX256Axxx5WS
+      - MK21FN1M0xxx12
+      - MK21FX512xxx12
+      - MK21FN1M0xxx12WS
+      - MK21FX512xxx12WS
+      - MK21FN1M0Axxx12
+      - MK21FX512Axxx12
+      - MK21FN1M0Axxx12WS
+      - MK21FX512Axxx12WS
       - MK22FN128xxx12
       - MK22FN256xxx12
       - MK22FN512xxx12
+      - MK24FN1M0xxx12
+      - MK24FN256xxx12
+      - MK26FN2M0xxx18
+      - MK52DN512xxx10
+      - MK53DN512xxx10
+      - MK53DX256xxx10
+      - MK60DN256xxx10
+      - MK60DN512xxx10
+      - MK60DX256xxx10
+      - MK63FN1M0xxx12
+      - MK63FN1M0xxx12WS
+      - MK64FN1M0xxx12
+      - MK64FX512xxx12
+      - MK65FN2M0xxx18
+      - MK65FX1M0xxx18
+      - MK65FN2M0xxx18WS
+      - MK65FX1M0xxx18WS
+      - MK66FN2M0xxx18
+      - MK66FX1M0xxx18
+      - MK70FN1M0xxx12
+      - MK70FX512xxx12
+      - MK70FN1M0xxx15
+      - MK70FX512xxx15
       - MKM14Z64Axxx5
       - MKM14Z128Axxx5
       - MKM33Z64Axxx5
@@ -1620,6 +1790,26 @@ set.middleware.mbedtls:
       - MKM34Z128Axxx5
       - MKM35Z512xxx7
       - MKM35Z256xxx7
+      - MKS20FN128xxx12
+      - MKS20FN256xxx12
+      - MKS22FN128xxx12
+      - MKS22FN256xxx12
+      - MKV31F256xxx12
+      - MKV31F512xxx12
+      - MKW21D256xxx5
+      - MKW21D512xxx5
+      - MKW21D256xxx5WS
+      - MKW21D512xxx5WS
+      - MKW22D512xxx5
+      - MKW22D512xxx5WS
+      - MKW24D512xxx5
+      - MKW24D512xxx5WS
+      - PN7640
+      - PN7642
+      - QN908XC
+      - K32L4A5
+      - K32L4A4
+      - K32W232H
     - device_id:
       - LPC54628J512
       - LPC54018
@@ -1627,6 +1817,9 @@ set.middleware.mbedtls:
       - LPC54S018J2M
       - LPC54S018J4M
     - set.middleware.mmcau
+    - set.component.ele_crypto
+    - set.component.els_pkc
+    - set.component.els_pkc_rw61x
 license.mbedtls_license:
   section-type: license
   belong_to: set.middleware.mbedtls
@@ -1644,7 +1837,7 @@ scr.middleware.mbedtls:
     license:
     - license.mbedtls_license
     Name: Mbed TLS
-    Version: 2.28.3
+    Version: 2.28.5
     Format: source code
     Description: Cryptographic and SSL/TLS Library
     Location: middleware/mbedtls
@@ -1743,7 +1936,7 @@ middleware.mbedtls.port.ksdk:
   section_info:
     description: mbedTLS port library for KPSDK
     type: middleware
-    version: 2.28.3
+    version: 2.28.5
     user_visible: always
     full_name: MbedTLS MCUX SDK port layer
     taxonomy:
@@ -1751,7 +1944,7 @@ middleware.mbedtls.port.ksdk:
       cclass: Security
       cgroup: mbedTLS library
       cbundle: Mbed_TLS
-      cbundle_version: 2.28.3
+      cbundle_version: 2.28.5
     display_name: mbedtls_ksdk
     vendor: NXP
   dependency:
@@ -1832,6 +2025,7 @@ middleware.mbedtls.port.ksdk:
           - MIMXRT1062xxxxA
           - MIMXRT1062xxxxB
           - MIMXRT1064xxxxA
+          - MIMXRT1064xxxxB
       - allOf:
         - driver.trng
         - middleware.mmcau.cm0p
@@ -1886,6 +2080,10 @@ middleware.mbedtls:
         iar:
           cx-flags:
           - "--diag_suppress Pa167,Pe177,Pe191,Pe546"
+        armgcc:
+          cc-flags:
+          - "-fomit-frame-pointer"
+          - "-Wno-unused-function"
     repo_base_path: middleware/mbedtls
     project_base_path: mbedtls
     cc-include:
@@ -2985,7 +3183,7 @@ middleware.mbedtls:
   section_info:
     description: mbedTLS library
     type: middleware
-    version: 2.28.3
+    version: 2.28.5
     user_visible: always
     full_name: MbedTLS open source SSL library
     taxonomy:
@@ -2993,7 +3191,7 @@ middleware.mbedtls:
       cclass: Security
       cgroup: mbedTLS library
       cbundle: Mbed_TLS
-      cbundle_version: 2.28.3
+      cbundle_version: 2.28.5
     display_name: mbedtls
     vendor: NXP
   dependency:

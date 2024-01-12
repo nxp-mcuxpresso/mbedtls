@@ -31,6 +31,8 @@
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
 
+#define MBEDTLS_MPI_EXP_MOD_ALT
+
 /**
  * This is an optional version symbol that enables compatibility handling of
  * config files.

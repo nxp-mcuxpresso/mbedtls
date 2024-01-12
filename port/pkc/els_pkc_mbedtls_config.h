@@ -4348,6 +4348,12 @@
 
 /** \} name SECTION: Module configuration options */
 
+/** 
+ * Use an PKC-accelerated method for calculating mpi_exp_mod.
+ */
+#define MBEDTLS_MPI_EXP_MOD_ALT
+
+
 /* Target and application specific configurations
  *
  * Allow user to override any previous default.

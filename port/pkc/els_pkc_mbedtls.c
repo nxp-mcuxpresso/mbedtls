@@ -470,7 +470,7 @@ int mbedtls_mpi_exp_mod(
     // The most significant 32 bits / 4 bytes of the modulus need to be 0 because 
     // of PKC requirements. We achieve that by artificially increasing the operand size 
     // by 4 bytes.
-    size_t pkc_operand_size = MCUXCLPKC_ROUNDUP_SIZE(bytelen_n + 4);
+    size_t pkc_operand_size = MCUXCLPKC_ALIGN_TO_PKC_WORDSIZE(bytelen_n + 4);
 
     // mbedtls_printf("operand_size: 0x (%d)\n", operandSize, operandSize);
 
@@ -480,22 +480,22 @@ int mbedtls_mpi_exp_mod(
 
     // size of the result of the exponentiation
     // iR (bits 0~7): index of result (PKC operand).
-    // The size shall be at least max(MCUXCLPKC_ROUNDUP_SIZE(expByteLength + 1), lenN + MCUXCLPKC_WORDSIZE).
-    const size_t bufferSizeR = sz_max(MCUXCLPKC_ROUNDUP_SIZE(bytelen_e + 1), pkc_operand_size + MCUXCLPKC_WORDSIZE);
+    // The size shall be at least max(MCUXCLPKC_ALIGN_TO_PKC_WORDSIZE(expByteLength + 1), lenN + MCUXCLPKC_WORDSIZE).
+    const size_t bufferSizeR = sz_max(MCUXCLPKC_ALIGN_TO_PKC_WORDSIZE(bytelen_e + 1), pkc_operand_size + MCUXCLPKC_WORDSIZE);
 
     // iN (bits 24~31): index of modulus (PKC operand), size = operandSize (= lenN).
     const size_t bufferSizeN =
         pkc_operand_size + MCUXCLPKC_WORDSIZE; // size of N + PKC word in front of the modulus buffer for NDash
 
     // iT0 (bits 8~15): index of temp0 (PKC operand).
-    // The size shall be at least max(MCUXCLPKC_ROUNDUP_SIZE(expByteLength + 1), lenN + MCUXCLPKC_WORDSIZE).
-    const size_t bufferSizeT0 = sz_max(MCUXCLPKC_ROUNDUP_SIZE(bytelen_e + 1), pkc_operand_size + MCUXCLPKC_WORDSIZE);
+    // The size shall be at least max(MCUXCLPKC_ALIGN_TO_PKC_WORDSIZE(expByteLength + 1), lenN + MCUXCLPKC_WORDSIZE).
+    const size_t bufferSizeT0 = sz_max(MCUXCLPKC_ALIGN_TO_PKC_WORDSIZE(bytelen_e + 1), pkc_operand_size + MCUXCLPKC_WORDSIZE);
 
     // iT1 (bits 0~7): index of temp1 (PKC operand).
-    // Its size shall be at least max(MCUXCLPKC_ROUNDUP_SIZE(expByteLength + 1), lenN + MCUXCLPKC_WORDSIZE, 2 *
+    // Its size shall be at least max(MCUXCLPKC_ALIGN_TO_PKC_WORDSIZE(expByteLength + 1), lenN + MCUXCLPKC_WORDSIZE, 2 *
     // MCUXCLPKC_WORDSIZE).
     const size_t bufferSizeT1 = sz_max(
-        sz_max(MCUXCLPKC_ROUNDUP_SIZE(bytelen_e + 1), pkc_operand_size + MCUXCLPKC_WORDSIZE), 2 * MCUXCLPKC_WORDSIZE);
+        sz_max(MCUXCLPKC_ALIGN_TO_PKC_WORDSIZE(bytelen_e + 1), pkc_operand_size + MCUXCLPKC_WORDSIZE), 2 * MCUXCLPKC_WORDSIZE);
 
     // iT2 (bits 8~15): index of temp2 (PKC operand).
     // Its size shall be at least max(lenN + MCUXCLPKC_WORDSIZE, 2 * MCUXCLPKC_WORDSIZE).
@@ -657,7 +657,7 @@ int mbedtls_mpi_exp_mod(
         // If the exponent is smaller than 64 bit the randomization with the random 64 bit number 
         // breaks the calculation, so we perform it unrandomized in that case.
         ASSERT_CALLED_OR_EXIT(
-            MCUXCLMATH_SECMODEXP_WITHOUT_RERANDOMIZATION(&session, exp_buffer, tmp_buffer_aligned, bytelen_e, OP_R, OP_X,
+            MCUXCLMATH_SECMODEXP(&session, exp_buffer, tmp_buffer_aligned, bytelen_e, OP_R, OP_X,
                                                          OP_N, OP_TE, OP_T0, OP_T1, OP_T2, OP_T3),
             mcuxClMath_SecModExp, MCUXCLMATH_STATUS_OK);
     }

@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include <mcuxClEls.h>
 #include <mcuxClPkc.h>
+#include <internal/mcuxClPkc_Macros.h>
 #include <mcuxClEcc.h>
 #include <mcuxClMemory.h>
 #include <mcuxClHash_MemoryConsumption.h>
@@ -73,7 +74,7 @@
 #define MCUX_PKC_SIGN_BY_ALT_WACPU_SIZE_MAX                                                       \
     MCUX_PKC_MAX(MCUXCLRANDOMMODES_INIT_WACPU_SIZE,                                               \
           MCUX_PKC_MAX(MCUX_PKC_MAX(MCUX_PKC_SIGN_BY_ALT_RSA_WACPU_SIZE_MAX,                      \
-                                            MCUXCLECC_SIGN_WACPU_SIZE(MCUX_PKC_ECC_N_SIZE_MAX)),  \
+                                            MCUXCLECC_SIGN_WACPU_SIZE),  \
                         MCUXCLHASH_COMPUTE_CPU_WA_BUFFER_SIZE_MAX))
 
 #if (!defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT) || !defined(MBEDTLS_ECDH_COMPUTE_SHARED_ALT) || \

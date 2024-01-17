@@ -30,6 +30,7 @@
 #include <stdint.h>
 #include <mcuxClEls.h>
 #include <mcuxClPkc.h>
+#include <internal/mcuxClPkc_Macros.h>
 #include <mcuxClEcc.h>
 #include <mcuxClMemory.h>
 #include <mcuxClHash_MemoryConsumption.h>
@@ -77,7 +78,7 @@
 #define MCUX_PKC_SIGN_BY_ALT_WACPU_SIZE_MAX                                                       \
     MCUX_PKC_MAX(MCUXCLRANDOMMODES_INIT_WACPU_SIZE,                                               \
           MCUX_PKC_MAX(MCUX_PKC_MAX(MCUX_PKC_SIGN_BY_ALT_RSA_WACPU_SIZE_MAX,                      \
-                                            MCUXCLECC_SIGN_WACPU_SIZE(MCUX_PKC_ECC_N_SIZE_MAX)),  \
+                                            MCUXCLECC_SIGN_WACPU_SIZE),  \
                         MCUXCLHASH_COMPUTE_CPU_WA_BUFFER_SIZE_MAX))
 
 /* Macro determining maximum size of CPU workarea size for MCUX_PKC verify */
@@ -244,7 +245,8 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
                                         .pHash       = buf,
                                         .pPrivateKey = pPrivateKey,
                                         .pSignature  = pSignature,
-                                        .optLen      = mcuxClEcc_Sign_Param_optLen_Pack(blen)};
+                                        .optLen      = mcuxClEcc_Sign_Param_optLen_Pack(blen),
+                                        .pMode       = &mcuxClEcc_ECDSA_ProtocolDescriptor};
 
 #if defined(MBEDTLS_THREADING_C)
     if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)

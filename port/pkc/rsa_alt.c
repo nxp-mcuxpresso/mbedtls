@@ -32,6 +32,7 @@
 #include <mcuxClSession.h>          // Interface to the entire mcuxClSession component
 #include <mcuxCsslFlowProtection.h> // Code flow protection
 #include <mcuxClPkc.h>              // Interface to the entire mcuxClPkc component
+#include <internal/mcuxClPkc_Macros.h>
 #include <mcuxClRsa.h>              // Interface to the entire mcuxClRsa component
 #include <mcuxClMemory.h>
 #include <mbedtls/error.h>

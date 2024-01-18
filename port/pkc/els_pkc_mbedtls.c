@@ -431,8 +431,8 @@ int mbedtls_mpi_exp_mod(
         goto exit;
     }
 
-    // If the modulus is too small, fall back to SW implementation.
-    if (bitlen_n < MCUXCLPKC_WORDSIZE * 8)
+    // If the modulus or the exponent is too small, fall back to SW implementation.
+    if ((bitlen_n < (MCUXCLPKC_WORDSIZE * 8)) || (bitlen_e < (MCUXCLPKC_WORDSIZE * 8)))
     {
         ret = mbedtls_mpi_exp_mod_orig(X, A, E, N, _RR);
         goto exit;
@@ -618,16 +618,6 @@ int mbedtls_mpi_exp_mod(
     MCUXCLPKC_WAITFORREADY();
     ASSERT_CALLED_VOID_OR_EXIT(MCUXCLMATH_QSQUARED(OP_Q2, OP_S, OP_N, OP_T), mcuxClMath_QSquared);
 
-    // // Clear temp buffers
-    // MCUXCLPKC_WAITFORREADY();
-    // ASSERT_CALLED_VOID_OR_EXIT(MCUXCLPKC_CALC_OP1_CONST(OP_S, 0u), mcuxClPkc_CalcConst);
-    // MCUXCLPKC_WAITFORREADY();
-    // MCUXCLPKC_PS1_SETLENGTH(0u, operandSize + PKC_WORD_SIZE);
-    // MCUXCLPKC_WAITFORREADY();
-    // ASSERT_CALLED_VOID_OR_EXIT(MCUXCLPKC_CALC_OP1_CONST(OP_T, 0u), mcuxClPkc_CalcConst);
-    // MCUXCLPKC_WAITFORREADY();
-    // MCUXCLPKC_PS1_SETLENGTH(operandSize, operandSize);
-
     // Import base
     MCUXCLPKC_WAITFORFINISH();
     ASSERT_RET_0_OR_EXIT(mbedtls_mpi_write_binary_le(A, pS, bufferSizeS));
@@ -651,22 +641,9 @@ int mbedtls_mpi_exp_mod(
     ASSERT_RET_0_OR_EXIT(mbedtls_mpi_write_binary(E, exp_buffer, bytelen_e));
 
     MCUXCLPKC_WAITFORREADY();
-
-    if (bitlen_e < 64)
-    {
-        // If the exponent is smaller than 64 bit the randomization with the random 64 bit number 
-        // breaks the calculation, so we perform it unrandomized in that case.
-        ASSERT_CALLED_OR_EXIT(
-            MCUXCLMATH_SECMODEXP(&session, exp_buffer, tmp_buffer_aligned, bytelen_e, OP_R, OP_X,
-                                                         OP_N, OP_TE, OP_T0, OP_T1, OP_T2, OP_T3),
-            mcuxClMath_SecModExp, MCUXCLMATH_STATUS_OK);
-    }
-    else
-    {
-        ASSERT_CALLED_OR_EXIT(MCUXCLMATH_SECMODEXP(&session, exp_buffer, tmp_buffer_aligned, bytelen_e, OP_R, OP_X, OP_N,
-                                                   OP_TE, OP_T0, OP_T1, OP_T2, OP_T3),
-                              mcuxClMath_SecModExp, MCUXCLMATH_STATUS_OK);
-    }
+    ASSERT_CALLED_OR_EXIT(MCUXCLMATH_SECMODEXP(&session, exp_buffer, tmp_buffer_aligned, bytelen_e, OP_R, OP_X, OP_N,
+                                               OP_TE, OP_T0, OP_T1, OP_T2, OP_T3),
+                          mcuxClMath_SecModExp, MCUXCLMATH_STATUS_OK);
 
     /* Convert R back to NR. */
     MCUXCLPKC_WAITFORREADY();

@@ -621,12 +621,9 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
         goto cleanup;
     }
 
-    /* Set up ECC point multiplication parameters. */
-    mbedtls_ctr_drbg_context rng_ctx;
-    rng_ctx.prediction_resistance = 0;
     uint8_t *pScalar              = mbedtls_calloc(nByteLength, sizeof(uint8_t));
 
-    if (0u != f_rng(&rng_ctx, pScalar, nByteLength))
+    if (0u != f_rng(p_rng, pScalar, nByteLength))
     {
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         goto cleanup;

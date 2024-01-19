@@ -26,6 +26,8 @@ __hierarchy__:
           iar:
             config:
               __common__: 
+                cx-flags:
+                - "--diag_suppress Pe188"
               release: {}
           mdk:
             config:

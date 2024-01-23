@@ -117,12 +117,6 @@ status_t CRYPTO_InitHardware(void)
         {
             break;
         }
-        
-        uint32_t trng_state = 0u;
-        do
-        {
-            result = ELE_GetTrngState(S3MU, &trng_state);
-        } while ((trng_state & 0xFF) != kELE_TRNG_ready && result == kStatus_Success);
 
         /****************** Start RNG ***********************/
         result = ELE_StartRng(S3MU);
@@ -130,6 +124,12 @@ status_t CRYPTO_InitHardware(void)
             break;
         }
 
+        uint32_t trng_state = 0u;
+        do
+        {
+            result = ELE_GetTrngState(S3MU, &trng_state);
+        } while ((trng_state & 0xFF) != kELE_TRNG_ready && result == kStatus_Success);
+        
         /****************** Open EdgeLock session ******************/
         result = ELE_OpenSession(S3MU, &g_ele_ctx.session_handle);
         if (result != kStatus_Success) {

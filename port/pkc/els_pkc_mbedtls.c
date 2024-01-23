@@ -693,7 +693,7 @@ exit:
 #if defined(MBEDTLS_THREADING_C)
     if (pkc_mutex_locked)
     {
-        ASSERT_RET_0_OR_EXIT(mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_els_mutex));
+        ASSERT_RET_0_OR_EXIT(mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_pkc_mutex));
     }
 #endif
     return ret;

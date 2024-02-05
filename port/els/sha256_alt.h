@@ -37,7 +37,7 @@
  */
 typedef struct mbedtls_sha256_context
 {
-    uint32_t context[MCUXCLHASH_CONTEXT_SIZE / sizeof(uint32_t)];
+    uint8_t context[MCUXCLHASH_CONTEXT_SIZE];
 } mbedtls_sha256_context;
 #endif /* MBEDTLS_SHA256_CTX_ALT */
 

@@ -36,15 +36,16 @@
 #include <mcuxClEls.h>
 #include <mcuxClHash.h>
 #include <mcuxClHashModes.h>
+#include <internal/mcuxClHash_Internal.h>
 #include <mcuxClSession.h>
 
 #include "mcux_els.h"
 
 #if !defined(MBEDTLS_SHA256_CTX_ALT) || !defined(MBEDTLS_SHA256_STARTS_ALT) || !defined(MBEDTLS_SHA256_UPDATE_ALT) || \
-    !defined(MBEDTLS_SHA256_FINISH_ALT) || !defined(MBEDTLS_SHA256_FULL_ALT)
+    !defined(MBEDTLS_SHA256_FINISH_ALT) || !defined(MBEDTLS_SHA256_FULL_ALT) || !defined(MBEDTLS_SHA256_CLONE_ALT)
 #error the alternative implementations shall be enabled together.
 #elif defined(MBEDTLS_SHA256_CTX_ALT) && defined(MBEDTLS_SHA256_STARTS_ALT) && defined(MBEDTLS_SHA256_UPDATE_ALT) && \
-    defined(MBEDTLS_SHA256_FINISH_ALT) && defined(MBEDTLS_SHA256_FULL_ALT)
+    defined(MBEDTLS_SHA256_FINISH_ALT) && defined(MBEDTLS_SHA256_FULL_ALT) && defined(MBEDTLS_SHA256_CLONE_ALT)
 
 #define MCUXCLHASH_WA_SIZE_MAX MCUXCLHASH_COMPUTE_CPU_WA_BUFFER_SIZE_MAX
 
@@ -138,7 +139,7 @@ int mbedtls_sha256_update_ret(mbedtls_sha256_context *ctx, const unsigned char *
 #define MCUXCLHASH_WA_SIZE_MAX MCUXCLHASH_COMPUTE_CPU_WA_BUFFER_SIZE_MAX
     uint32_t workarea[MCUXCLHASH_WA_SIZE_MAX / sizeof(uint32_t)];
 #if defined(MBEDTLS_THREADING_C)
-    int ret = 0;
+    int ret;
     if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
         return ret;
 #endif
@@ -310,7 +311,50 @@ cleanup:
     return return_code;
 }
 
+void mbedtls_sha256_clone( mbedtls_sha256_context *target_operation,
+                           const mbedtls_sha256_context *source_operation )
+{
+    SHA256_VALIDATE( target_operation != NULL );
+    SHA256_VALIDATE( source_operation != NULL );
+  
+    /* Copy content from mcuxClHash_Context_t */
+    MCUX_CSSL_FP_FUNCTION_CALL_VOID_BEGIN(tokenCopy1, mcuxClMemory_copy (
+                                                    (uint8_t *) target_operation->context,
+                                                    (uint8_t *) source_operation->context,
+                                                    sizeof(mcuxClHash_ContextDescriptor_t),
+                                                    sizeof(mcuxClHash_ContextDescriptor_t)));
+    if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMemory_copy) != tokenCopy1)
+    {
+        goto cleanup;
+    }
+    MCUX_CSSL_FP_FUNCTION_CALL_VOID_END();
+
+    /* Compute new position and length of buffers 
+     * Note: This is not compatible with SecSha. */
+    mcuxClHash_ContextDescriptor_t * pClnsHashDataTarget = (mcuxClHash_ContextDescriptor_t *) target_operation->context;
+    mcuxClHash_ContextDescriptor_t * pClnsHashDataSource = (mcuxClHash_ContextDescriptor_t *) source_operation->context;
+
+    uint32_t *pStateTarget = mcuxClHash_getStatePtr(pClnsHashDataTarget);
+    uint32_t *pStateSource = mcuxClHash_getStatePtr(pClnsHashDataSource);
+    size_t bufferSizes = pClnsHashDataSource->algo->stateSize + pClnsHashDataSource->algo->blockSize;
+
+    /* Copy state and unprocessed buffer to target hash operation handle. */
+    MCUX_CSSL_FP_FUNCTION_CALL_VOID_BEGIN(tokenCopy2, mcuxClMemory_copy (
+                                                      (uint8_t *) pStateTarget,
+                                                      (uint8_t *) pStateSource,
+                                                      bufferSizes,
+                                                      bufferSizes));
+    if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMemory_copy) != tokenCopy2)
+    {
+        goto cleanup;
+    }
+    MCUX_CSSL_FP_FUNCTION_CALL_VOID_END();
+    /* Remaining Bytes in source and target behind pUnprocessed are not accessed by hash algorithms, so we do not copy them. */
+
+cleanup:
+    return;
+}
 #endif /* defined(MBEDTLS_SHA256_CTX_ALT) && defined(MBEDTLS_SHA256_STARTS_ALT) && defined(MBEDTLS_SHA256_UPDATE_ALT) \
-          && defined(MBEDTLS_SHA256_FINISH_ALT) && defined(MBEDTLS_SHA256_FULL_ALT) */
+          && defined(MBEDTLS_SHA256_FINISH_ALT) && defined(MBEDTLS_SHA256_FULL_ALT) && defined(MBEDTLS_SHA256_CLONE_ALT)*/
 
 #endif /* defined(MBEDTLS_MCUX_ELS_SHA256) */

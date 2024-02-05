@@ -56,6 +56,8 @@ void mbedtls_sha256_free(mbedtls_sha256_context *ctx)
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha256_context));
 }
 
+/* NXP added MBEDTLS_SHA256_CLONE_ALT */
+#if !defined(MBEDTLS_SHA256_CLONE_ALT)
 void mbedtls_sha256_clone(mbedtls_sha256_context *dst,
                           const mbedtls_sha256_context *src)
 {
@@ -64,7 +66,7 @@ void mbedtls_sha256_clone(mbedtls_sha256_context *dst,
 
     *dst = *src;
 }
-
+#endif /* NXP added MBEDTLS_SHA256_CLONE_ALT */
 /* NXP added */
 #if !defined(MBEDTLS_SHA256_STARTS_ALT)
 /*

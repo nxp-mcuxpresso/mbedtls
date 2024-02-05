@@ -36,13 +36,14 @@
 #include <mcuxClEls.h>
 #include <mcuxClHash.h>
 #include <mcuxClHashModes.h>
+#include <internal/mcuxClHash_Internal.h>
 #include <mcuxClSession.h>
 
 #if !defined(MBEDTLS_SHA512_CTX_ALT) || !defined(MBEDTLS_SHA512_STARTS_ALT) || !defined(MBEDTLS_SHA512_UPDATE_ALT) || \
-    !defined(MBEDTLS_SHA512_FINISH_ALT) || !defined(MBEDTLS_SHA512_FULL_ALT)
+    !defined(MBEDTLS_SHA512_FINISH_ALT) || !defined(MBEDTLS_SHA512_FULL_ALT) || !defined(MBEDTLS_SHA512_CLONE_ALT)
 #error the alternative implementations shall be enabled together.
 #elif defined(MBEDTLS_SHA512_CTX_ALT) && defined(MBEDTLS_SHA512_STARTS_ALT) && defined(MBEDTLS_SHA512_UPDATE_ALT) && \
-    defined(MBEDTLS_SHA512_FINISH_ALT) && defined(MBEDTLS_SHA512_FULL_ALT)
+    defined(MBEDTLS_SHA512_FINISH_ALT) && defined(MBEDTLS_SHA512_FULL_ALT) && defined(MBEDTLS_SHA512_CLONE_ALT)
 
 #define MCUXCLHASH_WA_SIZE_MAX MCUXCLHASH_COMPUTE_CPU_WA_BUFFER_SIZE_MAX
 
@@ -159,8 +160,6 @@ int mbedtls_sha512_update_ret(mbedtls_sha512_context *ctx, const unsigned char *
         goto cleanup;
     }
 
-    //*context = &ctx->context;
-
     MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retUpdate, tokenUpdate, mcuxClHash_process(session, pContext, input, ilen));
 
     if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClHash_process) != tokenUpdate)
@@ -173,7 +172,6 @@ int mbedtls_sha512_update_ret(mbedtls_sha512_context *ctx, const unsigned char *
         return_code = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto cleanup;
     }
-
     return_code = 0;
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
@@ -315,7 +313,50 @@ int mbedtls_internal_sha512_process(mbedtls_sha512_context *ctx, const unsigned 
     return 0;
 }
 
+void mbedtls_sha512_clone( mbedtls_sha512_context *target_operation,
+                           const mbedtls_sha512_context *source_operation )
+{
+    SHA512_VALIDATE( target_operation != NULL );
+    SHA512_VALIDATE( source_operation != NULL );
+ 
+    /* Copy content from mcuxClHash_Context_t */
+    MCUX_CSSL_FP_FUNCTION_CALL_VOID_BEGIN(tokenCopy1, mcuxClMemory_copy (
+                                                    (uint8_t *) target_operation->context,
+                                                    (uint8_t *) source_operation->context,
+                                                    sizeof(mcuxClHash_ContextDescriptor_t),
+                                                    sizeof(mcuxClHash_ContextDescriptor_t)));
+    if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMemory_copy) != tokenCopy1)
+    {
+        goto cleanup;
+    }
+    MCUX_CSSL_FP_FUNCTION_CALL_VOID_END();
+
+    /* Compute new position and length of buffers 
+     * Note: This is not compatible with SecSha. */
+    mcuxClHash_ContextDescriptor_t * pClnsHashDataTarget = (mcuxClHash_ContextDescriptor_t *) target_operation->context;
+    mcuxClHash_ContextDescriptor_t * pClnsHashDataSource = (mcuxClHash_ContextDescriptor_t *) source_operation->context;
+
+    uint32_t *pStateTarget = mcuxClHash_getStatePtr(pClnsHashDataTarget);
+    uint32_t *pStateSource = mcuxClHash_getStatePtr(pClnsHashDataSource);
+    size_t bufferSizes = pClnsHashDataSource->algo->stateSize + pClnsHashDataSource->algo->blockSize;
+
+    /* Copy state and unprocessed buffer to target hash operation handle. */
+    MCUX_CSSL_FP_FUNCTION_CALL_VOID_BEGIN(tokenCopy2, mcuxClMemory_copy (
+                                                      (uint8_t *) pStateTarget,
+                                                      (uint8_t *) pStateSource,
+                                                      bufferSizes,
+                                                      bufferSizes));
+    if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMemory_copy) != tokenCopy2)
+    {
+        goto cleanup;
+    }
+    MCUX_CSSL_FP_FUNCTION_CALL_VOID_END();
+    /* Remaining Bytes in source and target behind pUnprocessed are not accessed by hash algorithms, so we do not copy them. */
+
+cleanup:
+    return;
+}
 #endif /* defined(MBEDTLS_SHA512_CTX_ALT) && defined(MBEDTLS_SHA512_STARTS_ALT) && defined(MBEDTLS_SHA512_UPDATE_ALT) \
-          && defined(MBEDTLS_SHA512_FINISH_ALT) && defined(MBEDTLS_SHA512_FULL_ALT) */
+          && defined(MBEDTLS_SHA512_FINISH_ALT) && defined(MBEDTLS_SHA512_FULL_ALT) && defined(MBEDTLS_SHA512_CLONE_ALT) */
 
 #endif /* defined(MBEDTLS_MCUX_ELS_SHA512) */

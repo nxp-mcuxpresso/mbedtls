@@ -745,7 +745,9 @@ middleware.mbedtls:
     display_name: mbedtls
   dependency:
     allOf:
-    - utility.debug_console
+    - anyOf:
+      - utility.debug_console
+      - utility.debug_console_lite
     - anyOf:
       - middleware.mbedtls.port.ksdk
       - middleware.mbedtls.port.sssapi

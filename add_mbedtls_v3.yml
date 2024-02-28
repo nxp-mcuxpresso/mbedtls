@@ -282,6 +282,7 @@ middleware.mbedtls.port.sssapi:
     - source: port/sssapi/ecdsa_alt.h
     - source: port/sssapi/ecdsa_alt.c
     - source: port/sssapi/entropy_poll_alt.c
+    - source: port/sssapi/threading_alt.h
     configuration:
       cc-define:
         MBEDTLS_NXP_SSSAPI: 

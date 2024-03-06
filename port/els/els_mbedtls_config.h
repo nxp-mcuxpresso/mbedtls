@@ -24,36 +24,23 @@
  *  limitations under the License.
  */
 
-#ifndef ELS_PKC_MBEDTLS_CONFIG_H
-#define ELS_PKC_MBEDTLS_CONFIG_H
+#ifndef ELS_MBEDTLS_CONFIG_H
+#define ELS_MBEDTLS_CONFIG_H
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
 
-/**************************** MCUX ELS_PKC ********************************************/
+/**************************** MCUX ELS ********************************************/
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
+/* if 1 = enable HW acceleration, 0 = disable HW acceleration, use SW only */
 
-/* Compatibility macros across different devices */
-#ifndef PKC
-#define PKC PKC0
-#endif
-
-/* If those defines are not defined on command line, by default turn them on to use HW acceleration with this mbedtls_config file. Comment to turn off port layer */
+/* If this define are not defined on command line, by default turn them on to use HW acceleration with this mbedtls_config file. Comment to turn off port layer */
 #ifndef MBEDTLS_MCUX_USE_ELS
 #define MBEDTLS_MCUX_USE_ELS 
 #endif
 
-#ifndef MBEDTLS_MCUX_USE_PKC
-#define MBEDTLS_MCUX_USE_PKC 
-#endif
-
-/* Eanble usage of TRNG as entropy seeding source based upon Platform TRNG support and configurability*/
-#if defined(MCUX_ENABLE_TRNG_AS_ENTROPY_SEED) && \
-    (defined(FSL_FEATURE_SOC_TRNG_COUNT) && (FSL_FEATURE_SOC_TRNG_COUNT > 0))
-#define MBEDTLS_MCUX_USE_TRNG_AS_ENTROPY_SEED
-#endif
 
 /* Uncomment to enable HW acceleration, Comment to disable HW acceleration, use SW only */
 
@@ -75,22 +62,6 @@
 
 #endif /* MBEDTLS_MCUX_USE_ELS */
 #endif /* ELS */
-
-/* Enable PKC */
-#if defined(PKC)
-#if defined(MBEDTLS_MCUX_USE_PKC)
-
-/**
- * Uncomment a macro to enable alternate implementation of specific base
- * platform function
-*/
-
-  #define MBEDTLS_MCUX_PKC_ECDH        /* Enable use of PKC ECDH. */
-  #define MBEDTLS_MCUX_PKC_ECDSA       /* Enable use of PKC ECDSA. */
-  #define MBEDTLS_MCUX_PKC_RSA         /* Enable use of PKC RSA. */
-
-#endif /* MBEDTLS_MCUX_USE_PKC */
-#endif /* PKC */
 
 
 /* ======== Define ALT functions ====================================== */
@@ -133,7 +104,6 @@
     #define MBEDTLS_SHA256_FINISH_ALT
     #define MBEDTLS_SHA256_FULL_ALT
     #define MBEDTLS_SHA256_PROCESS_ALT
-    #define MBEDTLS_SHA256_CLONE_ALT
 
 #endif
 
@@ -145,34 +115,10 @@
     #define MBEDTLS_SHA512_FINISH_ALT
     #define MBEDTLS_SHA512_FULL_ALT
     #define MBEDTLS_SHA512_PROCESS_ALT
-    #define MBEDTLS_SHA512_CLONE_ALT
 
 #endif
 
-#if defined(MBEDTLS_MCUX_PKC_ECDH)
-
-    #define MBEDTLS_ECDH_GEN_PUBLIC_ALT
-    #define MBEDTLS_ECDH_COMPUTE_SHARED_ALT
-    #define MBEDTLS_ECDH_CANDO_ALT
-
-#endif
-
-#if defined(MBEDTLS_MCUX_PKC_ECDSA)
-
-    #define MBEDTLS_ECDSA_SIGN_ALT
-    #define MBEDTLS_ECDSA_VERIFY_ALT
-    #define MBEDTLS_ECDSA_GENKEY_ALT
-
-#endif
-
-#if defined(MBEDTLS_MCUX_PKC_RSA)
-
-    #define MBEDTLS_RSA_PUBLIC_ALT
-    #define MBEDTLS_RSA_PRIVATE_ALT
-    #define MBEDTLS_RSA_CTX_ALT
-
-#endif
-/**************************** MCUX ELS_PKC end ****************************************/
+/**************************** MCUX ELS end ****************************************/
 /**
  * \name SECTION: System support
  *
@@ -588,6 +534,8 @@
  *
  */
 //#define MBEDTLS_AES_ALT
+#define MBEDTLS_AES_CTX_ALT
+//#define MBEDTLS_AES_XTS_ALT
 //#define MBEDTLS_ARC4_ALT
 //#define MBEDTLS_ARIA_ALT
 //#define MBEDTLS_BLOWFISH_ALT
@@ -596,10 +544,13 @@
 //#define MBEDTLS_CHACHA20_ALT
 //#define MBEDTLS_CHACHAPOLY_ALT
 //#define MBEDTLS_CMAC_ALT
+#define MBEDTLS_CTR_DRBG_ALT
+#define MBEDTLS_AES_CMAC_ALT
 //#define MBEDTLS_DES_ALT
 //#define MBEDTLS_DHM_ALT
 //#define MBEDTLS_ECJPAKE_ALT
 //#define MBEDTLS_GCM_ALT
+//#define MBEDTLS_AES_GCM_ALT
 //#define MBEDTLS_NIST_KW_ALT
 //#define MBEDTLS_MD2_ALT
 //#define MBEDTLS_MD4_ALT
@@ -607,9 +558,22 @@
 //#define MBEDTLS_POLY1305_ALT
 //#define MBEDTLS_RIPEMD160_ALT
 //#define MBEDTLS_RSA_ALT
+//#define MBEDTLS_RSA_CTX_ALT
+//#define MBEDTLS_RSA_PUBLIC_ALT
+//#define MBEDTLS_RSA_PRIVATE_ALT
 //#define MBEDTLS_SHA1_ALT
 //#define MBEDTLS_SHA256_ALT
+#define MBEDTLS_SHA256_CTX_ALT
+#define MBEDTLS_SHA256_STARTS_ALT
+#define MBEDTLS_SHA256_UPDATE_ALT
+#define MBEDTLS_SHA256_FINISH_ALT
+#define MBEDTLS_SHA256_FULL_ALT
 //#define MBEDTLS_SHA512_ALT
+#define MBEDTLS_SHA512_CTX_ALT
+#define MBEDTLS_SHA512_STARTS_ALT
+#define MBEDTLS_SHA512_UPDATE_ALT
+#define MBEDTLS_SHA512_FINISH_ALT
+#define MBEDTLS_SHA512_FULL_ALT
 //#define MBEDTLS_XTEA_ALT
 
 /*
@@ -682,8 +646,16 @@
 //#define MBEDTLS_AES_SETKEY_DEC_ALT
 //#define MBEDTLS_AES_ENCRYPT_ALT
 //#define MBEDTLS_AES_DECRYPT_ALT
+//#define MBEDTLS_AES_GCM_SETKEY_ALT
+//#define MBEDTLS_AES_GCM_STARTS_ALT
+//#define MBEDTLS_AES_GCM_UPDATE_ALT
+//#define MBEDTLS_AES_GCM_FINISH_ALT
+//#define MBEDTLS_AES_CBC_ALT
+//#define MBEDTLS_AES_CTR_ALT
 //#define MBEDTLS_ECDH_GEN_PUBLIC_ALT
 //#define MBEDTLS_ECDH_COMPUTE_SHARED_ALT
+//#define MBEDTLS_ECP_RESTARTABLE
+//#define MBEDTLS_ECDH_CANDO_ALT
 //#define MBEDTLS_ECDSA_VERIFY_ALT
 //#define MBEDTLS_ECDSA_SIGN_ALT
 //#define MBEDTLS_ECDSA_GENKEY_ALT
@@ -990,7 +962,7 @@
  *
  * A man-in-the-browser attacker can recover authentication tokens sent through
  * a TLS connection using a 3DES based cipher suite (see "On the Practical
- * (In-)Security of 64-bit Block Ciphers" by Karthikeyan Bhargavan and GaÃ«tan
+ * (In-)Security of 64-bit Block Ciphers" by Karthikeyan Bhargavan and Gaëtan
  * Leurent, see https://sweet32.info/SWEET32_CCS16.pdf). If this attack falls
  * in your threat model or you are unsure, then you should keep this option
  * enabled to remove 3DES based cipher suites.
@@ -1017,18 +989,18 @@
  * Comment macros to disable the curve and functions for it
  */
 /* Short Weierstrass curves (supporting ECP, ECDH, ECDSA) */
-#define MBEDTLS_ECP_DP_SECP192R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP224R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP256R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP384R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP521R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP192K1_ENABLED
-#define MBEDTLS_ECP_DP_SECP224K1_ENABLED
-#define MBEDTLS_ECP_DP_SECP256K1_ENABLED
-#define MBEDTLS_ECP_DP_BP256R1_ENABLED
-#define MBEDTLS_ECP_DP_BP384R1_ENABLED
-#define MBEDTLS_ECP_DP_BP512R1_ENABLED
-/* Montgomery curves (supporting ECP), NOT supported by ELS PKC*/
+//#define MBEDTLS_ECP_DP_SECP192R1_ENABLED
+//#define MBEDTLS_ECP_DP_SECP224R1_ENABLED
+//#define MBEDTLS_ECP_DP_SECP256R1_ENABLED
+//#define MBEDTLS_ECP_DP_SECP384R1_ENABLED
+//#define MBEDTLS_ECP_DP_SECP521R1_ENABLED
+//#define MBEDTLS_ECP_DP_SECP192K1_ENABLED
+//#define MBEDTLS_ECP_DP_SECP224K1_ENABLED
+//#define MBEDTLS_ECP_DP_SECP256K1_ENABLED
+//#define MBEDTLS_ECP_DP_BP256R1_ENABLED
+//#define MBEDTLS_ECP_DP_BP384R1_ENABLED
+//#define MBEDTLS_ECP_DP_BP512R1_ENABLED
+/* Montgomery curves (supporting ECP), NOT supported by PKC*/
 //#define MBEDTLS_ECP_DP_CURVE25519_ENABLED
 //#define MBEDTLS_ECP_DP_CURVE448_ENABLED
 
@@ -1041,7 +1013,7 @@
  *
  * Comment this macro to disable NIST curves optimisation.
  */
-#define MBEDTLS_ECP_NIST_OPTIM
+//#define MBEDTLS_ECP_NIST_OPTIM
 
 /**
  * \def MBEDTLS_ECP_NO_INTERNAL_RNG
@@ -1141,7 +1113,7 @@
  *       library may modify the way the ECDH context layout is configured
  *       and may modify the layout of the new context type.
  */
-#define MBEDTLS_ECDH_LEGACY_CONTEXT
+//#define MBEDTLS_ECDH_LEGACY_CONTEXT
 
 /**
  * \def MBEDTLS_ECDSA_DETERMINISTIC
@@ -1228,7 +1200,7 @@
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_RC4_128_SHA
  */
-#define MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+//#define MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 
 /**
  * \def MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
@@ -1253,7 +1225,7 @@
  *      MBEDTLS_TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA
  *      MBEDTLS_TLS_RSA_PSK_WITH_RC4_128_SHA
  */
-#define MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
+//#define MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
 
 /**
  * \def MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
@@ -1281,7 +1253,7 @@
  *      MBEDTLS_TLS_RSA_WITH_RC4_128_SHA
  *      MBEDTLS_TLS_RSA_WITH_RC4_128_MD5
  */
-#define MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
+//#define MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
 
 /**
  * \def MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
@@ -1339,7 +1311,7 @@
  *      MBEDTLS_TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
  *      MBEDTLS_TLS_ECDHE_RSA_WITH_RC4_128_SHA
  */
-#define MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+//#define MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 
 /**
  * \def MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
@@ -1363,7 +1335,7 @@
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
  */
-#define MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+//#define MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 
 /**
  * \def MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
@@ -1387,7 +1359,7 @@
  *      MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_256_GCM_SHA384
  */
-#define MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
+//#define MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
 
 /**
  * \def MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
@@ -1411,7 +1383,7 @@
  *      MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_256_GCM_SHA384
  */
-#define MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+//#define MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
 
 /**
  * \def MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
@@ -1589,7 +1561,7 @@
  *
  * Comment this macro to disable support for external private RSA keys.
  */
-#define MBEDTLS_PK_RSA_ALT_SUPPORT
+//#define MBEDTLS_PK_RSA_ALT_SUPPORT
 
 /**
  * \def MBEDTLS_PKCS1_V15
@@ -2262,7 +2234,7 @@
  *
  * Comment this macro to disable support for server name indication in SSL
  */
-#define MBEDTLS_SSL_SERVER_NAME_INDICATION
+//#define MBEDTLS_SSL_SERVER_NAME_INDICATION
 
 /**
  * \def MBEDTLS_SSL_TRUNCATED_HMAC
@@ -2467,7 +2439,7 @@
  *
  * Comment this to disable run-time checking and save ROM space
  */
-//#define MBEDTLS_VERSION_FEATURES
+#define MBEDTLS_VERSION_FEATURES
 
 /**
  * \def MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
@@ -2545,7 +2517,7 @@
  *
  * Comment this macro to disallow using RSASSA-PSS in certificates.
  */
-#define MBEDTLS_X509_RSASSA_PSS_SUPPORT
+//#define MBEDTLS_X509_RSASSA_PSS_SUPPORT
 
 /**
  * \def MBEDTLS_ZLIB_SUPPORT
@@ -2912,7 +2884,7 @@
  *
  * This module is used for testing (ssl_client/server).
  */
-#define MBEDTLS_CERTS_C
+//#define MBEDTLS_CERTS_C
 
 /**
  * \def MBEDTLS_CHACHA20_C
@@ -2996,7 +2968,7 @@
  *
  * This module provides debugging functions.
  */
-//#define MBEDTLS_DEBUG_C
+#define MBEDTLS_DEBUG_C
 
 /**
  * \def MBEDTLS_DES_C
@@ -3062,7 +3034,7 @@
  *
  * Requires: MBEDTLS_ECP_C
  */
-#define MBEDTLS_ECDH_C
+//#define MBEDTLS_ECDH_C
 
 /**
  * \def MBEDTLS_ECDSA_C
@@ -3079,7 +3051,7 @@
  *           and at least one MBEDTLS_ECP_DP_XXX_ENABLED for a
  *           short Weierstrass curve.
  */
-#define MBEDTLS_ECDSA_C
+//#define MBEDTLS_ECDSA_C
 
 /**
  * \def MBEDTLS_ECJPAKE_C
@@ -3112,7 +3084,7 @@
  *
  * Requires: MBEDTLS_BIGNUM_C and at least one MBEDTLS_ECP_DP_XXX_ENABLED
  */
-#define MBEDTLS_ECP_C
+//#define MBEDTLS_ECP_C
 
 /**
  * \def MBEDTLS_ENTROPY_C
@@ -3407,7 +3379,7 @@
  *
  * Uncomment to enable generic public key wrappers.
  */
-#define MBEDTLS_PK_C
+//#define MBEDTLS_PK_C
 
 /**
  * \def MBEDTLS_PK_PARSE_C
@@ -3422,7 +3394,7 @@
  *
  * Uncomment to enable generic public key parse functions.
  */
-#define MBEDTLS_PK_PARSE_C
+//#define MBEDTLS_PK_PARSE_C
 
 /**
  * \def MBEDTLS_PK_WRITE_C
@@ -3436,7 +3408,7 @@
  *
  * Uncomment to enable generic public key write functions.
  */
-#define MBEDTLS_PK_WRITE_C
+//#define MBEDTLS_PK_WRITE_C
 
 /**
  * \def MBEDTLS_PKCS5_C
@@ -3598,7 +3570,7 @@
  *
  * Requires: MBEDTLS_BIGNUM_C, MBEDTLS_OID_C
  */
-#define MBEDTLS_RSA_C
+//#define MBEDTLS_RSA_C
 
 /**
  * \def MBEDTLS_SHA1_C
@@ -3808,7 +3780,7 @@
  *
  * This module is required for the X.509 parsing modules.
  */
-#define MBEDTLS_X509_USE_C
+//#define MBEDTLS_X509_USE_C
 
 /**
  * \def MBEDTLS_X509_CRT_PARSE_C
@@ -3824,7 +3796,7 @@
  *
  * This module is required for X.509 certificate parsing.
  */
-#define MBEDTLS_X509_CRT_PARSE_C
+//#define MBEDTLS_X509_CRT_PARSE_C
 
 /**
  * \def MBEDTLS_X509_CRL_PARSE_C
@@ -3838,7 +3810,7 @@
  *
  * This module is required for X.509 CRL parsing.
  */
-#define MBEDTLS_X509_CRL_PARSE_C
+//#define MBEDTLS_X509_CRL_PARSE_C
 
 /**
  * \def MBEDTLS_X509_CSR_PARSE_C
@@ -3852,7 +3824,7 @@
  *
  * This module is used for reading X.509 certificate request.
  */
-#define MBEDTLS_X509_CSR_PARSE_C
+//#define MBEDTLS_X509_CSR_PARSE_C
 
 /**
  * \def MBEDTLS_X509_CREATE_C
@@ -3865,7 +3837,7 @@
  *
  * This module is the basis for creating X.509 certificates and CSRs.
  */
-#define MBEDTLS_X509_CREATE_C
+//#define MBEDTLS_X509_CREATE_C
 
 /**
  * \def MBEDTLS_X509_CRT_WRITE_C
@@ -3878,7 +3850,7 @@
  *
  * This module is required for X.509 certificate creation.
  */
-#define MBEDTLS_X509_CRT_WRITE_C
+//#define MBEDTLS_X509_CRT_WRITE_C
 
 /**
  * \def MBEDTLS_X509_CSR_WRITE_C
@@ -3891,7 +3863,7 @@
  *
  * This module is required for X.509 certificate request writing.
  */
-#define MBEDTLS_X509_CSR_WRITE_C
+//#define MBEDTLS_X509_CSR_WRITE_C
 
 /**
  * \def MBEDTLS_XTEA_C
@@ -4350,12 +4322,6 @@
 
 /** \} name SECTION: Module configuration options */
 
-/** 
- * Use an PKC-accelerated method for calculating mpi_exp_mod.
- */
-#define MBEDTLS_MPI_EXP_MOD_ALT
-
-
 /* Target and application specific configurations
  *
  * Allow user to override any previous default.
@@ -4371,4 +4337,4 @@
 
 #include "mbedtls/check_config.h"
 
-#endif /* ELS_PKC_MBEDTLS_CONFIG_H */
+#endif /* ELS_MBEDTLS_CONFIG_H */

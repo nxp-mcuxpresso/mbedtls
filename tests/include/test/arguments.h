@@ -1,6 +1,11 @@
-/*
- * Helper functions for tests that use any PSA API.
+/**
+ * \file arguments.h
+ *
+ * \brief Manipulation of test arguments.
+ *
+ * Much of the code is in host_test.function, to be migrated here later.
  */
+
 /*
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -18,19 +23,21 @@
  *  limitations under the License.
  */
 
-#ifndef PSA_HELPERS_H
-#define PSA_HELPERS_H
+#ifndef TEST_ARGUMENTS_H
+#define TEST_ARGUMENTS_H
 
-#if defined(MBEDTLS_PSA_CRYPTO_SPM)
-#include "spm/psa_defs.h"
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "mbedtls/config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-/** Evaluate an expression and fail the test case if it returns an error.
- *
- * \param expr      The expression to evaluate. This is typically a call
- *                  to a \c psa_xxx function that returns a value of type
- *                  #psa_status_t.
- */
-#define PSA_ASSERT(expr) TEST_EQUAL((expr), PSA_SUCCESS)
+#include <stdint.h>
+#include <stdlib.h>
 
-#endif /* PSA_HELPERS_H */
+typedef union {
+    size_t len;
+    intmax_t sint;
+} mbedtls_test_argument_t;
+
+#endif /* TEST_ARGUMENTS_H */

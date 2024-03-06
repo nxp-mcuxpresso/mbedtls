@@ -74,6 +74,7 @@ middleware.mbedtls.port.ele_s400:
     allOf:
     - driver.s3mu
     - component.ele_crypto
+    - middleware.mbedtls
 middleware.mbedtls.port.ele_s400_ecc_opaque:
   section-type: component
   contents:
@@ -119,11 +120,12 @@ middleware.mbedtls.port.ele_s400_ecc_opaque:
     taxonomy:
       csub: ele_s400
       belong_to: mbedtls
-    display_name: mbedtls_ele_s400
+    display_name: mbedtls_ele_s400_ecc_opaque
   dependency:
     allOf:
     - driver.s3mu
     - component.ele_crypto
+    - middleware.mbedtls
 middleware.mbedtls.els_pkc.config:
   section-type: component
   contents:
@@ -159,6 +161,7 @@ middleware.mbedtls.port.els_pkc:
     - repo_relative_path: port/pkc
     files:
     - source: port/pkc/els_pkc_mbedtls_config.h
+    - source: port/pkc/els_pkc_mbedtls_thread_config.h
     - source: port/pkc/ecc_alt.c
     - source: port/pkc/ecc_alt.h
     - source: port/pkc/ecdh_alt.c
@@ -186,17 +189,25 @@ middleware.mbedtls.port.els_pkc:
     display_name: mbedtls_pkc
   dependency:
     allOf:
-    - device:
-      - RW610
-      - RW612
-      - LPC55S36
-      - MCXN546
-      - MCXN547
-      - MCXN946
-      - MCXN947
     - middleware.mbedtls.port.els
     - component.els_pkc
     - middleware.mbedtls.els_pkc.config
+    - anyOf:
+        - allOf:
+          - driver.trng
+          - device:
+            - RW610
+            - RW612
+        - allOf:
+          - device:
+            - LPC55S36
+            - MCXN235
+            - MCXN236
+            - MCXN546
+            - MCXN547
+            - MCXN946
+            - MCXN947
+
 middleware.mbedtls.port.els:
   section-type: component
   contents:
@@ -271,6 +282,7 @@ middleware.mbedtls.port.sssapi:
     - source: port/sssapi/ecdsa_alt.h
     - source: port/sssapi/ecdsa_alt.c
     - source: port/sssapi/entropy_poll_alt.c
+    - source: port/sssapi/threading_alt.h
     configuration:
       cc-define:
         MBEDTLS_NXP_SSSAPI: 
@@ -734,7 +746,9 @@ middleware.mbedtls:
     display_name: mbedtls
   dependency:
     allOf:
-    - utility.debug_console
+    - anyOf:
+      - utility.debug_console
+      - utility.debug_console_lite
     - anyOf:
       - middleware.mbedtls.port.ksdk
       - middleware.mbedtls.port.sssapi
@@ -1046,3 +1060,43 @@ scr.board.${board}.mbedtls:
       integrate middleware.
     Origin: NXP (BSD-3-Clause)
     Location: "./boards/${board}/mbedtls_examples"
+
+middleware.mbedtls.tests:
+  section-type: component
+  contents:
+    repo_base_path: middleware/mbedtls
+    project_base_path: mbedtls
+    cc-include:
+    - repo_relative_path: tests/include/test
+    - repo_relative_path: tests/include
+    files:
+    - source: tests/src/asn1_helpers.c
+    - source: tests/src/helpers.c
+    - source: tests/src/psa_crypto_helpers.c
+    - source: tests/src/psa_exercise_key.c
+    - source: tests/src/random.c
+    - source: tests/src/threading_helpers.c
+    - source: tests/src/fake_external_rng_for_test.c
+    - source: tests/src/test_helpers/ssl_helpers.c
+    - source: tests/include/test/arguments.h
+    - source: tests/include/test/asn1_helpers.h
+    - source: tests/include/test/constant_flow.h
+    - source: tests/include/test/fake_external_rng_for_test.h
+    - source: tests/include/test/helpers.h
+    - source: tests/include/test/macros.h
+    - source: tests/include/test/psa_crypto_helpers.h
+    - source: tests/include/test/psa_exercise_key.h
+    - source: tests/include/test/psa_helpers.h
+    - source: tests/include/test/random.h
+    - source: tests/include/test/ssl_helpers.h
+  belong_to: set.middleware.mbedtls
+  section_info:
+    description: mbedTLS test suite
+    type: middleware
+    version: "${mbedtls_version}"
+    user_visible: never
+    full_name: MbedTLS open source Crypto library
+    taxonomy:
+      csub: tests
+      belong_to: mbedtls
+    display_name: mbedtls_tests

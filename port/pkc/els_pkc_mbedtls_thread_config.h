@@ -24,8 +24,8 @@
  *  limitations under the License.
  */
 
-#ifndef ELS_PKC_MBEDTLS_CONFIG_H
-#define ELS_PKC_MBEDTLS_CONFIG_H
+#ifndef ELS_PKC_MBEDTLS_THREAD_CONFIG_H
+#define ELS_PKC_MBEDTLS_THREAD_CONFIG_H
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
@@ -354,7 +354,7 @@
  *
  * Enable this layer to allow use of alternative memory allocators.
  */
-//#define MBEDTLS_PLATFORM_MEMORY
+#define MBEDTLS_PLATFORM_MEMORY
 
 /**
  * \def MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
@@ -2389,7 +2389,7 @@
  *
  * Uncomment this to allow your own alternate threading implementation.
  */
-//#define MBEDTLS_THREADING_ALT
+#define MBEDTLS_THREADING_ALT
 
 /**
  * \def MBEDTLS_THREADING_PTHREAD
@@ -3753,7 +3753,7 @@
  *
  * Enable this layer to allow use of mutexes within Mbed TLS
  */
-//#define MBEDTLS_THREADING_C
+#define MBEDTLS_THREADING_C
 
 /**
  * \def MBEDTLS_TIMING_C
@@ -4371,4 +4371,4 @@
 
 #include "mbedtls/check_config.h"
 
-#endif /* ELS_PKC_MBEDTLS_CONFIG_H */
+#endif /* ELS_PKC_MBEDTLS_THREAD_CONFIG_H */

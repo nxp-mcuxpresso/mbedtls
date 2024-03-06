@@ -71,6 +71,8 @@ void mbedtls_sha512_free(mbedtls_sha512_context *ctx)
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha512_context));
 }
 
+/* NXP added MBEDTLS_SHA512_CLONE_ALT */
+#if !defined(MBEDTLS_SHA512_CLONE_ALT)
 void mbedtls_sha512_clone(mbedtls_sha512_context *dst,
                           const mbedtls_sha512_context *src)
 {
@@ -79,6 +81,8 @@ void mbedtls_sha512_clone(mbedtls_sha512_context *dst,
 
     *dst = *src;
 }
+#endif /* NXP added MBEDTLS_SHA512_CLONE_ALT */
+
 /* NXP added MBEDTLS_SHA512_STARTS_ALT */
 #if !defined(MBEDTLS_SHA512_STARTS_ALT)
 /*

@@ -1998,7 +1998,7 @@ int mbedtls_ssl_psk_derive_premaster(mbedtls_ssl_context *ssl, mbedtls_key_excha
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if (key_ex == MBEDTLS_KEY_EXCHANGE_DHE_PSK) {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-        size_t len;
+        size_t len = 0;
 
         /* Write length only when we know the actual value */
         if ((ret = mbedtls_dhm_calc_secret(&ssl->handshake->dhm_ctx,
@@ -2016,7 +2016,7 @@ int mbedtls_ssl_psk_derive_premaster(mbedtls_ssl_context *ssl, mbedtls_key_excha
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     if (key_ex == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK) {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-        size_t zlen;
+        size_t zlen = 0;
 
         if ((ret = mbedtls_ecdh_calc_secret(&ssl->handshake->ecdh_ctx, &zlen,
                                             p + 2, end - (p + 2),

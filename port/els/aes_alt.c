@@ -340,8 +340,8 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
                           const unsigned char *input,
                           unsigned char *output)
 {
-    if ((NULL == ctx) || (NULL == nc_off) || (NULL == nonce_counter) || (NULL == stream_block) || (NULL == input) ||
-        (NULL == output))
+    if ((NULL == ctx) || (NULL == nc_off) || (NULL == nonce_counter) || (NULL == stream_block) 
+        || ((NULL == input) && (0 != length)) || ((NULL == output) && (0 != length)) ) 
     {
         return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
     }

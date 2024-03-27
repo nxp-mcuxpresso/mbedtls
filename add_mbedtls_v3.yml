@@ -315,6 +315,8 @@ middleware.mbedtls.port.sssapi:
       - KW45Z41083
       - KW45B41Z83_NBU
       - K32L4A
+      - MCXW716A
+      - MCXW716C
 middleware.mbedtls.port.ksdk:
   section-type: component
   contents:

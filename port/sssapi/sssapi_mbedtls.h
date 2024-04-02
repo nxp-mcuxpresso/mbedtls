@@ -1,3 +1,4 @@
+#if 0
 #if (defined(KW45_A0_SUPPORT) && KW45_A0_SUPPORT)
 /*
  * Copyright 2019-2021 NXP
@@ -10,10 +11,10 @@
 #ifndef SSSAPI_MBEDTLS_H
 #define SSSAPI_MBEDTLS_H
 
-#if defined(MBEDTLS_NXP_SENTINEL200)
-#define SSS_SUBSYSTEM (kType_SSS_Sentinel200)
-#elif defined(MBEDTLS_NXP_SENTINEL300)
-#define SSS_SUBSYSTEM (kType_SSS_Sentinel300)
+#if defined(MBEDTLS_NXP_ELEMU200)
+#define SSS_SUBSYSTEM (kType_SSS_Elemu200)
+#elif defined(MBEDTLS_NXP_ELEMU300)
+#define SSS_SUBSYSTEM (kType_SSS_Elemu300)
 #else
 #define SSS_SUBSYSTEM (kType_SSS_Software)
 #endif
@@ -56,17 +57,17 @@ status_t CRYPTO_ReinitHardware(void);
 #ifndef SSSAPI_MBEDTLS_H
 #define SSSAPI_MBEDTLS_H
 
-#if defined(MBEDTLS_NXP_SENTINEL200)
-#define SSS_SUBSYSTEM (kType_SSS_Sentinel200)
-#elif defined(MBEDTLS_NXP_SENTINEL300)
-#define SSS_SUBSYSTEM (kType_SSS_Sentinel300)
+#if defined(MBEDTLS_NXP_ELEMU200)
+#define SSS_SUBSYSTEM (kType_SSS_Elemu200)
+#elif defined(MBEDTLS_NXP_ELEMU300)
+#define SSS_SUBSYSTEM (kType_SSS_Elemu300)
 #else
 #define SSS_SUBSYSTEM (kType_SSS_Software)
 #endif
 
 #define SSS_MAX_SUBSYTEM_WAIT       (0xFFFFFFFFu)
-#define SSS_CRYPTOHW_INITIALIZED    (0xF0F0F0F0)
-#define SSS_CRYPTOHW_NONINITIALIZED (0x0F0F0F0F)
+#define SSS_CRYPTOHW_INITIALIZED    (0xF0F0F0F0u)
+#define SSS_CRYPTOHW_NONINITIALIZED (0x0F0F0F0Fu)
 
 #define SSS_KEYPROP_OPERATION_NONE (0x00000000u)
 #define SSS_KEYPROP_OPERATION_AES  (0x00000001u)
@@ -91,9 +92,13 @@ extern sscp_context_t g_sscpContext;
 status_t CRYPTO_InitHardware(void);
 status_t CRYPTO_ReinitHardware(void);
 
+
+
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* SSSAPI_MBEDTLS_H */
 #endif /* KW45_A0_SUPPORT */
+#endif

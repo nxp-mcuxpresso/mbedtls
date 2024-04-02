@@ -125,7 +125,7 @@ int mbedtls_aes_gcm_starts_alt(mbedtls_gcm_context *ctx,
     if (iv_len == 12u)
     {
         /* pad the IV according to NIST SP 800-38D */
-        (void)memset((void *)ctx->HH, 0x00, 16);
+        (void)memset((void *)ctx->HH, 0x00, sizeof(ctx->HH));
         (void)memcpy((void *)ctx->HH, (void const *)iv, iv_len);
         ((uint8_t *)ctx->HH)[15] = 0x01u;
         /* call mcuxClEls_Aead_Init_Async */
@@ -264,7 +264,7 @@ int mbedtls_aes_gcm_starts_alt(mbedtls_gcm_context *ctx,
     if (len_last_add_block > 0u)
     {
         /* pad the AAD according to NIST SP 800-38D */
-        (void)memset((void *)ctx->HH, 0x00, 16);
+        (void)memset((void *)ctx->HH, 0x00, sizeof(ctx->HH));
         (void)memcpy((void *)ctx->HH, (void const *)add, len_last_add_block);
         /* call mcuxClEls_Aead_UpdateAad_Async */
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(
@@ -379,7 +379,7 @@ int mbedtls_aes_gcm_update_alt(mbedtls_gcm_context *ctx,
     if (len_last_msg_block > 0u)
     {
         // pad the input msg according to NIST SP 800-38D
-        (void)memset((void *)ctx->HH, 0x00, 16);
+        (void)memset((void *)ctx->HH, 0x00, sizeof(ctx->HH));
         (void)memcpy((void *)ctx->HH, (void const *)input, len_last_msg_block);
 
         options.bits.msgendw = len_last_msg_block;

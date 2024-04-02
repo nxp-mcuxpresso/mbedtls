@@ -13,6 +13,7 @@
 extern "C" {
 #endif
 
+#include "fsl_common.h"
 
 #if defined(MBEDTLS_THREADING_C)
 /* Threading mutex implementations for mbedTLS. */

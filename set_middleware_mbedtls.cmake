@@ -149,12 +149,55 @@ endif()
 endif()
 
 
+if (CONFIG_USE_middleware_mbedtls_port_sssapi)
+# Add set(CONFIG_USE_middleware_mbedtls_port_sssapi true) in config.cmake to use this component
+
+message("middleware_mbedtls_port_sssapi component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+if(CONFIG_USE_middleware_mbedtls AND CONFIG_USE_middleware_secure-subsystem_elemu_port_kw45_k4w1 AND (CONFIG_DEVICE_ID STREQUAL K32W1480xxxA))
+
+target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/sssapi_mbedtls.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/aes_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/ccm_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/cmac_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/sha256_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/sha512_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/ecdh_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/ecdsa_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/entropy_poll_alt.c
+)
+
+target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi
+)
+
+if(CONFIG_USE_COMPONENT_CONFIGURATION)
+  message("===>Import configuration from ${CMAKE_CURRENT_LIST_FILE}")
+
+  target_compile_definitions(${MCUX_SDK_PROJECT_NAME} PUBLIC
+    -DMBEDTLS_NXP_SSSAPI
+    -DMBEDTLS_NXP_ELE200
+    -DMBEDTLS_CONFIG_FILE="sssapi_mbedtls_config.h"
+  )
+
+endif()
+
+else()
+
+message(SEND_ERROR "middleware_mbedtls_port_sssapi dependency does not meet, please check ${CMAKE_CURRENT_LIST_FILE}.")
+
+endif()
+
+endif()
+
+
 if (CONFIG_USE_middleware_mbedtls)
 # Add set(CONFIG_USE_middleware_mbedtls true) in config.cmake to use this component
 
 message("middleware_mbedtls component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
-if((CONFIG_USE_utility_debug_console OR CONFIG_USE_utility_debug_console_lite) AND (CONFIG_USE_middleware_mbedtls_port_els_pkc))
+if((CONFIG_USE_utility_debug_console OR CONFIG_USE_utility_debug_console_lite) AND (CONFIG_USE_middleware_mbedtls_port_sssapi OR CONFIG_USE_middleware_mbedtls_port_els_pkc))
 
 target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/./library/aes.c

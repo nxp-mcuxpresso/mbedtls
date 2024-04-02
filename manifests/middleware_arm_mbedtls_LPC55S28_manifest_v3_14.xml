@@ -9,7 +9,7 @@
     <definition extID="platform.drivers.hashcrypt.LPC55S28"/>
     <definition extID="utility.debug_console.LPC55S28"/>
   </externalDefinitions>
-  <ksdk id="MCUXpressoSDK2150_middleware_arm_mbedtls_LPC55S28_manifest_v3_14" name="MCUXpressoSDK2150_middleware_arm_mbedtls_LPC55S28_manifest_v3_14" version="2.15.0" revision="2.15.0"/>
+  <ksdk id="MCUXpressoSDK215100_middleware_arm_mbedtls_LPC55S28_manifest_v3_14" name="MCUXpressoSDK215100_middleware_arm_mbedtls_LPC55S28_manifest_v3_14" version="2.15.100" revision="2.15.100"/>
   <components>
     <component id="middleware.mbedtls.template.LPC55S28" name="mbedtls_template" brief="mbedTLS Template" version="2.28.5" full_name="mbedTLS Template" category="Security/mbedTLS library" user_visible="false" type="project_template" package_base_path=".././" project_base_path="mbedtls">
       <defines>

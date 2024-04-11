@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=../../bin/generator/sdk_generator/data/sdk_data_schema/v3/software_set_and_project_schema.json
 
 __variable__:
-  mbedtls_version: 2.28.5
+  mbedtls_version: 2.28.8
 middleware.mbedtls.template:
   section-type: component
   contents:

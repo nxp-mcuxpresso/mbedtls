@@ -2524,7 +2524,7 @@ static int myrand(void *rng_state, unsigned char *output, size_t len)
 #endif /* MBEDTLS_PKCS1_V15 */
 #endif /* MBEDTLS_SELF_TEST */
 
-#if defined(MBEDTLS_SELF_TEST) && !defined(FREESCALE_PKHA_LONG_OPERANDS_ENABLE)
+#if defined(MBEDTLS_SELF_TEST)
 
 /*
  * Checkup routine

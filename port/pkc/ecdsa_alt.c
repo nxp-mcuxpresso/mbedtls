@@ -679,6 +679,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
         mbedtls_mpi_read_binary(&ctx->d, pScalar, nByteLength);
         mbedtls_mpi_read_binary(&ctx->Q.X, PointMultParams.pResult, pByteLength);
         mbedtls_mpi_read_binary(&ctx->Q.Y, PointMultParams.pResult + pByteLength, pByteLength);
+        mbedtls_mpi_lset(&ctx->Q.Z, 1);
 
         /* Free allocated memory */
         mbedtls_ecp_free_ecdsa(&pDomainParams, &PointMultParams, NULL, NULL);

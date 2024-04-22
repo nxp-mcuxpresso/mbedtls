@@ -131,40 +131,60 @@ __WEAK void __stack_chk_fail(void)
     };
 }
 
+static status_t common_init_els_pkc_and_trng(uint32_t pkc_init_mode)
+{
+    status_t status;
+    /* Enable ELS and related clocks */
+    status = ELS_PowerDownWakeupInit(ELS);
+    if (status == kStatus_Success)
+    {
+        if (pkc_init_mode == PKC_INIT_ZEROIZE)
+        {
+          /* Enable PKC related clocks and RAM zeroize */
+          status = PKC_PowerDownWakeupInit(PKC);
+        }
+        else if (pkc_init_mode == PKC_INIT_NO_ZEROIZE)
+        {
+          /* Enable PKC related clocks without RAM zeroize */
+          status = PKC_InitNoZeroize(PKC);
+        }
+        else
+        {
+          status = kStatus_Fail;
+        }
+    
+#if defined(MBEDTLS_MCUX_USE_TRNG_AS_ENTROPY_SEED)
+        /* Initilize the TRNG driver */
+        if (status == kStatus_Success)
+        {
+            trng_config_t trngConfig;
+            
+            /* Get default TRNG configs*/
+            status = TRNG_GetDefaultConfig(&trngConfig);
+            
+            if(status == kStatus_Success)
+            {
+                /* Set sample mode of the TRNG ring oscillator to Von Neumann, for better random data.*/
+                /* Initialize TRNG */
+                status = TRNG_Init(TRNG, &trngConfig);
+            }
+        }
+#endif
+    }
+    return status;
+}
+
 int mbedtls_hw_init(void)
 {
     status_t status;
 
     if (g_isCryptoHWInitialized == ELS_PKC_CRYPTOHW_NONINITIALIZED)
     {
-        /* Enable ELS and related clocks */
-        status = ELS_PowerDownWakeupInit(ELS);
-        if (status != kStatus_Success)
-        {
-            return status;
-        }
-
-        /* Enable PKC related clocks without RAM zeroize */
-        status = PKC_InitNoZeroize(PKC);
-        if (status != kStatus_Success)
-        {
-            return status;
-        }
-#if defined(MBEDTLS_MCUX_USE_TRNG_AS_ENTROPY_SEED)
-        /* Initilize the TRNG driver */
-        {
-            trng_config_t trngConfig;
-            /* Get default TRNG configs*/
-            TRNG_GetDefaultConfig(&trngConfig);
-            /* Set sample mode of the TRNG ring oscillator to Von Neumann, for better random data.*/
-            /* Initialize TRNG */
-            TRNG_Init(TRNG, &trngConfig);
-        }
-#endif
+        status = common_init_els_pkc_and_trng(PKC_INIT_NO_ZEROIZE);
     }
     else
     {
-        return kStatus_Success;
+        status = kStatus_Success;
     }
 
     return status;
@@ -185,54 +205,52 @@ status_t CRYPTO_InitHardware(void)
     if (g_isCryptoHWInitialized == ELS_PKC_CRYPTOHW_NONINITIALIZED)
     {
 #if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
-
         CRYPTO_ConfigureThreadingMcux();
-
-#endif /* (MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT) */
-
-#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
         mbedtls_mutex_init(&mbedtls_threading_hwcrypto_els_mutex);
-#endif /* (MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT) */
-
-#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
         mbedtls_mutex_init(&mbedtls_threading_hwcrypto_pkc_mutex);
 #endif /* (MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT) */
-        /* Enable ELS and related clocks */
-        status = ELS_PowerDownWakeupInit(ELS);
-        if (status != kStatus_Success)
-        {
-            return kStatus_Fail;
-        }
 
-        /* Enable PKC related clocks and RAM zeroize */
-        status = PKC_PowerDownWakeupInit(PKC);
-        if (status != kStatus_Success)
-        {
-            return kStatus_Fail;
-        }
+        /* Initialize the els_pkc and trng*/
+        status = common_init_els_pkc_and_trng(PKC_INIT_ZEROIZE);
 
-        /*Initilize the TRNG Driver, required by Crypto-lib*/
-#if defined(MBEDTLS_MCUX_USE_TRNG_AS_ENTROPY_SEED)
-          /* Initilize the TRNG driver */
-          {
-              trng_config_t trngConfig;
-              /* Get default TRNG configs*/
-              TRNG_GetDefaultConfig(&trngConfig);
-              /* Set sample mode of the TRNG ring oscillator to Von Neumann, for better random data.*/
-              /* Initialize TRNG */
-              TRNG_Init(TRNG, &trngConfig);
-          }
-#endif
-    
+        /* Set the global static flag for els_pkc HW init to initialized*/
         g_isCryptoHWInitialized = ELS_PKC_CRYPTOHW_INITIALIZED;
     }
     else
     {
-        return kStatus_Success;
+        status = kStatus_Success;
     }
     return status;
 }
 
+/******************************************************************************/
+/******************** CRYPTO_ReInitHardware **************************************/
+/******************************************************************************/
+/*!
+ * @brief Application Re-init for various Crypto blocks.
+ *
+ * This function is provided to be called by MCUXpresso SDK applications after 
+ * wake up from different power modes. Mutex re-init is not required as RAM is 
+ * retained and mutexes are already available.
+ * It calls basic init for Crypto Hw acceleration and Hw entropy modules.
+ * NOTE: The function must be called in single thread context
+ */
+status_t CRYPTO_ReInitHardware(void)
+{
+    status_t status;
+    /* Only initialize if global static variable is set to initialized, to 
+       make sure that CRYPTO_InitHardware is already called once */
+    if (g_isCryptoHWInitialized == ELS_PKC_CRYPTOHW_INITIALIZED)
+    {
+        /* Initialize the els_pkc and trng*/
+        status = common_init_els_pkc_and_trng(PKC_INIT_ZEROIZE); 
+    }
+    else
+    {
+        status = kStatus_Success;
+    }
+    return status;
+}
 /*-----------------------------------------------------------*/
 /*--------- mbedTLS threading functions for FreeRTOS --------*/
 /*--------------- See MBEDTLS_THREADING_ALT -----------------*/

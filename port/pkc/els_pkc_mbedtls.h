@@ -21,12 +21,14 @@ extern "C" {
 #include "threading_alt.h"
 #endif
 
-
+#define PKC_INIT_ZEROIZE        (0xA0A0A0A0u)
+#define PKC_INIT_NO_ZEROIZE     (0x0A0A0A0Au)
 #define ELS_PKC_CRYPTOHW_INITIALIZED    (0xF0F0F0F0U)
 #define ELS_PKC_CRYPTOHW_NONINITIALIZED (0x0F0F0F0FU)
 
 int fsl_mbedtls_printf(const char *fmt_s, ...);
 status_t CRYPTO_InitHardware(void);
+status_t CRYPTO_ReInitHardware(void);
 
 #if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
 /* MUTEX FOR HW Modules*/

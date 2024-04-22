@@ -18,6 +18,7 @@ extern "C" {
 
 int fsl_mbedtls_printf(const char *fmt_s, ...);
 status_t CRYPTO_InitHardware(void);
+status_t CRYPTO_ReInitHardware(void);
 
 #ifdef __cplusplus
 }

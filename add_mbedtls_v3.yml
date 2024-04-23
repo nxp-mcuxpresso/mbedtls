@@ -851,6 +851,9 @@ container.middleware.mbedtls.unused_files:
     - source: library/Makefile
       hidden: true
       exclude: true
+    - source: pkgconfig/*
+      hidden: true
+      exclude: true
     - source: programs/*
       hidden: true
       exclude: true

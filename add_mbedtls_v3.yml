@@ -118,7 +118,7 @@ middleware.mbedtls.port.ele_s400_ecc_opaque:
     user_visible: always
     full_name: MbedTLS MCUX SDK port layer via ELE S400
     taxonomy:
-      csub: ele_s400
+      csub: ele_s400_opaque
       belong_to: mbedtls
     display_name: mbedtls_ele_s400_ecc_opaque
   dependency:

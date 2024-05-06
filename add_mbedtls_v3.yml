@@ -1117,3 +1117,28 @@ middleware.mbedtls.tests:
       csub: tests
       belong_to: mbedtls
     display_name: mbedtls_tests
+middleware.mbedtls.3rdparty:
+  section-type: component
+  contents:
+    repo_base_path: middleware/mbedtls
+    project_base_path: mbedtls
+    cc-include:
+    - repo_relative_path: 3rdparty/everest/include
+    - repo_relative_path: 3rdparty/everest/include/everest
+    - repo_relative_path: 3rdparty/everest/include/everest/kremlib
+    - repo_relative_path: 3rdparty/everest/include/everest/kremlin
+    - repo_relative_path: 3rdparty/everest/include/everest/kremlin/internal
+    files:
+    - source: 3rdparty/*.*
+    - source: 3rdparty/everest/**
+  belong_to: set.middleware.mbedtls
+  section_info:
+    description: mbedTLS 3rdparty code
+    type: middleware
+    version: "${mbedtls_version}"
+    user_visible: never
+    full_name: MbedTLS open source Crypto library 3rdparty
+    taxonomy:
+      csub: tests
+      belong_to: mbedtls
+    display_name: mbedtls_3rdparty

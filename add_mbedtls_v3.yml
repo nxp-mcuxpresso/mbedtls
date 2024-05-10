@@ -1139,6 +1139,6 @@ middleware.mbedtls.3rdparty:
     user_visible: never
     full_name: MbedTLS open source Crypto library 3rdparty
     taxonomy:
-      csub: tests
+      csub: 3rdparty
       belong_to: mbedtls
     display_name: mbedtls_3rdparty

@@ -328,6 +328,7 @@ static int ecdsa_sign_restartable(mbedtls_ecp_group *grp,
     NISTsignGenParam.sig_size   = signatureSize;
     NISTsignGenParam.scheme     = kSig_ECDSA_SHA256;
     NISTsignGenParam.input_flag = false; // Hash message as input
+    NISTsignGenParam.salt_size  = 0u;
 
     if (ELE_Sign(S3MU, g_ele_ctx.signature_gen_handle, &NISTsignGenParam, &signSize) != kStatus_Success)
     {
@@ -459,6 +460,7 @@ static int ecdsa_verify_restartable(mbedtls_ecp_group *grp,
     NISTverifyParam.input_flag        = false; // Message digest as input
     NISTverifyParam.key_security_size = 256u;
     NISTverifyParam.internal          = false;
+    NISTverifyParam.salt_size         = 0u;
 
     if (ELE_Verify(S3MU, g_ele_ctx.signature_verif_handle, &NISTverifyParam, &result_nist) != kStatus_Success)
     {

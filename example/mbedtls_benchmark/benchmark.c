@@ -796,6 +796,7 @@ int main(int argc, char *argv[])
         }
         mbedtls_aes_free(&aes);
     }
+#if !defined(MBEDTLS_MCUX_ELE_S400)
     if (todo.aes_cfb8) {
         int keysize;
         mbedtls_aes_context aes;
@@ -819,6 +820,7 @@ int main(int argc, char *argv[])
         }
         mbedtls_aes_free(&aes);
     }
+#endif
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
     if (todo.aes_xts) {

@@ -178,15 +178,15 @@ middleware.mbedtls.port.els_pkc:
         MBEDTLS_CONFIG_FILE: '"els_pkc_mbedtls_config.h"'
   belong_to: set.middleware.mbedtls
   section_info:
-    description: mbedTLS port library for PKC
+    description: mbedTLS port library for ELS and PKC
     type: middleware
     version: "${mbedtls_version}"
     user_visible: always
-    full_name: MbedTLS MCUX SDK port layer via PKC
+    full_name: MbedTLS MCUX SDK port layer via ELS_PKC
     taxonomy:
       csub: els_pkc
       belong_to: mbedtls
-    display_name: mbedtls_pkc
+    display_name: mbedtls_els_pkc
   dependency:
     allOf:
     - middleware.mbedtls.port.els
@@ -246,7 +246,7 @@ middleware.mbedtls.port.els:
     description: mbedTLS port library for ELS
     type: middleware
     version: "${mbedtls_version}"
-    user_visible: always
+    user_visible: never
     full_name: MbedTLS MCUX SDK port layer via ELS
     taxonomy:
       csub: els

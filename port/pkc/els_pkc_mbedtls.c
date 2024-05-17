@@ -31,6 +31,10 @@ extern void CRYPTO_ConfigureThreading(void);
 #include "els_pkc_mbedtls.h"
 #include "fsl_common.h"
 
+#ifndef PKC
+#define PKC PKC0
+#endif
+
 #if defined(MBEDTLS_MPI_EXP_MOD_ALT)
 
 #include "mbedtls/platform.h"
@@ -80,10 +84,6 @@ extern void CRYPTO_ConfigureThreading(void);
     {                              \
         goto exit;                 \
     }
-
-#ifndef PKC
-#define PKC PKC0
-#endif
 
 #endif // if defined(MBEDTLS_MPI_EXP_MOD_ALT)
 

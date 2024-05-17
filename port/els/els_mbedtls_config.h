@@ -555,12 +555,14 @@
 #define MBEDTLS_SHA256_UPDATE_ALT
 #define MBEDTLS_SHA256_FINISH_ALT
 #define MBEDTLS_SHA256_FULL_ALT
+#define MBEDTLS_SHA256_CLONE_ALT
 //#define MBEDTLS_SHA512_ALT
 #define MBEDTLS_SHA512_CTX_ALT
 #define MBEDTLS_SHA512_STARTS_ALT
 #define MBEDTLS_SHA512_UPDATE_ALT
 #define MBEDTLS_SHA512_FINISH_ALT
 #define MBEDTLS_SHA512_FULL_ALT
+#define MBEDTLS_SHA512_CLONE_ALT
 //#define MBEDTLS_XTEA_ALT
 
 /*
@@ -949,7 +951,7 @@
  *
  * A man-in-the-browser attacker can recover authentication tokens sent through
  * a TLS connection using a 3DES based cipher suite (see "On the Practical
- * (In-)Security of 64-bit Block Ciphers" by Karthikeyan Bhargavan and Gaëtan
+ * (In-)Security of 64-bit Block Ciphers" by Karthikeyan Bhargavan and Gaï¿½tan
  * Leurent, see https://sweet32.info/SWEET32_CCS16.pdf). If this attack falls
  * in your threat model or you are unsure, then you should keep this option
  * enabled to remove 3DES based cipher suites.

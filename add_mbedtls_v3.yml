@@ -328,6 +328,9 @@ middleware.mbedtls.port.sssapi:
       - K32L4A
       - MCXW716A
       - MCXW716C
+      - MCXW727A
+      - MCXW727C
+      - MCXW727D
 middleware.mbedtls.port.ksdk:
   section-type: component
   contents:

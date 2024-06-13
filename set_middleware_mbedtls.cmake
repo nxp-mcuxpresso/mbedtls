@@ -41,6 +41,271 @@ endif()
 endif()
 
 
+if (CONFIG_USE_middleware_mbedtls_tests)
+# Add set(CONFIG_USE_middleware_mbedtls_tests true) in config.cmake to use this component
+
+message("middleware_mbedtls_tests component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/./tests/src/asn1_helpers.c
+  ${CMAKE_CURRENT_LIST_DIR}/./tests/src/helpers.c
+  ${CMAKE_CURRENT_LIST_DIR}/./tests/src/psa_crypto_helpers.c
+  ${CMAKE_CURRENT_LIST_DIR}/./tests/src/psa_exercise_key.c
+  ${CMAKE_CURRENT_LIST_DIR}/./tests/src/random.c
+  ${CMAKE_CURRENT_LIST_DIR}/./tests/src/threading_helpers.c
+  ${CMAKE_CURRENT_LIST_DIR}/./tests/src/fake_external_rng_for_test.c
+  ${CMAKE_CURRENT_LIST_DIR}/./tests/src/test_helpers/ssl_helpers.c
+)
+
+target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/./tests/include/test
+  ${CMAKE_CURRENT_LIST_DIR}/./tests/include
+)
+
+
+endif()
+
+
+if (CONFIG_USE_middleware_mbedtls_3rdparty)
+# Add set(CONFIG_USE_middleware_mbedtls_3rdparty true) in config.cmake to use this component
+
+message("middleware_mbedtls_3rdparty component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/./3rdparty/everest/library/Hacl_Curve25519.c
+  ${CMAKE_CURRENT_LIST_DIR}/./3rdparty/everest/library/Hacl_Curve25519_joined.c
+  ${CMAKE_CURRENT_LIST_DIR}/./3rdparty/everest/library/everest.c
+  ${CMAKE_CURRENT_LIST_DIR}/./3rdparty/everest/library/kremlib/FStar_UInt128_extracted.c
+  ${CMAKE_CURRENT_LIST_DIR}/./3rdparty/everest/library/kremlib/FStar_UInt64_FStar_UInt32_FStar_UInt16_FStar_UInt8.c
+  ${CMAKE_CURRENT_LIST_DIR}/./3rdparty/everest/library/legacy/Hacl_Curve25519.c
+  ${CMAKE_CURRENT_LIST_DIR}/./3rdparty/everest/library/x25519.c
+)
+
+target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/./3rdparty/everest/include
+  ${CMAKE_CURRENT_LIST_DIR}/./3rdparty/everest/include/everest
+  ${CMAKE_CURRENT_LIST_DIR}/./3rdparty/everest/include/everest/kremlib
+  ${CMAKE_CURRENT_LIST_DIR}/./3rdparty/everest/include/everest/kremlin
+  ${CMAKE_CURRENT_LIST_DIR}/./3rdparty/everest/include/everest/kremlin/internal
+)
+
+
+endif()
+
+
+if (CONFIG_USE_middleware_mbedtls_port_ele_s400)
+# Add set(CONFIG_USE_middleware_mbedtls_port_ele_s400 true) in config.cmake to use this component
+
+message("middleware_mbedtls_port_ele_s400 component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+if(CONFIG_USE_driver_s3mu AND CONFIG_USE_component_ele_crypto AND CONFIG_USE_middleware_mbedtls)
+
+target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/ele_mbedtls.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/ele_entropy.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/aes_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/ccm_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/gcm_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/rsa_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/sha256_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/sha512_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/hmac_alt.c
+)
+
+target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400
+)
+
+if(CONFIG_USE_COMPONENT_CONFIGURATION)
+  message("===>Import configuration from ${CMAKE_CURRENT_LIST_FILE}")
+
+  target_compile_definitions(${MCUX_SDK_PROJECT_NAME} PUBLIC
+    -DMBEDTLS_MCUX_ELE_S400_API
+    -DMBEDTLS_CONFIG_FILE="ele_s400_mbedtls_config.h"
+  )
+
+endif()
+
+else()
+
+message(SEND_ERROR "middleware_mbedtls_port_ele_s400 dependency does not meet, please check ${CMAKE_CURRENT_LIST_FILE}.")
+
+endif()
+
+endif()
+
+
+if (CONFIG_USE_middleware_mbedtls_port_ele_s400_ecc_opaque)
+# Add set(CONFIG_USE_middleware_mbedtls_port_ele_s400_ecc_opaque true) in config.cmake to use this component
+
+message("middleware_mbedtls_port_ele_s400_ecc_opaque component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+if(CONFIG_USE_driver_s3mu AND CONFIG_USE_component_ele_crypto AND CONFIG_USE_middleware_mbedtls)
+
+target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/ele_entropy.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/aes_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/ccm_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/gcm_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/rsa_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/sha256_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/sha512_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/hmac_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/ecc_opaque/ele_mbedtls.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/ecc_opaque/ecdsa_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/ecc_opaque/pk_alt.c
+)
+
+target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400
+  ${CMAKE_CURRENT_LIST_DIR}/./port/ele_s400/ecc_opaque
+)
+
+if(CONFIG_USE_COMPONENT_CONFIGURATION)
+  message("===>Import configuration from ${CMAKE_CURRENT_LIST_FILE}")
+
+  target_compile_definitions(${MCUX_SDK_PROJECT_NAME} PUBLIC
+    -DMBEDTLS_MCUX_ELE_S400_API
+    -DMBEDTLS_CONFIG_FILE="ele_ecc_opaque_mbedtls_config.h"
+  )
+
+endif()
+
+else()
+
+message(SEND_ERROR "middleware_mbedtls_port_ele_s400_ecc_opaque dependency does not meet, please check ${CMAKE_CURRENT_LIST_FILE}.")
+
+endif()
+
+endif()
+
+
+if (CONFIG_USE_middleware_mbedtls_port_els_pkc)
+# Add set(CONFIG_USE_middleware_mbedtls_port_els_pkc true) in config.cmake to use this component
+
+message("middleware_mbedtls_port_els_pkc component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+if(CONFIG_USE_middleware_mbedtls_port_els AND CONFIG_USE_component_els_pkc AND CONFIG_USE_middleware_mbedtls_els_pkc_config AND ((CONFIG_USE_driver_trng AND (CONFIG_DEVICE_ID STREQUAL RW610 OR CONFIG_DEVICE_ID STREQUAL RW612)) OR ((CONFIG_DEVICE_ID STREQUAL LPC55S36 OR CONFIG_DEVICE_ID STREQUAL MCXN235 OR CONFIG_DEVICE_ID STREQUAL MCXN236 OR CONFIG_DEVICE_ID STREQUAL MCXN546 OR CONFIG_DEVICE_ID STREQUAL MCXN547 OR CONFIG_DEVICE_ID STREQUAL MCXN946 OR CONFIG_DEVICE_ID STREQUAL MCXN947))))
+
+target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/./port/pkc/ecc_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/pkc/ecdh_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/pkc/ecdsa_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/pkc/rsa_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/pkc/els_pkc_mbedtls.c
+)
+
+target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/./port/pkc
+)
+
+if(CONFIG_USE_COMPONENT_CONFIGURATION)
+  message("===>Import configuration from ${CMAKE_CURRENT_LIST_FILE}")
+
+  target_compile_definitions(${MCUX_SDK_PROJECT_NAME} PUBLIC
+    -DMBEDTLS_MCUX_ELS_PKC_API
+    -DMBEDTLS_MCUX_USE_PKC
+    -DMBEDTLS_CONFIG_FILE="els_pkc_mbedtls_config.h"
+  )
+
+endif()
+
+else()
+
+message(SEND_ERROR "middleware_mbedtls_port_els_pkc dependency does not meet, please check ${CMAKE_CURRENT_LIST_FILE}.")
+
+endif()
+
+endif()
+
+
+if (CONFIG_USE_middleware_mbedtls_port_els)
+# Add set(CONFIG_USE_middleware_mbedtls_port_els true) in config.cmake to use this component
+
+message("middleware_mbedtls_port_els component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+if(CONFIG_USE_component_els_pkc_els AND CONFIG_USE_middleware_mbedtls)
+
+target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/./port/els/aes_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/els/cbc_mac_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/els/cmac_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/els/ctr_drbg_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/els/gcm_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/els/sha256_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/els/sha512_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/els/entropy_poll_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/els/els_mbedtls.c
+)
+
+target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/./port/els
+)
+
+if(CONFIG_USE_COMPONENT_CONFIGURATION)
+  message("===>Import configuration from ${CMAKE_CURRENT_LIST_FILE}")
+
+  target_compile_definitions(${MCUX_SDK_PROJECT_NAME} PUBLIC
+    -DMBEDTLS_MCUX_ELS_API
+    -DMBEDTLS_MCUX_USE_ELS
+    -DMCUXCL_FEATURE_CSSL_MEMORY_C_FALLBACK
+    -DMBEDTLS_CONFIG_FILE="els_mbedtls_config.h"
+  )
+
+endif()
+
+else()
+
+message(SEND_ERROR "middleware_mbedtls_port_els dependency does not meet, please check ${CMAKE_CURRENT_LIST_FILE}.")
+
+endif()
+
+endif()
+
+
+if (CONFIG_USE_middleware_mbedtls_port_sssapi)
+# Add set(CONFIG_USE_middleware_mbedtls_port_sssapi true) in config.cmake to use this component
+
+message("middleware_mbedtls_port_sssapi component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+if(CONFIG_USE_middleware_mbedtls AND CONFIG_USE_middleware_secure-subsystem_elemu_port_kw45_k4w1 AND (CONFIG_DEVICE_ID STREQUAL K32W1480xxxA OR CONFIG_DEVICE_ID STREQUAL KW45B41Z52xxxA OR CONFIG_DEVICE_ID STREQUAL KW45B41Z53xxxA OR CONFIG_DEVICE_ID STREQUAL KW45B41Z82xxxA OR CONFIG_DEVICE_ID STREQUAL KW45B41Z83xxxA OR CONFIG_DEVICE_ID STREQUAL KW45Z41052xxxA OR CONFIG_DEVICE_ID STREQUAL KW45Z41053xxxA OR CONFIG_DEVICE_ID STREQUAL KW45Z41082xxxA OR CONFIG_DEVICE_ID STREQUAL KW45Z41083xxxA OR CONFIG_DEVICE_ID STREQUAL MCXW716AxxxA OR CONFIG_DEVICE_ID STREQUAL MCXW716CxxxA))
+
+target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/sssapi_mbedtls.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/aes_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/ccm_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/cmac_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/sha256_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/sha512_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/ecdh_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/ecdsa_alt.c
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi/entropy_poll_alt.c
+)
+
+target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/./port/sssapi
+)
+
+if(CONFIG_USE_COMPONENT_CONFIGURATION)
+  message("===>Import configuration from ${CMAKE_CURRENT_LIST_FILE}")
+
+  target_compile_definitions(${MCUX_SDK_PROJECT_NAME} PUBLIC
+    -DMBEDTLS_NXP_SSSAPI
+    -DMBEDTLS_NXP_ELE200
+    -DMBEDTLS_CONFIG_FILE="sssapi_mbedtls_config.h"
+  )
+
+endif()
+
+else()
+
+message(SEND_ERROR "middleware_mbedtls_port_sssapi dependency does not meet, please check ${CMAKE_CURRENT_LIST_FILE}.")
+
+endif()
+
+endif()
+
+
 if (CONFIG_USE_middleware_mbedtls_port_ksdk)
 # Add set(CONFIG_USE_middleware_mbedtls_port_ksdk true) in config.cmake to use this component
 
@@ -75,7 +340,7 @@ if (CONFIG_USE_middleware_mbedtls)
 
 message("middleware_mbedtls component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
-if(CONFIG_USE_utility_debug_console AND (CONFIG_USE_middleware_mbedtls_port_ksdk))
+if((CONFIG_USE_utility_debug_console OR CONFIG_USE_utility_debug_console_lite) AND (CONFIG_USE_middleware_mbedtls_port_ksdk OR CONFIG_USE_middleware_mbedtls_port_sssapi OR CONFIG_USE_middleware_mbedtls_port_ele_s400 OR CONFIG_USE_middleware_mbedtls_port_ele_s400_ecc_opaque OR CONFIG_USE_middleware_mbedtls_port_els_pkc))
 
 target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/./library/aes.c

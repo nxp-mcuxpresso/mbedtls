@@ -21,19 +21,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 #ifndef MBEDTLS_PLATFORM_H
 #define MBEDTLS_PLATFORM_H
@@ -231,7 +219,11 @@ int mbedtls_platform_set_printf(int (*printf_func)(const char *, ...));
 #else /* !MBEDTLS_PLATFORM_PRINTF_ALT */
 #undef mbedtls_printf
 #if defined(MBEDTLS_PLATFORM_PRINTF_MACRO)
+#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_ALT)
+#define mbedtls_printf(...)     do { } while (0)
+#else
 #define mbedtls_printf     MBEDTLS_PLATFORM_PRINTF_MACRO
+#endif
 #else
 #define mbedtls_printf     printf
 #endif /* MBEDTLS_PLATFORM_PRINTF_MACRO */

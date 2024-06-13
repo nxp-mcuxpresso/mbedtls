@@ -8,10 +8,11 @@
     <definition extID="platform.drivers.trng.MIMXRT1011"/>
     <definition extID="platform.drivers.cache_armv7_m7.MIMXRT1011"/>
     <definition extID="utility.debug_console.MIMXRT1011"/>
+    <definition extID="utility.debug_console_lite.MIMXRT1011"/>
   </externalDefinitions>
-  <ksdk id="MCUXpressoSDK2150_middleware_arm_mbedtls_MIMXRT1011_manifest_v3_14" name="MCUXpressoSDK2150_middleware_arm_mbedtls_MIMXRT1011_manifest_v3_14" version="2.15.0" revision="2.15.0"/>
+  <ksdk id="MCUXpressoSDK216000_middleware_arm_mbedtls_MIMXRT1011_manifest_v3_14" name="MCUXpressoSDK216000_middleware_arm_mbedtls_MIMXRT1011_manifest_v3_14" version="2.16.000" revision="2.16.000"/>
   <components>
-    <component id="middleware.mbedtls.template.MIMXRT1011" name="mbedtls_template" brief="mbedTLS Template" version="2.28.5" full_name="mbedTLS Template" category="Security/mbedTLS library" user_visible="false" type="project_template" package_base_path=".././" project_base_path="mbedtls">
+    <component id="middleware.mbedtls.template.MIMXRT1011" name="mbedtls_template" brief="mbedTLS Template" version="2.28.8" full_name="mbedTLS Template" category="Security/mbedTLS library" user_visible="false" type="project_template" package_base_path=".././" project_base_path="mbedtls">
       <defines>
         <define name="MBEDTLS_CONFIG_FILE" value="'&quot;ksdk_mbedtls_config.h&quot;'"/>
       </defines>
@@ -28,7 +29,7 @@
         <include_path relative_path="./port/ksdk" project_relative_path="port/ksdk" type="c_include"/>
       </include_paths>
     </component>
-    <component id="middleware.mbedtls.els_pkc.config.MIMXRT1011" name="els_pkc_config" brief="els_pkc config" version="2.28.5" full_name="els_pkc config" category="Security/mbedTLS library" user_visible="false" type="software_component" package_base_path=".././" project_base_path="mbedtls">
+    <component id="middleware.mbedtls.els_pkc.config.MIMXRT1011" name="els_pkc_config" brief="els_pkc config" version="2.28.8" full_name="els_pkc config" category="Security/mbedTLS library" user_visible="false" type="software_component" package_base_path=".././" project_base_path="mbedtls">
       <defines>
         <define name="MBEDTLS_CONFIG_FILE" value="'&quot;els_pkc_mbedtls_config.h&quot;'"/>
       </defines>
@@ -45,7 +46,112 @@
         <include_path relative_path="./port/pkc" project_relative_path="port/pkc" type="c_include"/>
       </include_paths>
     </component>
-    <component id="middleware.mbedtls.port.ksdk.MIMXRT1011" name="mbedtls_ksdk" brief="mbedTLS port library for KPSDK" version="2.28.5" full_name="MbedTLS MCUX SDK port layer" category="Security/mbedTLS library" user_visible="true" type="middleware" package_base_path=".././" project_base_path="mbedtls">
+    <component id="middleware.mbedtls.tests.MIMXRT1011" name="mbedtls_tests" brief="mbedTLS test suite" version="2.28.8" full_name="MbedTLS open source Crypto library" category="Security/mbedTLS library" user_visible="false" type="middleware" package_base_path=".././" project_base_path="mbedtls">
+      <dependencies>
+        <device_dependency value="MIMXRT1011xxxxx"/>
+      </dependencies>
+      <source relative_path="./tests/src" project_relative_path="tests/src" type="src">
+        <files mask="asn1_helpers.c"/>
+        <files mask="helpers.c"/>
+        <files mask="psa_crypto_helpers.c"/>
+        <files mask="psa_exercise_key.c"/>
+        <files mask="random.c"/>
+        <files mask="threading_helpers.c"/>
+        <files mask="fake_external_rng_for_test.c"/>
+      </source>
+      <source relative_path="./tests/src/test_helpers" project_relative_path="tests/src/test_helpers" type="src">
+        <files mask="ssl_helpers.c"/>
+      </source>
+      <source relative_path="./tests/include/test" project_relative_path="tests/include/test" type="c_include">
+        <files mask="arguments.h"/>
+        <files mask="asn1_helpers.h"/>
+        <files mask="constant_flow.h"/>
+        <files mask="fake_external_rng_for_test.h"/>
+        <files mask="helpers.h"/>
+        <files mask="macros.h"/>
+        <files mask="psa_crypto_helpers.h"/>
+        <files mask="psa_exercise_key.h"/>
+        <files mask="psa_helpers.h"/>
+        <files mask="random.h"/>
+        <files mask="ssl_helpers.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_mbedtls_tests.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="./tests/include/test" project_relative_path="tests/include/test" type="c_include"/>
+        <include_path relative_path="./tests/include" project_relative_path="tests/include" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.mbedtls.3rdparty.MIMXRT1011" name="mbedtls_3rdparty" brief="mbedTLS 3rdparty code" version="2.28.8" full_name="MbedTLS open source Crypto library 3rdparty" category="Security/mbedTLS library" user_visible="false" type="middleware" package_base_path=".././" project_base_path="mbedtls">
+      <dependencies>
+        <device_dependency value="MIMXRT1011xxxxx"/>
+      </dependencies>
+      <source relative_path="./3rdparty" project_relative_path="3rdparty" type="doc">
+        <files mask="CMakeLists.txt"/>
+      </source>
+      <source relative_path="./3rdparty" project_relative_path="3rdparty" type="asm_include">
+        <files mask="Makefile.inc"/>
+      </source>
+      <source relative_path="./3rdparty/everest" project_relative_path="3rdparty/everest" type="doc">
+        <files mask="CMakeLists.txt"/>
+        <files mask="README.md"/>
+      </source>
+      <source relative_path="./3rdparty/everest" project_relative_path="3rdparty/everest" type="asm_include">
+        <files mask="Makefile.inc"/>
+      </source>
+      <source relative_path="./3rdparty/everest/include/everest" project_relative_path="3rdparty/everest/include/everest" type="c_include">
+        <files mask="Hacl_Curve25519.h"/>
+        <files mask="everest.h"/>
+        <files mask="kremlib.h"/>
+        <files mask="x25519.h"/>
+      </source>
+      <source relative_path="./3rdparty/everest/include/everest/kremlib" project_relative_path="3rdparty/everest/include/everest/kremlib" type="c_include">
+        <files mask="FStar_UInt128.h"/>
+        <files mask="FStar_UInt64_FStar_UInt32_FStar_UInt16_FStar_UInt8.h"/>
+      </source>
+      <source relative_path="./3rdparty/everest/include/everest/kremlin" project_relative_path="3rdparty/everest/include/everest/kremlin" type="c_include">
+        <files mask="c_endianness.h"/>
+      </source>
+      <source relative_path="./3rdparty/everest/include/everest/kremlin/internal" project_relative_path="3rdparty/everest/include/everest/kremlin/internal" type="c_include">
+        <files mask="builtin.h"/>
+        <files mask="callconv.h"/>
+        <files mask="compat.h"/>
+        <files mask="debug.h"/>
+        <files mask="target.h"/>
+        <files mask="types.h"/>
+        <files mask="wasmsupport.h"/>
+      </source>
+      <source relative_path="./3rdparty/everest/include/everest/vs2010" project_relative_path="3rdparty/everest/include/everest/vs2010" type="c_include">
+        <files mask="Hacl_Curve25519.h"/>
+        <files mask="inttypes.h"/>
+        <files mask="stdbool.h"/>
+      </source>
+      <source relative_path="./3rdparty/everest/library" project_relative_path="3rdparty/everest/library" type="src">
+        <files mask="Hacl_Curve25519.c"/>
+        <files mask="Hacl_Curve25519_joined.c"/>
+        <files mask="everest.c"/>
+        <files mask="x25519.c"/>
+      </source>
+      <source relative_path="./3rdparty/everest/library/kremlib" project_relative_path="3rdparty/everest/library/kremlib" type="src">
+        <files mask="FStar_UInt128_extracted.c"/>
+        <files mask="FStar_UInt64_FStar_UInt32_FStar_UInt16_FStar_UInt8.c"/>
+      </source>
+      <source relative_path="./3rdparty/everest/library/legacy" project_relative_path="3rdparty/everest/library/legacy" type="src">
+        <files mask="Hacl_Curve25519.c"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_mbedtls_3rdparty.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="./3rdparty/everest/include" project_relative_path="3rdparty/everest/include" type="c_include"/>
+        <include_path relative_path="./3rdparty/everest/include/everest" project_relative_path="3rdparty/everest/include/everest" type="c_include"/>
+        <include_path relative_path="./3rdparty/everest/include/everest/kremlib" project_relative_path="3rdparty/everest/include/everest/kremlib" type="c_include"/>
+        <include_path relative_path="./3rdparty/everest/include/everest/kremlin" project_relative_path="3rdparty/everest/include/everest/kremlin" type="c_include"/>
+        <include_path relative_path="./3rdparty/everest/include/everest/kremlin/internal" project_relative_path="3rdparty/everest/include/everest/kremlin/internal" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.mbedtls.port.ksdk.MIMXRT1011" name="mbedtls_ksdk" brief="mbedTLS port library for KPSDK" version="2.28.8" full_name="MbedTLS MCUX SDK port layer" category="Security/mbedTLS library" user_visible="true" type="middleware" package_base_path=".././" project_base_path="mbedtls">
       <dependencies>
         <all>
           <component_dependency value="middleware.mbedtls.MIMXRT1011"/>
@@ -82,10 +188,13 @@
         <include_path relative_path="./port/ksdk" project_relative_path="port/ksdk" type="c_include"/>
       </include_paths>
     </component>
-    <component id="middleware.mbedtls.MIMXRT1011" name="mbedtls" brief="mbedTLS library" version="2.28.5" full_name="MbedTLS open source SSL library" category="Security/mbedTLS library" user_visible="true" type="middleware" package_base_path=".././" project_base_path="mbedtls">
+    <component id="middleware.mbedtls.MIMXRT1011" name="mbedtls" brief="mbedTLS library" version="2.28.8" full_name="MbedTLS open source SSL library" category="Security/mbedTLS library" user_visible="true" type="middleware" package_base_path=".././" project_base_path="mbedtls">
       <dependencies>
         <all>
-          <component_dependency value="utility.debug_console.MIMXRT1011"/>
+          <any_of>
+            <component_dependency value="utility.debug_console.MIMXRT1011"/>
+            <component_dependency value="utility.debug_console_lite.MIMXRT1011"/>
+          </any_of>
           <component_dependency value="middleware.mbedtls.port.ksdk.MIMXRT1011"/>
           <device_dependency value="MIMXRT1011xxxxx"/>
         </all>
@@ -289,6 +398,7 @@
         <files mask="xtea.c"/>
       </source>
       <source relative_path="./library" project_relative_path="library" type="c_include">
+        <files mask="bignum_internal.h"/>
         <files mask="check_crypto_config.h"/>
         <files mask="common.h"/>
         <files mask="constant_time_internal.h"/>

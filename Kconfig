@@ -159,11 +159,11 @@ config MCUX_COMPONENT_middleware.mbedtls
         default MCUX_DEPENDENCY_COMPONENT_middleware.mbedtls_DEPEND_ANYOF_0_OPTION_1
         config MCUX_DEPENDENCY_COMPONENT_middleware.mbedtls_DEPEND_ANYOF_0_OPTION_1
           bool "Select MCUX_COMPONENT_utility.debug_console"
-          select MCUX_COMPONENT_MCUX_COMPONENT_utility.debug_console
+          select MCUX_COMPONENT_utility.debug_console
         
         config MCUX_DEPENDENCY_COMPONENT_middleware.mbedtls_DEPEND_ANYOF_0_OPTION_2
           bool "Select MCUX_COMPONENT_utility.debug_console_lite"
-          select MCUX_COMPONENT_MCUX_COMPONENT_utility.debug_console_lite
+          select MCUX_COMPONENT_utility.debug_console_lite
         
       endchoice
       choice
@@ -171,23 +171,23 @@ config MCUX_COMPONENT_middleware.mbedtls
         default MCUX_DEPENDENCY_COMPONENT_middleware.mbedtls_DEPEND_ANYOF_1_OPTION_1
         config MCUX_DEPENDENCY_COMPONENT_middleware.mbedtls_DEPEND_ANYOF_1_OPTION_1
           bool "Select MCUX_COMPONENT_middleware.mbedtls.port.ksdk"
-          select MCUX_COMPONENT_MCUX_COMPONENT_middleware.mbedtls.port.ksdk
+          select MCUX_COMPONENT_middleware.mbedtls.port.ksdk
         
         config MCUX_DEPENDENCY_COMPONENT_middleware.mbedtls_DEPEND_ANYOF_1_OPTION_2
           bool "Select MCUX_COMPONENT_middleware.mbedtls.port.sssapi"
-          select MCUX_COMPONENT_MCUX_COMPONENT_middleware.mbedtls.port.sssapi
+          select MCUX_COMPONENT_middleware.mbedtls.port.sssapi
         
         config MCUX_DEPENDENCY_COMPONENT_middleware.mbedtls_DEPEND_ANYOF_1_OPTION_3
           bool "Select MCUX_COMPONENT_middleware.mbedtls.port.ele_s400"
-          select MCUX_COMPONENT_MCUX_COMPONENT_middleware.mbedtls.port.ele_s400
+          select MCUX_COMPONENT_middleware.mbedtls.port.ele_s400
         
         config MCUX_DEPENDENCY_COMPONENT_middleware.mbedtls_DEPEND_ANYOF_1_OPTION_4
           bool "Select MCUX_COMPONENT_middleware.mbedtls.port.ele_s400_ecc_opaque"
-          select MCUX_COMPONENT_MCUX_COMPONENT_middleware.mbedtls.port.ele_s400_ecc_opaque
+          select MCUX_COMPONENT_middleware.mbedtls.port.ele_s400_ecc_opaque
         
         config MCUX_DEPENDENCY_COMPONENT_middleware.mbedtls_DEPEND_ANYOF_1_OPTION_5
           bool "Select MCUX_COMPONENT_middleware.mbedtls.port.els_pkc"
-          select MCUX_COMPONENT_MCUX_COMPONENT_middleware.mbedtls.port.els_pkc
+          select MCUX_COMPONENT_middleware.mbedtls.port.els_pkc
         
       endchoice
     endif

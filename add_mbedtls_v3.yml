@@ -74,7 +74,7 @@ middleware.mbedtls.port.ele_s400:
     allOf:
     - driver.s3mu
     - component.ele_crypto
-    - middleware.mbedtls
+    # - middleware.mbedtls
 middleware.mbedtls.port.ele_s400_ecc_opaque:
   section-type: component
   contents:
@@ -125,7 +125,7 @@ middleware.mbedtls.port.ele_s400_ecc_opaque:
     allOf:
     - driver.s3mu
     - component.ele_crypto
-    - middleware.mbedtls
+    # - middleware.mbedtls
 middleware.mbedtls.els_pkc.config:
   section-type: component
   contents:
@@ -255,7 +255,7 @@ middleware.mbedtls.port.els:
   dependency:
     allOf:
     - component.els_pkc.els
-    - middleware.mbedtls
+    # - middleware.mbedtls
 middleware.mbedtls.port.sssapi:
   section-type: component
   contents:
@@ -301,7 +301,7 @@ middleware.mbedtls.port.sssapi:
     display_name: mbedtls_sssapi
   dependency:
     allOf:
-    - middleware.mbedtls
+    # - middleware.mbedtls
     - middleware.secure-subsystem.elemu.port_kw45_k4w1
     - device:
       - K32W1480
@@ -367,7 +367,7 @@ middleware.mbedtls.port.ksdk:
     display_name: mbedtls_ksdk
   dependency:
     allOf:
-    - middleware.mbedtls
+    # - middleware.mbedtls
     - middleware.mbedtls.template
     - anyOf:
         - allOf:

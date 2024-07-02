@@ -691,15 +691,6 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
                 break; \
             }
             /* Allocate key handle */
-#if (defined(KW45_A0_SUPPORT) && KW45_A0_SUPPORT)
-            if (sss_sscp_key_object_allocate_handle(&ctx->key,
-                                                    0u,
-                                                    kSSS_KeyPart_Pair,
-                                                    kSSS_CipherType_EC_NIST_P,
-                                                    3u * coordinateLen,
-                                                    SSS_PUBLIC_KEY_PART_EXPORTABLE) !=
-                kStatus_SSS_Success)
-#else
             if (sss_sscp_key_object_allocate_handle(&ctx->key,
                                                     0u,
                                                     kSSS_KeyPart_Pair,
@@ -707,7 +698,6 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
                                                     3u * coordinateLen,
                                                     SSS_KEYPROP_OPERATION_KDF) !=
                 kStatus_SSS_Success)
-#endif
             {
                 (void) SSS_KEY_OBJ_FREE(&ctx->key);
                 break;;
@@ -820,21 +810,12 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx,
             ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             break;
         }
-#if (defined(KW45_A0_SUPPORT) && KW45_A0_SUPPORT)
-        if (sss_sscp_key_object_allocate_handle(&ctx->peerPublicKey,
-                                                1u,
-                                                kSSS_KeyPart_Pair,
-                                                kSSS_CipherType_EC_NIST_P,
-                                                3u * coordinateLen,
-                                                SSS_PUBLIC_KEY_PART_EXPORTABLE) != kStatus_SSS_Success) {
-#else
         if (sss_sscp_key_object_allocate_handle(&ctx->peerPublicKey,
                                                 1u,
                                                 kSSS_KeyPart_Public,
                                                 kSSS_CipherType_EC_NIST_P,
                                                 2u * coordinateLen,
                                                 SSS_KEYPROP_OPERATION_KDF) != kStatus_SSS_Success) {
-#endif
             ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             break;
         }
@@ -864,11 +845,7 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx,
                                                 kSSS_KeyPart_Default,
                                                 kSSS_CipherType_AES,
                                                 coordinateLen,
-#if (defined(KW45_A0_SUPPORT) && KW45_A0_SUPPORT)
-                                                SSS_FULL_KEY_EXPORTABLE 
-#else
                                                 kSSS_KeyProp_CryptoAlgo_KDF
-#endif
                                                 ) != kStatus_SSS_Success) {
             ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             break;

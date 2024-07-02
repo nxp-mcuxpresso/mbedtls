@@ -172,22 +172,12 @@ static int ecdsa_sign_restartable(mbedtls_ecp_group *grp,
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
         /* Allocate key handle */
-#if (defined(KW45_A0_SUPPORT) && KW45_A0_SUPPORT)
-        if (sss_sscp_key_object_allocate_handle(&key,
-                                                0x0u,
-                                                kSSS_KeyPart_Private,
-                                                kSSS_CipherType_EC_NIST_P,
-                                                coordinateLen,
-                                                SSS_PUBLIC_KEY_PART_EXPORTABLE) !=
-            kStatus_SSS_Success)
-#else
         if (sss_sscp_key_object_allocate_handle(&key,
                                                 0x0u,
                                                 kSSS_KeyPart_Private,
                                                 kSSS_CipherType_EC_NIST_P,
                                                 coordinateLen,
                                                 SSS_KEYPROP_OPERATION_ASYM) != kStatus_SSS_Success)
-#endif
         {
             mbedtls_free(signature);
             mbedtls_free(alignedDigest);
@@ -350,15 +340,6 @@ int mbedtls_ecdsa_from_keypair(mbedtls_ecdsa_context *ctx, const mbedtls_ecp_key
                 return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
             }
             /* Allocate key handle */
-#if (defined(KW45_A0_SUPPORT) && KW45_A0_SUPPORT)
-            else if (sss_sscp_key_object_allocate_handle(&ctx->key,
-                                                         0x0u,
-                                                         kSSS_KeyPart_Private,
-                                                         kSSS_CipherType_EC_NIST_P,
-                                                         keyLen,
-                                                         SSS_PUBLIC_KEY_PART_EXPORTABLE) !=
-                     kStatus_SSS_Success)
-#else
             else if (sss_sscp_key_object_allocate_handle(&ctx->key,
                                                          0x0u,
                                                          kSSS_KeyPart_Private,
@@ -366,7 +347,6 @@ int mbedtls_ecdsa_from_keypair(mbedtls_ecdsa_context *ctx, const mbedtls_ecp_key
                                                          keyLen,
                                                          SSS_KEYPROP_OPERATION_ASYM) !=
                      kStatus_SSS_Success)
-#endif
             {
                 (void) SSS_KEY_OBJ_FREE(&ctx->key);
                 return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -428,15 +408,6 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
         }
 
         /* Allocate key handle */
-#if (defined(KW45_A0_SUPPORT) && KW45_A0_SUPPORT)
-        else if (sss_sscp_key_object_allocate_handle(&ctx->key,
-                                                     0x0u,
-                                                     kSSS_KeyPart_Pair,
-                                                     kSSS_CipherType_EC_NIST_P,
-                                                     keySize,
-                                                     SSS_PUBLIC_KEY_PART_EXPORTABLE) !=
-                 kStatus_SSS_Success)
-#else
         else if (sss_sscp_key_object_allocate_handle(&ctx->key,
                                                      0x0u,
                                                      kSSS_KeyPart_Pair,
@@ -444,7 +415,6 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
                                                      3u * keyLen,
                                                      SSS_KEYPROP_OPERATION_ASYM) !=
                  kStatus_SSS_Success)
-#endif
         {
             mbedtls_platform_zeroize(pubKey, keySize);
             mbedtls_free(pubKey);
@@ -538,22 +508,12 @@ static int ecdsa_verify_restartable(mbedtls_ecp_group *grp,
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     /* Allocate key handle */
-#if (defined(KW45_A0_SUPPORT) && KW45_A0_SUPPORT)
-    else if (sss_sscp_key_object_allocate_handle(&ecdsaPublic,
-                                                 0u,
-                                                 kSSS_KeyPart_Pair,
-                                                 kSSS_CipherType_EC_NIST_P,
-                                                 keySize,
-                                                 SSS_PUBLIC_KEY_PART_EXPORTABLE) !=
-             kStatus_SSS_Success)
-#else
     else if (sss_sscp_key_object_allocate_handle(&ecdsaPublic,
                                                  0u,
                                                  kSSS_KeyPart_Public,
                                                  kSSS_CipherType_EC_NIST_P,
                                                  keySize,
                                                  SSS_KEYPROP_OPERATION_ASYM) != kStatus_SSS_Success)
-#endif
     {
         ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     } else if (SSS_KEY_STORE_SET_KEY(&ecdsaPublic, (const uint8_t *) pubKey, keySize,

@@ -101,6 +101,9 @@ void mbedtls_sha512_free(mbedtls_sha512_context *ctx)
     if (ctx == NULL) {
         return;
     }
+    if (ctx->ctx.ctx != 0u) {
+        (void) sss_sscp_digest_context_free(&ctx->ctx);
+    }
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha512_context));
 }
 
@@ -319,6 +322,7 @@ int mbedtls_sha512_finish_ret(mbedtls_sha512_context *ctx, unsigned char output[
         ret = 0;
     }
     (void) sss_sscp_digest_context_free(&ctx->ctx);
+    mbedtls_platform_zeroize(&ctx->ctx, sizeof(sss_sscp_digest_t));
     return ret;
 }
 

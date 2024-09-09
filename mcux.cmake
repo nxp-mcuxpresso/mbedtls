@@ -1,19 +1,4 @@
 
-if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.template)
-    mcux_add_configuration(
-        CC  "-DMBEDTLS_CONFIG_FILE=\\\"ksdk_mbedtls_config.h\\\""
-    )
-    mcux_add_source(
-        SOURCES port/ksdk/ksdk_mbedtls_config.h
-        BASE_PATH ${SdkRootDirPath}/middleware/mbedtls/
-    )
-    mcux_add_include(
-        TARGET_FILES ksdk_mbedtls_config.h
-        INCLUDES port/ksdk
-        BASE_PATH ${SdkRootDirPath}/middleware/mbedtls/
-    )
-endif()
-
 if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.ele_s400)
     mcux_add_configuration(
         CC  "-DMBEDTLS_MCUX_ELE_S400_API -DMBEDTLS_CONFIG_FILE=\\\"ele_s400_mbedtls_config.h\\\""

@@ -197,7 +197,7 @@ endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.mbedtls)
     mcux_add_iar_configuration(
-        CX  "--diag_suppress Pa167,Pe177,Pe191,Pe546"
+        CC  "--diag_suppress Pa167,Pe177,Pe191,Pe546"
     )
     mcux_add_armgcc_configuration(
         CC  "-fomit-frame-pointer -Wno-unused-function"

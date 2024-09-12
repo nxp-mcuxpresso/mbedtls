@@ -171,6 +171,9 @@ if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.sssapi)
 endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.ksdk)
+    mcux_add_configuration(
+        CC  "-DMBEDTLS_CONFIG_FILE=\\\"ksdk_mbedtls_config.h\\\""
+    )
     mcux_add_source(
         SOURCES port/ksdk/ksdk_mbedtls.c
                 port/ksdk/ksdk_mbedtls.h

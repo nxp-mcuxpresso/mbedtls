@@ -67,21 +67,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.ele_s400_ecc_opaque)
     )
 endif()
 
-if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.els_pkc.config)
-    mcux_add_configuration(
-        CC  "-DMBEDTLS_CONFIG_FILE=\\\"els_pkc_mbedtls_config.h\\\""
-    )
-    mcux_add_source(
-        SOURCES port/pkc/els_pkc_mbedtls_config.h
-        BASE_PATH ${SdkRootDirPath}/middleware/mbedtls/
-    )
-    mcux_add_include(
-        TARGET_FILES els_pkc_mbedtls_config.h
-        INCLUDES port/pkc
-        BASE_PATH ${SdkRootDirPath}/middleware/mbedtls/
-    )
-endif()
-
 if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.els_pkc)
     mcux_add_configuration(
         CC  "-DMBEDTLS_MCUX_ELS_PKC_API -DMBEDTLS_MCUX_USE_PKC -DMBEDTLS_CONFIG_FILE=\\\"els_pkc_mbedtls_config.h\\\""
@@ -108,7 +93,7 @@ endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.els)
     mcux_add_configuration(
-        CC  "-DMBEDTLS_MCUX_ELS_API -DMBEDTLS_MCUX_USE_ELS -DMCUXCL_FEATURE_CSSL_MEMORY_C_FALLBACK -DMBEDTLS_CONFIG_FILE=\\\"els_mbedtls_config.h\\\""
+        CC  "-DMBEDTLS_MCUX_ELS_API -DMBEDTLS_MCUX_USE_ELS -DMCUXCL_FEATURE_CSSL_MEMORY_C_FALLBACK"
     )
     mcux_add_source(
         SOURCES port/els/aes_alt.c

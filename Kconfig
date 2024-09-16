@@ -15,7 +15,6 @@ menu "mbedtls"
         bool "Component middleware.mbedtls.port.els_pkc"
         select MCUX_COMPONENT_middleware.mbedtls.port.els
         select MCUX_COMPONENT_component.els_pkc
-        select MCUX_COMPONENT_middleware.mbedtls.els_pkc.config
         
         if MCUX_COMPONENT_middleware.mbedtls.port.els_pkc
             choice

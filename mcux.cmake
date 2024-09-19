@@ -1,6 +1,6 @@
 
 if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.ele_s400)
-    mcux_add_configuration(
+    mcux_add_macro(
         CC  "-DMBEDTLS_MCUX_ELE_S400_API -DMBEDTLS_CONFIG_FILE=\\\"ele_s400_mbedtls_config.h\\\""
     )
     mcux_add_source(
@@ -32,7 +32,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.ele_s400)
 endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.ele_s400_ecc_opaque)
-    mcux_add_configuration(
+    mcux_add_macro(
         CC  "-DMBEDTLS_MCUX_ELE_S400_API -DMBEDTLS_CONFIG_FILE=\\\"ele_ecc_opaque_mbedtls_config.h\\\""
     )
     mcux_add_source(
@@ -68,7 +68,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.ele_s400_ecc_opaque)
 endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.els_pkc)
-    mcux_add_configuration(
+    mcux_add_macro(
         CC  "-DMBEDTLS_MCUX_ELS_PKC_API -DMBEDTLS_MCUX_USE_PKC -DMBEDTLS_CONFIG_FILE=\\\"els_pkc_mbedtls_config.h\\\""
     )
     mcux_add_source(
@@ -92,7 +92,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.els_pkc)
 endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.els)
-    mcux_add_configuration(
+    mcux_add_macro(
         CC  "-DMBEDTLS_MCUX_ELS_API -DMBEDTLS_MCUX_USE_ELS -DMCUXCL_FEATURE_CSSL_MEMORY_C_FALLBACK"
     )
     mcux_add_source(
@@ -124,7 +124,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.els)
 endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.sssapi)
-    mcux_add_configuration(
+    mcux_add_macro(
         CC  "-DMBEDTLS_NXP_SSSAPI -DMBEDTLS_NXP_ELE200 -DMBEDTLS_CONFIG_FILE=\\\"sssapi_mbedtls_config.h\\\""
     )
     mcux_add_source(
@@ -156,7 +156,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.sssapi)
 endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.port.ksdk)
-    mcux_add_configuration(
+    mcux_add_macro(
         CC  "-DMBEDTLS_CONFIG_FILE=\\\"ksdk_mbedtls_config.h\\\""
     )
     mcux_add_source(

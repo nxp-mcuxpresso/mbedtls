@@ -104,7 +104,7 @@ menu "mbedtls"
                     bool "Component MCUX_DEPENDENCY_COMPONENT_middleware.mbedtls.port.ksdk_DEPEND_ANYOF_1_OPTION_9"
                     select MCUX_COMPONENT_driver.rnga
                     select MCUX_COMPONENT_middleware.mmcau.cm4_cm7
-                    depends on MCUX_HW_DEVICE_MK21FA12 || MCUX_HW_DEVICE_MK24F12 || MCUX_HW_DEVICE_MK53D10 || MCUX_HW_DEVICE_MK63F12  || MCUX_HW_DEVICE_MK64F12 || MCUX_HW_DEVICE_MKL34Z4 || MCUX_HW_DEVICE_MKM35Z7 || MCUX_HW_DEVICE_MKW21D5 || MCUX_HW_DEVICE_MKW22D5 || MCUX_HW_DEVICE_MKW24D5
+                    depends on MCUX_HW_DEVICE_MK24F12 || MCUX_HW_DEVICE_MK63F12  || MCUX_HW_DEVICE_MK64F12 || MCUX_HW_DEVICE_MKM35Z7 || MCUX_HW_DEVICE_MKW21D5 || MCUX_HW_DEVICE_MKW22D5 || MCUX_HW_DEVICE_MKW24D5
                 
                 config MCUX_DEPENDENCY_COMPONENT_middleware.mbedtls.port.ksdk_DEPEND_ANYOF_1_OPTION_10
                     bool "Component MCUX_DEPENDENCY_COMPONENT_middleware.mbedtls.port.ksdk_DEPEND_ANYOF_1_OPTION_10"

@@ -424,6 +424,9 @@ if(CONFIG_MCUX_PRJSEG_middleware.mbedtls.default_heap_stack)
 endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.mbedtls.tests)
+    mcux_add_macro(
+        "-DMBEDTLS_CONFIG_FILE=\\\"mcux_mbedtls_testsuite_config.h\\\""
+    )
     mcux_add_source(
         SOURCES tests/src/asn1_helpers.c
                 tests/src/helpers.c

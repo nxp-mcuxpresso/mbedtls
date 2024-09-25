@@ -168,4 +168,19 @@ menu "mbedtls"
         bool "Component middleware.mbedtls.tests"
     config MCUX_COMPONENT_middleware.mbedtls.3rdparty
         bool "Component middleware.mbedtls.3rdparty"
+
+if MCUX_COMPONENT_middleware.mbedtls
+    
+    config MBEDTLS_USER_CONFIG_ENABLE
+	bool "User mbedTLS config file"
+	help
+	  Enable Mbedtls user config file that will be included at the end of the generic config file.
+
+    config MBEDTLS_USER_CONFIG_FILE
+    string "User configuration file for MbedTLS" if MBEDTLS_USER_CONFIG_ENABLE
+    help
+        User config file that can override or include mbedtls configs not addressed by the generic config file.
+
+endif # MCUX_COMPONENT_middleware.mbedtls
+
 endmenu

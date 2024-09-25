@@ -8,7 +8,7 @@
     <definition extID="utility.debug_console.MCXW716C"/>
     <definition extID="utility.debug_console_lite.MCXW716C"/>
   </externalDefinitions>
-  <ksdk id="MCUXpressoSDK216000_middleware_arm_mbedtls_MCXW716C_manifest_v3_14" name="MCUXpressoSDK216000_middleware_arm_mbedtls_MCXW716C_manifest_v3_14" version="2.16.000" revision="2.16.000"/>
+  <ksdk id="MCUXpressoSDK216100_middleware_arm_mbedtls_MCXW716C_manifest_v3_14" name="MCUXpressoSDK216100_middleware_arm_mbedtls_MCXW716C_manifest_v3_14" version="2.16.100" revision="2.16.100"/>
   <components>
     <component id="middleware.mbedtls.template.MCXW716C" name="mbedtls_template" brief="mbedTLS Template" version="2.28.8" full_name="mbedTLS Template" category="Security/mbedTLS library" user_visible="false" type="project_template" package_base_path=".././" project_base_path="mbedtls">
       <defines>

@@ -142,7 +142,7 @@ menu "mbedtls"
         bool "Component middleware.mbedtls"
         
         if MCUX_COMPONENT_middleware.mbedtls
-            choice
+            choice MCUX_COMPONENT_middleware.mbedtls.port.selection
                 prompt "MbedTLS 2.x HW port sub-components"
                 config MCUX_COMPONENT_middleware.mbedtls.port.ksdk
                     bool "Select MCUX_COMPONENT_middleware.mbedtls.port.ksdk"

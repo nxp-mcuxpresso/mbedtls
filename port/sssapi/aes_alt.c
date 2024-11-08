@@ -208,7 +208,10 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
 {
     sss_sscp_symmetric_t aesCtx;
     sss_sscp_object_t sssKey;
-
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
     if ((sss_sscp_key_object_init(&sssKey, &g_keyStore)) != kStatus_SSS_Success) {
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -262,7 +265,10 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
 {
     sss_sscp_symmetric_t aesCtx;
     sss_sscp_object_t sssKey;
-
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
     if ((sss_sscp_key_object_init(&sssKey, &g_keyStore)) != kStatus_SSS_Success) {
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -321,7 +327,6 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
     AES_VALIDATE_RET(output != NULL);
     AES_VALIDATE_RET(mode == MBEDTLS_AES_ENCRYPT ||
                      mode == MBEDTLS_AES_DECRYPT);
-
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
         return mbedtls_aesni_crypt_ecb(ctx, mode, input, output);
@@ -370,7 +375,10 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
 
     sss_sscp_symmetric_t aesCtx;
     sss_sscp_object_t sssKey;
-
+    if (CRYPTO_InitHardware() != kStatus_Success)
+    {
+        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
     if ((sss_sscp_key_object_init(&sssKey, &g_keyStore)) != kStatus_SSS_Success) {
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
@@ -399,7 +407,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         }
 
         /* RUN AES */
-        if ((sss_sscp_cipher_one_go(&aesCtx, iv, 16, input, output, 16)) != kStatus_SSS_Success) {
+        if ((sss_sscp_cipher_one_go(&aesCtx, iv, 16, input, output, length)) != kStatus_SSS_Success) {
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
 
@@ -417,7 +425,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         }
 
         /* RUN AES */
-        if ((sss_sscp_cipher_one_go(&aesCtx, iv, 16, input, output, 16)) != kStatus_SSS_Success) {
+        if ((sss_sscp_cipher_one_go(&aesCtx, iv, 16, input, output, length)) != kStatus_SSS_Success) {
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
 
@@ -639,7 +647,10 @@ int mbedtls_aes_crypt_cfb128(mbedtls_aes_context *ctx,
     if (mode == MBEDTLS_AES_DECRYPT) {
         while (length--) {
             if (n == 0) {
-                mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, iv, iv);
+                ret = mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, iv, iv);
+                if (ret != 0) {
+                    return ret;
+                }
             }
 
             c = *input++;
@@ -651,7 +662,10 @@ int mbedtls_aes_crypt_cfb128(mbedtls_aes_context *ctx,
     } else {
         while (length--) {
             if (n == 0) {
-                mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, iv, iv);
+                ret = mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, iv, iv);
+                if (ret != 0) {
+                    return ret;
+                }
             }
 
             iv[n] = *output++ = (unsigned char) (iv[n] ^ *input++);
@@ -686,8 +700,10 @@ int mbedtls_aes_crypt_cfb8(mbedtls_aes_context *ctx,
     AES_VALIDATE_RET(output != NULL);
     while (length--) {
         memcpy(ov, iv, 16);
-        mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, iv, iv);
-
+        ret = mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, iv, iv);
+        if (ret != 0) {
+            return ret;
+        }
         if (mode == MBEDTLS_AES_DECRYPT) {
             ov[16] = *input;
         }
@@ -766,6 +782,7 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
 {
     int c, i;
     size_t n;
+    int ret = -1;
 
     AES_VALIDATE_RET(ctx != NULL);
     AES_VALIDATE_RET(nc_off != NULL);
@@ -782,8 +799,10 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
 
     while (length--) {
         if (n == 0) {
-            mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, nonce_counter, stream_block);
-
+            ret = mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, nonce_counter, stream_block);
+            if (ret != 0) {
+                return ret;
+            }
             for (i = 16; i > 0; i--) {
                 if (++nonce_counter[i - 1] != 0) {
                     break;

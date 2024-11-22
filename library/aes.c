@@ -1076,8 +1076,8 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
         return mbedtls_internal_aes_decrypt(ctx, input, output);
     }
 }
-
-#if defined(MBEDTLS_CIPHER_MODE_CBC)
+/* NXP added MBEDTLS_AES_CBC_ALT */
+#if defined(MBEDTLS_CIPHER_MODE_CBC) && !defined(MBEDTLS_AES_CBC_ALT)
 /*
  * AES-CBC buffer encryption/decryption
  */
@@ -1155,9 +1155,9 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
 exit:
     return ret;
 }
-#endif /* MBEDTLS_CIPHER_MODE_CBC */
-
-#if defined(MBEDTLS_CIPHER_MODE_XTS)
+#endif /* MBEDTLS_CIPHER_MODE_CBC && MBEDTLS_AES_CBC_ALT */
+/* NXP added MBEDTLS_AES_XTS_ALT */
+#if defined(MBEDTLS_CIPHER_MODE_XTS) && !defined(MBEDTLS_AES_XTS_ALT)
 
 typedef unsigned char mbedtls_be128[16];
 
@@ -1410,9 +1410,9 @@ int mbedtls_aes_crypt_cfb8(mbedtls_aes_context *ctx,
 exit:
     return ret;
 }
-#endif /* MBEDTLS_CIPHER_MODE_CFB */
-
-#if defined(MBEDTLS_CIPHER_MODE_OFB)
+#endif /* MBEDTLS_CIPHER_MODE_CFB && MBEDTLS_AES_CFB_ALT */
+/* NXP added MBEDTLS_AES_OFB_ALT */
+#if defined(MBEDTLS_CIPHER_MODE_OFB) && !defined(MBEDTLS_AES_OFB_ALT)
 /*
  * AES-OFB (Output Feedback Mode) buffer encryption/decryption
  */
@@ -1455,9 +1455,9 @@ int mbedtls_aes_crypt_ofb(mbedtls_aes_context *ctx,
 exit:
     return ret;
 }
-#endif /* MBEDTLS_CIPHER_MODE_OFB */
-
-#if defined(MBEDTLS_CIPHER_MODE_CTR)
+#endif /* MBEDTLS_CIPHER_MODE_OFB && MBEDTLS_AES_OFB_ALT */
+/* NXP added MBEDTLS_AES_CTR_ALT */
+#if defined(MBEDTLS_CIPHER_MODE_CTR) && !defined(MBEDTLS_AES_CTR_ALT)
 /*
  * AES-CTR buffer encryption/decryption
  */
@@ -1511,7 +1511,7 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
 exit:
     return ret;
 }
-#endif /* MBEDTLS_CIPHER_MODE_CTR */
+#endif /* MBEDTLS_CIPHER_MODE_CTR && MBEDTLS_AES_CTR_ALT */
 
 #endif /* !MBEDTLS_AES_ALT */
 
@@ -1834,7 +1834,12 @@ int mbedtls_aes_self_test(int verbose)
     int ret = 0, i, j, u, mode;
     unsigned int keybits;
     unsigned char key[32];
-    unsigned char buf[64];
+    /* NXP: Move buffer to NON-CACHED memory because of HW accel */ 
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    AT_NONCACHEABLE_SECTION_INIT(static unsigned char buf[64]);
+#else
+    unsigned char buf[64];    
+#endif /* DCACHE */
     const unsigned char *aes_tests;
 #if defined(MBEDTLS_CIPHER_MODE_CBC) || defined(MBEDTLS_CIPHER_MODE_CFB) || \
     defined(MBEDTLS_CIPHER_MODE_OFB)
@@ -1909,11 +1914,11 @@ int mbedtls_aes_self_test(int verbose)
         }
 
         /*
-         * AES-192 is an optional feature that may be unavailable when
+         * AES-192 and AES-256 is an optional feature that may be unavailable when
          * there is an alternative underlying implementation i.e. when
          * MBEDTLS_AES_ALT is defined.
          */
-        if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
+        if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) {
             mbedtls_printf("skipped\n");
             continue;
         } else if (ret != 0) {
@@ -1968,11 +1973,11 @@ int mbedtls_aes_self_test(int verbose)
         }
 
         /*
-         * AES-192 is an optional feature that may be unavailable when
+         * AES-192 and AES-256 is an optional feature that may be unavailable when
          * there is an alternative underlying implementation i.e. when
          * MBEDTLS_AES_ALT is defined.
          */
-        if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
+        if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) {
             mbedtls_printf("skipped\n");
             continue;
         } else if (ret != 0) {
@@ -2034,7 +2039,7 @@ int mbedtls_aes_self_test(int verbose)
          * there is an alternative underlying implementation i.e. when
          * MBEDTLS_AES_ALT is defined.
          */
-        if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
+        if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) {
             mbedtls_printf("skipped\n");
             continue;
         } else if (ret != 0) {
@@ -2093,7 +2098,7 @@ int mbedtls_aes_self_test(int verbose)
          * there is an alternative underlying implementation i.e. when
          * MBEDTLS_AES_ALT is defined.
          */
-        if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
+        if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) {
             mbedtls_printf("skipped\n");
             continue;
         } else if (ret != 0) {

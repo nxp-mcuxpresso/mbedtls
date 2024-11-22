@@ -83,7 +83,8 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_RSA_ALT)
+/* NXP added !MBEDTLS_RSA_CTX_ALT */
+#if !defined(MBEDTLS_RSA_ALT) && !defined(MBEDTLS_RSA_CTX_ALT)
 // Regular implementation
 //
 
@@ -135,6 +136,11 @@ typedef struct mbedtls_rsa_context {
 mbedtls_rsa_context;
 
 #else  /* MBEDTLS_RSA_ALT */
+#include "rsa_alt.h"
+#endif /* MBEDTLS_RSA_ALT */
+
+/* NXP added to suport alt implementation */
+#if defined(MBEDTLS_PKCS1_V21_ALT)
 #include "rsa_alt.h"
 #endif /* MBEDTLS_RSA_ALT */
 

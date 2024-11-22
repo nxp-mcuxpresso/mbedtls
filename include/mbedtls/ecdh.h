@@ -45,6 +45,9 @@ typedef enum {
     MBEDTLS_ECDH_THEIRS, /**< The key of the peer. */
 } mbedtls_ecdh_side;
 
+/* NXP adding for SSS API support */
+#if !defined(NXP_MBEDTLS_ECDH_ALT) 
+
 #if !defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
 /**
  * Defines the ECDH implementation used.
@@ -124,6 +127,9 @@ typedef struct mbedtls_ecdh_context {
 #endif /* MBEDTLS_ECDH_LEGACY_CONTEXT */
 }
 mbedtls_ecdh_context;
+#else  /* !NXP_MBEDTLS_ECDH_ALT */
+#include "ecdh_alt.h"
+#endif /* !NXP_MBEDTLS_ECDH_ALT */
 
 /**
  * \brief          Check whether a given group can be used for ECDH.

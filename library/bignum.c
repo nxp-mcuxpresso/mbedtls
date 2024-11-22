@@ -72,7 +72,8 @@ void mbedtls_mpi_init(mbedtls_mpi *X)
     X->n = 0;
     X->p = NULL;
 }
-
+/* NXP added for HW accelerators support */
+#if !defined(MBEDTLS_MPI_FREE_ALT)
 /*
  * Unallocate one MPI
  */
@@ -91,6 +92,7 @@ void mbedtls_mpi_free(mbedtls_mpi *X)
     X->n = 0;
     X->p = NULL;
 }
+#endif /* MBEDTLS_MPI_FREE_ALT */
 
 /*
  * Enlarge to the specified number of limbs
@@ -1146,8 +1148,12 @@ int mbedtls_mpi_cmp_int(const mbedtls_mpi *X, mbedtls_mpi_sint z)
 
 /*
  * Unsigned addition: X = |A| + |B|  (HAC 14.7)
- */
+ *//* NXP added for HW accelerators support */
+#if defined(MBEDTLS_MPI_ADD_ABS_ALT)
+int mbedtls_mpi_add_abs_orig(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
+#else
 int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
+#endif /* MBEDTLS_MPI_ADD_ABS_ALT */
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t i, j;
@@ -1244,7 +1250,12 @@ static mbedtls_mpi_uint mpi_sub_hlp(size_t n,
 /*
  * Unsigned subtraction: X = |A| - |B|  (HAC 14.9, 14.10)
  */
+/* NXP added for HW accelerators support */
+#if defined(MBEDTLS_MPI_SUB_ABS_ALT)
+int mbedtls_mpi_sub_abs_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#else
 int mbedtls_mpi_sub_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
+#endif /* MBEDTLS_MPI_SUB_ABS_ALT */
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
@@ -1470,7 +1481,12 @@ void mpi_mul_hlp(size_t i,
 /*
  * Baseline multiplication: X = A * B  (HAC 14.12)
  */
+/* NXP added for HW accelerators support */
+#if defined(MBEDTLS_MPI_MUL_MPI_ALT)
+int mbedtls_mpi_mul_mpi_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#else
 int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B)
+#endif /* MBEDTLS_MPI_MUL_MPI_ALT */
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t i, j;
@@ -1820,7 +1836,12 @@ int mbedtls_mpi_div_int(mbedtls_mpi *Q, mbedtls_mpi *R,
 /*
  * Modulo: R = A mod B
  */
+/* NXP added for HW accelerators support */
+#if defined(MBEDTLS_MPI_MOD_MPI_ALT)
+int mbedtls_mpi_mod_mpi_orig( mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#else
 int mbedtls_mpi_mod_mpi(mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi *B)
+#endif /* MBEDTLS_MPI_MOD_MPI_ALT */
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     MPI_VALIDATE_RET(R != NULL);
@@ -2034,9 +2055,14 @@ cleanup:
 /*
  * Sliding-window exponentiation: X = A^E mod N  (HAC 14.85)
  */
+/* NXP added for HW accelerators support */ 
+#if defined(MBEDTLS_MPI_EXP_MOD_ALT)
+int mbedtls_mpi_exp_mod_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *E, const mbedtls_mpi *N, mbedtls_mpi *prec_RR )
+#else
 int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
                         const mbedtls_mpi *E, const mbedtls_mpi *N,
                         mbedtls_mpi *prec_RR)
+#endif /* MBEDTLS_MPI_EXP_MOD_ALT */
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t window_bitsize;
@@ -2330,7 +2356,12 @@ cleanup:
 /*
  * Greatest common divisor: G = gcd(A, B)  (HAC 14.54)
  */
+/* NXP added for HW accelerators support */ 
+#if defined(MBEDTLS_MPI_GCD_ALT)
+int mbedtls_mpi_gcd_orig( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B )
+#else
 int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
+#endif /* MBEDTLS_MPI_GCD_ALT */
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t lz, lzt;
@@ -2571,7 +2602,12 @@ cleanup:
 /*
  * Modular inverse: X = A^-1 mod N  (HAC 14.61 / 14.64)
  */
+/* NXP added for HW accelerators support */ 
+#if defined(MBEDTLS_MPI_INV_MOD_ALT)
+int mbedtls_mpi_inv_mod_orig( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *N )
+#else
 int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *N)
+#endif /* MBEDTLS_MPI_INV_MOD_ALT */
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi G, TA, TU, U1, U2, TB, TV, V1, V2;
@@ -2853,9 +2889,16 @@ int mbedtls_mpi_is_prime_ext(const mbedtls_mpi *X, int rounds,
 /*
  * Pseudo-primality test, error probability 2^-80
  */
+/* NXP added for HW accelerators support */ 
+#if defined(MBEDTLS_MPI_IS_PRIME_ALT)
+int mbedtls_mpi_is_prime_orig( const mbedtls_mpi *X,
+                  int (*f_rng)(void *, unsigned char *, size_t),
+                  void *p_rng )
+#else
 int mbedtls_mpi_is_prime(const mbedtls_mpi *X,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng)
+#endif /* MBEDTLS_MPI_IS_PRIME_ALT */
 {
     MPI_VALIDATE_RET(X     != NULL);
     MPI_VALIDATE_RET(f_rng != NULL);

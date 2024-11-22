@@ -910,6 +910,8 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
 }
 #endif /* !MBEDTLS_ECDSA_GENKEY_ALT */
 
+/* NXP added for HW accelerators support */
+#if !defined(MBEDTLS_ECDSA_ALT)
 /*
  * Set context from an mbedtls_ecp_keypair
  */
@@ -949,6 +951,8 @@ void mbedtls_ecdsa_free(mbedtls_ecdsa_context *ctx)
 
     mbedtls_ecp_keypair_free(ctx);
 }
+#endif /* !MBEDTLS_ECDSA_ALT */
+/* NXP added for HW accelerators support */
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 /*

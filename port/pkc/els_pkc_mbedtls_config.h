@@ -28,6 +28,8 @@
 #define PKC PKC0
 #endif
 
+#ifndef MBEDTLS_MCUX_DISABLE_HW_ALT
+
 /* If those defines are not defined on command line, by default turn them on to use HW acceleration with this mbedtls_config file. Comment to turn off port layer */
 #ifndef MBEDTLS_MCUX_USE_ELS
 #define MBEDTLS_MCUX_USE_ELS 
@@ -36,6 +38,8 @@
 #ifndef MBEDTLS_MCUX_USE_PKC
 #define MBEDTLS_MCUX_USE_PKC 
 #endif
+
+#endif /* MBEDTLS_MCUX_DISABLE_HW_ALT */
 
 /* Eanble usage of TRNG as entropy seeding source based upon Platform TRNG support and configurability*/
 #if defined(MCUX_ENABLE_TRNG_AS_ENTROPY_SEED) && \

@@ -49,6 +49,15 @@
 #include <ecc_alt.h>
 #include <mbedtls/ecdh.h>
 
+#include <mcuxClCore_Macros.h>
+#include <internal/mcuxClHashModes_Internal.h>
+#include <internal/mcuxClKey_Types_Internal.h>
+#include <internal/mcuxClCipherModes_Els_Types.h>
+#include <internal/mcuxClAeadModes_Els_Types.h>
+#include <internal/mcuxClMacModes_Els_Ctx.h>
+#include <internal/mcuxClHash_Internal.h>
+#include <internal/mcuxClHash_Internal_Memory.h>
+
 /* Definition of maximum lengths of key for RSA in bits */
 #define MCUX_PKC_RSA_KEY_SIZE_MAX (4096u)
 
@@ -79,7 +88,7 @@
     MCUX_PKC_MAX(MCUXCLRANDOMMODES_INIT_WACPU_SIZE,                                               \
           MCUX_PKC_MAX(MCUX_PKC_MAX(MCUX_PKC_SIGN_BY_ALT_RSA_WACPU_SIZE_MAX,                      \
                                             MCUXCLECC_SIGN_WACPU_SIZE),  \
-                        MCUXCLHASH_COMPUTE_CPU_WA_BUFFER_SIZE_MAX))
+                        MCUXCLHASH_INTERNAL_WACPU_MAX))
 
 /* Macro determining maximum size of CPU workarea size for MCUX_PKC verify */
 #define MCUX_PKC_VERIFY_BY_ALT_RSA_WACPU_SIZE_MAX                                                \
@@ -89,12 +98,13 @@
 #define MCUX_PKC_VERIFY_BY_ALT_WACPU_SIZE_MAX                                                    \
     MCUX_PKC_MAX(MCUXCLRANDOMMODES_INIT_WACPU_SIZE,                                               \
         MCUX_PKC_MAX(MCUX_PKC_MAX(MCUX_PKC_VERIFY_BY_ALT_RSA_WACPU_SIZE_MAX, MCUXCLECC_VERIFY_WACPU_SIZE),    \
-        MCUXCLHASH_COMPUTE_CPU_WA_BUFFER_SIZE_MAX))
+        MCUXCLHASH_INTERNAL_WACPU_MAX))
 
 /* Macro determining maximum size of PKC workarea size for MCUX_PKC Signature calculation */
 #define MCUX_PKC_SIGN_BY_ALT_WAPKC_SIZE_MAX                                                     \
-    MCUX_PKC_MAX(MCUXCLRSA_SIGN_CRT_WAPKC_SIZE(MCUX_PKC_RSA_KEY_SIZE_MAX),                      \
-                        MCUXCLECC_SIGN_WACPU_SIZE(MCUX_PKC_ECC_N_SIZE_MAX))
+    MCUX_PKC_MAX(MCUX_PKC_MAX(MCUXCLRSA_SIGN_CRT_WAPKC_SIZE(MCUX_PKC_RSA_KEY_SIZE_MAX),         \
+    MCUXCLRSA_SIGN_PLAIN_WAPKC_SIZE(MCUX_PKC_RSA_KEY_SIZE_MAX)),                            \
+                        MCUXCLECC_SIGN_WAPKC_SIZE_640)
 
 /* Macro determining maximum size of PKC workarea size for MCUX_PKC verify */
 #define MCUX_PKC_VERIFY_BY_ALT_WAPKC_SIZE_MAX                                                   \
@@ -191,7 +201,6 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
 
     /* Buffer for the CPU workarea in memory. */
     uint32_t cpuWaBuffer[MCUX_PKC_SIGN_BY_ALT_WACPU_SIZE_MAX / sizeof(uint32_t)];
-    uint32_t cpuWaSize = sizeof(cpuWaBuffer) / sizeof(cpuWaBuffer[0]);
 
     /* PKC buffer and size */
     uint8_t *pPkcRam         = (uint8_t *)MCUXCLPKC_RAM_START_ADDRESS;
@@ -201,7 +210,7 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
                                          mcuxClSession_init(
                                              /* mcuxClSession_Handle_t session:     */ &session,
                                              /* uint32_t * const cpuWaBuffer:       */ cpuWaBuffer,
-                                             /* uint32_t cpuWaSize:                 */ cpuWaSize,
+                                             /* uint32_t cpuWaSize:                 */ MCUX_PKC_SIGN_BY_ALT_WACPU_SIZE_MAX,
                                              /* uint32_t * const pkcWaBuffer:       */ (uint32_t *)pPkcRam,
                                              /* uint32_t pkcWaSize:                 */ pkcWaSize));
     if (MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClSession_init) != tokenSessionInit)
@@ -286,6 +295,13 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp,
     {
         mbedtls_ecp_free_ecdsa(&pDomainParams, NULL, NULL, &paramSign);
         return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    /* Free els_mutex in case of mcuxClRandom_init failure*/
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_unlock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
+        return ret;
+#endif
+        /* go to clean up to free pkc_mutex*/
         goto cleanup;
     }
 
@@ -383,7 +399,6 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
 
     /* Buffer for the CPU workarea in memory. */
     uint32_t cpuWaBuffer[MCUX_PKC_VERIFY_BY_ALT_WACPU_SIZE_MAX / sizeof(uint32_t)];
-    uint32_t cpuWaSize = sizeof(cpuWaBuffer) / sizeof(cpuWaBuffer[0]);
 
     /* PKC buffer and size */
     uint8_t *pPkcRam         = (uint8_t *)MCUXCLPKC_RAM_START_ADDRESS;
@@ -393,7 +408,7 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
                                          mcuxClSession_init(
                                              /* mcuxClSession_Handle_t session:     */ &session,
                                              /* uint32_t * const cpuWaBuffer:       */ cpuWaBuffer,
-                                             /* uint32_t cpuWaSize:                 */ cpuWaSize,
+                                             /* uint32_t cpuWaSize:                 */ MCUX_PKC_VERIFY_BY_ALT_WACPU_SIZE_MAX,
                                              /* uint32_t * const pkcWaBuffer:       */ (uint32_t *)pPkcRam,
                                              /* uint32_t pkcWaSize:                 */ pkcWaSize));
 

@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------------------*/
-/* Copyright 2021, 2023 NXP                                                 */
+/* Copyright 2021, 2023, 2025 NXP                                           */
 /*                                                                          */
 /* NXP Confidential. This software is owned or controlled by NXP and may    */
 /* only be used strictly in accordance with the applicable license terms.   */
@@ -63,7 +63,7 @@ static int mbedtls_aes_setkey_alt(mbedtls_aes_context *ctx, const unsigned char 
     }
     else
     {
-        uint32_t keyByteLen = (uint32_t) keybits / 8u;    
+        uint32_t keyByteLen = (uint32_t) keybits / 8u;
         MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retMemCpy, tokenMemCpy,
                                              mcuxClMemory_copy((uint8_t *)ctx->pKey, key, keyByteLen, keyByteLen));
 
@@ -247,6 +247,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
 {
     int return_code = 0;
     uint32_t temp[4];
+    size_t newIvOffset = length - 16u; // Second-to-last AES block
 #if defined(MBEDTLS_THREADING_C)
     int ret;
     if ((ret = mbedtls_mutex_lock(&mbedtls_threading_hwcrypto_els_mutex)) != 0)
@@ -268,7 +269,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         mcuxClEls_CipherOption_t cipherOption;
         if (MBEDTLS_AES_ENCRYPT == mode)
         {
-            pNewIv       = output;
+            pNewIv       = output + newIvOffset;
             cipherOption = (mcuxClEls_CipherOption_t){.bits.dcrpt  = MCUXCLELS_CIPHER_ENCRYPT,
                                                       .bits.cphmde = MCUXCLELS_CIPHERPARAM_ALGORITHM_AES_CBC,
                                                       .bits.extkey = MCUXCLELS_CIPHER_EXTERNAL_KEY};
@@ -282,7 +283,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
 
             /* Backup input[] as the next IV (ps, input[] will be overwritten if result in-place). */
             MCUX_CSSL_FP_FUNCTION_CALL_PROTECTED(retMemCpy0, tokenMemCpy,
-                                                 mcuxClMemory_copy((uint8_t *)temp, input, 16u, 16u));
+                                                 mcuxClMemory_copy((uint8_t *)temp, input + newIvOffset, 16u, 16u));
             if ((MCUX_CSSL_FP_FUNCTION_CALLED(mcuxClMemory_copy) != tokenMemCpy) || (0u != retMemCpy0))
             {
                 return_code = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -340,8 +341,8 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
                           const unsigned char *input,
                           unsigned char *output)
 {
-    if ((NULL == ctx) || (NULL == nc_off) || (NULL == nonce_counter) || (NULL == stream_block) 
-        || ((NULL == input) && (0 != length)) || ((NULL == output) && (0 != length)) ) 
+    if ((NULL == ctx) || (NULL == nc_off) || (NULL == nonce_counter) || (NULL == stream_block)
+        || ((NULL == input) && (0 != length)) || ((NULL == output) && (0 != length)) )
     {
         return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
     }

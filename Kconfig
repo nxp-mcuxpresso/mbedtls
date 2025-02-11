@@ -172,14 +172,15 @@ menu "mbedtls"
 if MCUX_COMPONENT_middleware.mbedtls
     
     config MBEDTLS_USER_CONFIG_ENABLE
-	bool "User mbedTLS config file"
-	help
-	  Enable Mbedtls user config file that will be included at the end of the generic config file.
+    bool "User mbedTLS config file"
+    help
+        Enable Mbedtls user config file that will be included at the end of the generic config file.
 
     config MBEDTLS_USER_CONFIG_FILE
-    string "User configuration file for MbedTLS" if MBEDTLS_USER_CONFIG_ENABLE
+    string "MBEDTLS_USER_CONFIG_FILE" if MBEDTLS_USER_CONFIG_ENABLE
     help
         User config file that can override or include mbedtls configs not addressed by the generic config file.
+        No prefix in generated macro
 
 endif # MCUX_COMPONENT_middleware.mbedtls
 

@@ -1,0 +1,74 @@
+{
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "spdxVersion": "SPDX-2.3",
+  "creationInfo": {
+    "created": "2025-05-27T10:06:04Z",
+    "creators": [
+      "Organization: NXP"
+    ],
+    "licenseListVersion": "3.20"
+  },
+  "name": "mbedtls-v25.06.00",
+  "dataLicense": "CC0-1.0",
+  "documentNamespace": "https://nxp.com/spdx/c27da507-8f9f-458c-bb1b-e9c0322adf08",
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-package-c27da507-8f9f-458c-bb1b-e9c0322adf08",
+      "name": "mbedtls",
+      "versionInfo": "v25.06.00",
+      "licenseConcluded": "(Apache-2.0)",
+      "licenseDeclared": "(Apache-2.0)",
+      "downloadLocation": "https://github.com/nxp-mcuxpresso/mbedtls",
+      "originator": "Organization: NXP",
+      "supplier": "NOASSERTION",
+      "externalRefs": [],
+      "filesAnalyzed": false
+    },
+    {
+      "SPDXID": "SPDXRef-package-bd6ba105-69f6-4839-b234-61efd820f3e3",
+      "name": "mbed TLS",
+      "versionInfo": "v2.28.10",
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "(Apache-2.0 OR GPL-2.0-or-later)",
+      "homepage": "https://www.trustedfirmware.org/",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: alpine",
+      "supplier": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "cpe:2.3:a:mbed:mbedtls:2.28.10:*:*:*:*:*:*:*",
+          "referenceType": "cpe23Type"
+        },
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:apk/alpine/mbedtls-dev@2.28.10-r0?arch=x86_64",
+          "referenceType": "purl"
+        },
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "3187a69e-0c7e-4464-990b-b9ab0884e7ca",
+          "referenceType": "BlackDuck-ComponentOrigin"
+        }
+      ],
+      "filesAnalyzed": false
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-package-c27da507-8f9f-458c-bb1b-e9c0322adf08"
+    },
+    {
+      "spdxElementId": "SPDXRef-package-c27da507-8f9f-458c-bb1b-e9c0322adf08",
+      "relationshipType": "DYNAMIC_LINK",
+      "relatedSpdxElement": "SPDXRef-package-bd6ba105-69f6-4839-b234-61efd820f3e3"
+    },
+    {
+      "spdxElementId": "SPDXRef-package-c27da507-8f9f-458c-bb1b-e9c0322adf08",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-package-bd6ba105-69f6-4839-b234-61efd820f3e3"
+    }
+  ]
+}

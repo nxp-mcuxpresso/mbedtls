@@ -2,20 +2,20 @@
   "SPDXID": "SPDXRef-DOCUMENT",
   "spdxVersion": "SPDX-2.3",
   "creationInfo": {
-    "created": "2025-05-27T10:06:04Z",
+    "created": "2025-09-01T13:00:43Z",
     "creators": [
       "Organization: NXP"
     ],
     "licenseListVersion": "3.20"
   },
-  "name": "mbedtls-v25.06.00",
+  "name": "mbedtls-v25.09.00",
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://nxp.com/spdx/c27da507-8f9f-458c-bb1b-e9c0322adf08",
+  "documentNamespace": "https://nxp.com/spdx/fc43e6a0-9a43-48ae-aee6-062f5b5ad9ad",
   "packages": [
     {
-      "SPDXID": "SPDXRef-package-c27da507-8f9f-458c-bb1b-e9c0322adf08",
+      "SPDXID": "SPDXRef-package-fc43e6a0-9a43-48ae-aee6-062f5b5ad9ad",
       "name": "mbedtls",
-      "versionInfo": "v25.06.00",
+      "versionInfo": "v25.09.00",
       "licenseConcluded": "(Apache-2.0)",
       "licenseDeclared": "(Apache-2.0)",
       "downloadLocation": "https://github.com/nxp-mcuxpresso/mbedtls",
@@ -32,9 +32,19 @@
       "licenseDeclared": "(Apache-2.0 OR GPL-2.0-or-later)",
       "homepage": "https://www.trustedfirmware.org/",
       "downloadLocation": "NOASSERTION",
-      "originator": "Organization: alpine",
+      "originator": "Organization: mbed-tls",
       "supplier": "NOASSERTION",
       "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "cpe:2.3:a:arm:mbed_tls:2.28.10:*:*:*:*:*:*:*",
+          "referenceType": "cpe23Type"
+        },
+        {
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "cpe:2.3:o:arm:mbed_tls:2.28.10:*:*:*:*:*:*:*",
+          "referenceType": "cpe23Type"
+        },
         {
           "referenceCategory": "SECURITY",
           "referenceLocator": "cpe:2.3:a:mbed:mbedtls:2.28.10:*:*:*:*:*:*:*",
@@ -42,12 +52,12 @@
         },
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:apk/alpine/mbedtls-dev@2.28.10-r0?arch=x86_64",
+          "referenceLocator": "pkg:github/Mbed-TLS/mbedtls@mbedtls-2.28.10",
           "referenceType": "purl"
         },
         {
           "referenceCategory": "OTHER",
-          "referenceLocator": "3187a69e-0c7e-4464-990b-b9ab0884e7ca",
+          "referenceLocator": "4859d693-5791-4896-9272-ffcc4b44114a",
           "referenceType": "BlackDuck-ComponentOrigin"
         }
       ],
@@ -58,15 +68,10 @@
     {
       "spdxElementId": "SPDXRef-DOCUMENT",
       "relationshipType": "DESCRIBES",
-      "relatedSpdxElement": "SPDXRef-package-c27da507-8f9f-458c-bb1b-e9c0322adf08"
+      "relatedSpdxElement": "SPDXRef-package-fc43e6a0-9a43-48ae-aee6-062f5b5ad9ad"
     },
     {
-      "spdxElementId": "SPDXRef-package-c27da507-8f9f-458c-bb1b-e9c0322adf08",
-      "relationshipType": "DYNAMIC_LINK",
-      "relatedSpdxElement": "SPDXRef-package-bd6ba105-69f6-4839-b234-61efd820f3e3"
-    },
-    {
-      "spdxElementId": "SPDXRef-package-c27da507-8f9f-458c-bb1b-e9c0322adf08",
+      "spdxElementId": "SPDXRef-package-fc43e6a0-9a43-48ae-aee6-062f5b5ad9ad",
       "relationshipType": "CONTAINS",
       "relatedSpdxElement": "SPDXRef-package-bd6ba105-69f6-4839-b234-61efd820f3e3"
     }

@@ -6,7 +6,7 @@
  */
 
 /*
- * Copyright 2019-2021 NXP
+ * Copyright 2019-2021, 2025 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -49,6 +49,12 @@
     MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA)
 #define ECDH_VALIDATE(cond)        \
     MBEDTLS_INTERNAL_VALIDATE(cond)
+        
+#define BLOB_DATA_OVERLAY_BYTE_LEN 24U
+
+
+static size_t  ecdhKeyPairBlobSize = (3 * ECP256_COORDINATE_LEN) + BLOB_DATA_OVERLAY_BYTE_LEN;
+static uint8_t ecdhKeyPairBlob[(3 * ECP256_COORDINATE_LEN) + BLOB_DATA_OVERLAY_BYTE_LEN];
 
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
 typedef mbedtls_ecdh_context mbedtls_ecdh_context_mbed;
@@ -743,6 +749,55 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx,
                                     blen);
         ret = 0;
     } while (0);
+
+    return ret;
+}
+
+int mbedtls_ecdh_export_context(mbedtls_ecdh_context *ctx)
+{
+    int ret = 0;
+    if (sss_sscp_key_store_export_key(&g_keyStore, &ctx->key, ecdhKeyPairBlob, &ecdhKeyPairBlobSize,
+                                      kSSS_blobType_ELKE_blob) != kStatus_SSS_Success)
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+    }
+    return ret;
+}
+
+int mbedtls_ecdh_import_context(mbedtls_ecdh_context *ctx)
+{
+    int ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+
+    do
+    {
+        if ((CRYPTO_InitHardware()) != kStatus_Success)
+        {
+            break;
+        }
+        if ((sss_sscp_key_object_init(&ctx->key, &g_keyStore)) != kStatus_SSS_Success)
+        {
+            (void)SSS_KEY_OBJ_FREE(&ctx->key);
+            break;
+        }
+        /* Allocate key handle */
+        if ((sss_sscp_key_object_allocate_handle(&ctx->key, 0, kSSS_KeyPart_Pair, kSSS_CipherType_EC_NIST_P,
+                                                 3u * ECP256_COORDINATE_LEN, SSS_KEYPROP_OPERATION_KDF)) !=
+            kStatus_SSS_Success)
+
+        {
+            (void)SSS_KEY_OBJ_FREE(&ctx->key);
+            break;
+        }
+
+        if (kStatus_SSS_Success != sss_sscp_key_store_import_key(&g_keyStore, &ctx->key, ecdhKeyPairBlob,
+                                                                 ecdhKeyPairBlobSize, 3U * ECP256_COORDINATE_BITLEN,
+                                                                 kSSS_blobType_ELKE_blob))
+        {
+            break;
+        }
+
+        ret = 0;
+    } while (false);
 
     return ret;
 }

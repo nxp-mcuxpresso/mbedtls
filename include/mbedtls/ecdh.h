@@ -428,6 +428,30 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx, size_t *olen,
 void mbedtls_ecdh_enable_restart(mbedtls_ecdh_context *ctx);
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
+/**
+ * \brief           This function exports context from HW accelerator to avoid 
+ *                  losing the context.
+ *
+ * \param ctx       The ECDH context to use. This must be initialized
+ *                  and bound to a group, the latter usually by
+ *                  mbedtls_ecdh_read_params().
+ *
+ * \return          error status 0 if success
+ */
+int mbedtls_ecdh_export_context(mbedtls_ecdh_context *ctx);
+
+/**
+ * \brief           This function imports keys to HW accelerator to avoid 
+ *                  losing the context.
+ *
+ * \param ctx       The ECDH context to use. This must be initialized
+ *                  and bound to a group, the latter usually by
+ *                  mbedtls_ecdh_read_params().
+ *
+ * \return          error status 0 if success
+ */
+int mbedtls_ecdh_import_context(mbedtls_ecdh_context *ctx);
+
 #ifdef __cplusplus
 }
 #endif

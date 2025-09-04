@@ -18,7 +18,7 @@
  */
 
 /*
- * Copyright 2019-2020 NXP
+ * Copyright 2019-2020, 2025 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -147,6 +147,31 @@ int mbedtls_ecdh_calc_secret_sw(mbedtls_ecdh_context *ctx,
 
 int mbedtls_ecdh_self_test(int verbose);
 #endif /* MBEDTLS_SELF_TEST */
+
+/**
+ * \brief           This function exports keys from S200 in a blob to avoid 
+ *                  losing the context when main domain is going in power down.
+ *
+ * \param ctx       The ECDH context to use. This must be initialized
+ *                  and bound to a group, the latter usually by
+ *                  mbedtls_ecdh_read_params().
+ *
+ * \return          error status 0 if success
+ */
+int mbedtls_ecdh_export_context(mbedtls_ecdh_context *ctx);
+
+/**
+ * \brief           This function imports keys to S200 from a blob to avoid 
+ *                  losing the context when main domain was in power down.
+ *
+ * \param ctx       The ECDH context to use. This must be initialized
+ *                  and bound to a group, the latter usually by
+ *                  mbedtls_ecdh_read_params().
+ *
+ * \return          error status 0 if success
+ */
+int mbedtls_ecdh_import_context(mbedtls_ecdh_context *ctx);
+
 #endif /* MBEDTLS_ECDH_ALT */
 
 #ifdef __cplusplus

@@ -730,6 +730,19 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx, size_t *olen,
 #endif
 }
 
+int mbedtls_ecdh_export_context(mbedtls_ecdh_context *ctx)
+{
+	/* No context to export as there is no hardware accelerator */
+    return 0;
+}
+
+int mbedtls_ecdh_import_context(mbedtls_ecdh_context *ctx)
+{
+	/* No context to import as there is no hardware accelerator */
+    return 0;
+}
+
 #endif /*#if !defined(MBEDTLS_ECDH_ALT) */
+
 /* NXP added for HW accelerators support */
 #endif /* MBEDTLS_ECDH_C */

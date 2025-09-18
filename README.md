@@ -2,7 +2,8 @@
 ====================================================================
 
 Mbed TLS 2.28.10 is the last release of the 2.28 LTS and won't receive bug fixes or security fixes anymore.
-Users are advised to upgrade to a maintained version.
+Users are advised to upgrade to a maintained version. Please note the following:
+MBEDTLS version 2.x is marked for deprecation, will be removed from MCUXpresso SDK in a future release, and will be replaced with MBEDTLS 3.x. Users are encouraged to migrate to MBEDTLS 3.x.
 
 README for Mbed TLS
 ===================

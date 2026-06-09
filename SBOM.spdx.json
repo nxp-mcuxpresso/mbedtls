@@ -2,20 +2,20 @@
   "SPDXID": "SPDXRef-DOCUMENT",
   "spdxVersion": "SPDX-2.3",
   "creationInfo": {
-    "created": "2026-02-06T09:17:31Z",
+    "created": "2026-06-09T02:00:48Z",
     "creators": [
       "Organization: NXP"
     ],
-    "licenseListVersion": "3.26"
+    "licenseListVersion": "3.28"
   },
-  "name": "mbedtls-v26.03.00-pvw2",
+  "name": "mbedtls-v26.06.00",
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://nxp.com/spdx/df55f0cf-45ce-4455-a6a4-eb11750582ed",
+  "documentNamespace": "https://nxp.com/spdx/9738e62d-88b8-4418-809a-6c8a614130de",
   "packages": [
     {
-      "SPDXID": "SPDXRef-package-df55f0cf-45ce-4455-a6a4-eb11750582ed",
+      "SPDXID": "SPDXRef-package-9738e62d-88b8-4418-809a-6c8a614130de",
       "name": "mbedtls",
-      "versionInfo": "v26.03.00-pvw2",
+      "versionInfo": "v26.06.00",
       "licenseConcluded": "(Apache-2.0)",
       "licenseDeclared": "(Apache-2.0)",
       "downloadLocation": "NOASSERTION",
@@ -25,11 +25,11 @@
       "filesAnalyzed": false
     },
     {
-      "SPDXID": "SPDXRef-package-afb9a437-666d-44c1-9c81-f31662201c51",
+      "SPDXID": "SPDXRef-package-9738e62d-88b8-4418-809a-6c8a614130de---e4d71e16-d4e4-4af3-bc90-4a32f0aafc90",
       "name": "mbed TLS",
-      "versionInfo": "v4.0.0",
-      "licenseConcluded": "Apache-2.0",
-      "licenseDeclared": "Apache-2.0",
+      "versionInfo": "4.1.0",
+      "licenseConcluded": "(Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND Zlib)",
+      "licenseDeclared": "(Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND Zlib)",
       "homepage": "https://www.trustedfirmware.org/",
       "downloadLocation": "NOASSERTION",
       "originator": "Organization: mbed TLS",
@@ -37,17 +37,17 @@
       "externalRefs": [
         {
           "referenceCategory": "SECURITY",
-          "referenceLocator": "cpe:2.3:a:arm:mbed_tls:4.0.0:*:*:*:*:*:*:*",
+          "referenceLocator": "cpe:2.3:a:arm:mbed_tls:4.1.0:*:*:*:*:*:*:*",
           "referenceType": "cpe23Type"
         },
         {
           "referenceCategory": "SECURITY",
-          "referenceLocator": "cpe:2.3:a:mbed:mbedtls:4.0.0:*:*:*:*:*:*:*",
+          "referenceLocator": "cpe:2.3:a:mbed:mbedtls:4.1.0:*:*:*:*:*:*:*",
           "referenceType": "cpe23Type"
         },
         {
           "referenceCategory": "SECURITY",
-          "referenceLocator": "cpe:2.3:o:arm:mbed_tls:4.0.0:*:*:*:*:*:*:*",
+          "referenceLocator": "cpe:2.3:o:arm:mbed_tls:4.1.0:*:*:*:*:*:*:*",
           "referenceType": "cpe23Type"
         }
       ],
@@ -58,12 +58,12 @@
     {
       "spdxElementId": "SPDXRef-DOCUMENT",
       "relationshipType": "DESCRIBES",
-      "relatedSpdxElement": "SPDXRef-package-df55f0cf-45ce-4455-a6a4-eb11750582ed"
+      "relatedSpdxElement": "SPDXRef-package-9738e62d-88b8-4418-809a-6c8a614130de"
     },
     {
-      "spdxElementId": "SPDXRef-package-df55f0cf-45ce-4455-a6a4-eb11750582ed",
+      "spdxElementId": "SPDXRef-package-9738e62d-88b8-4418-809a-6c8a614130de",
       "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-package-afb9a437-666d-44c1-9c81-f31662201c51"
+      "relatedSpdxElement": "SPDXRef-package-9738e62d-88b8-4418-809a-6c8a614130de---e4d71e16-d4e4-4af3-bc90-4a32f0aafc90"
     }
   ]
 }
